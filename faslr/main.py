@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu
 
 
 class MainWindow(QMainWindow):
@@ -8,6 +8,17 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
+
+        self.create_menu_bar()
+
+    def create_menu_bar(self):
+
+        menu_bar = self.menuBar()
+
+        file_menu = QMenu("&File", self)
+        menu_bar.addMenu(file_menu)
+        menu_bar.addMenu("&Edit")
+        menu_bar.addMenu("&Help")
 
 
 app = QApplication(sys.argv)
