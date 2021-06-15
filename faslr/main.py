@@ -7,6 +7,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.setMinimumWidth(400)
+
         self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
 
         self.create_menu_bar()
