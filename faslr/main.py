@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QAction
 
 
 class MainWindow(QMainWindow):
@@ -13,6 +13,8 @@ class MainWindow(QMainWindow):
 
         self.create_menu_bar()
 
+        # self.create_actions()
+
     def create_menu_bar(self):
 
         menu_bar = self.menuBar()
@@ -20,7 +22,17 @@ class MainWindow(QMainWindow):
         file_menu = QMenu("&File", self)
         menu_bar.addMenu(file_menu)
         menu_bar.addMenu("&Edit")
-        menu_bar.addMenu("&Help")
+        help_menu = menu_bar.addMenu("&Help")
+
+        self.new_action = QAction(self)
+        self.new_action.setText("&New Project")
+
+        self.about_action = QAction("&About", self)
+
+
+        file_menu.addAction(self.new_action)
+
+        help_menu.addAction(self.about_action)
 
 
 app = QApplication(sys.argv)
