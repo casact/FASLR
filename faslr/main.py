@@ -1,5 +1,7 @@
 import sys
 
+from constants import BUILD_VERSION
+
 from PyQt5.QtGui import QKeySequence
 
 from PyQt5.QtWidgets import (
@@ -9,6 +11,7 @@ from PyQt5.QtWidgets import (
     QDialogButtonBox,
     QMainWindow,
     QMenu,
+    QMessageBox,
     QStatusBar,
     QVBoxLayout
 )
@@ -51,6 +54,7 @@ class MainWindow(QMainWindow):
 
         self.about_action = QAction("&About", self)
         self.about_action.setStatusTip("About")
+        self.about_action.triggered.connect(self.display_about)
 
         file_menu = QMenu("&File", self)
         menu_bar.addMenu(file_menu)
@@ -74,6 +78,11 @@ class MainWindow(QMainWindow):
         dlg = ConnectionDialog(self)
         dlg.exec_()
 
+    def display_about(self):
+
+        dlg = AboutDialog(self)
+        dlg.exec_()
+
 
 class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
@@ -91,6 +100,16 @@ class ConnectionDialog(QDialog):
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
+
+class AboutDialog(QMessageBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle("About")
+        self.setText("FASLR v" + BUILD_VERSION + "\n\nGit Repository: https://github.com/genedan/FASLR")
+
+        self.setStandardButtons(QMessageBox.Ok)
+        self.setIcon(QMessageBox.Information)
 
 app = QApplication(sys.argv)
 
