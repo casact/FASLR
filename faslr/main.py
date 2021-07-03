@@ -5,9 +5,12 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QAction,
     QApplication,
+    QDialog,
+    QDialogButtonBox,
     QMainWindow,
     QMenu,
-    QStatusBar
+    QStatusBar,
+    QVBoxLayout
 )
 
 
@@ -17,7 +20,7 @@ class MainWindow(QMainWindow):
 
         # Flag to determine whether there is an active database connection. Most project-related functions
         # should be disabled unless a connection is established.
-        connection_established = False
+        # connection_established = False
 
         self.setMinimumWidth(400)
 
@@ -28,6 +31,7 @@ class MainWindow(QMainWindow):
         self.connection_action = QAction("&Connection", self)
         self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
         self.connection_action.setStatusTip("Edit database connection.")
+        self.connection_action.triggered.connect(self.edit_connection)
 
         self.new_action = QAction("&New Project", self)
         self.new_action.setShortcut(QKeySequence("Ctrl+n"))
@@ -64,6 +68,28 @@ class MainWindow(QMainWindow):
         help_menu.addAction(self.about_action)
 
         self.setStatusBar(QStatusBar(self))
+
+    def edit_connection(self):
+
+        dlg = ConnectionDialog(self)
+        dlg.exec_()
+
+
+class ConnectionDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Connection")
+
+        button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+
+        self.button_box = QDialogButtonBox(button_layout)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.button_box)
+        self.setLayout(self.layout)
 
 
 app = QApplication(sys.argv)
