@@ -111,6 +111,7 @@ class AboutDialog(QMessageBox):
         self.setStandardButtons(QMessageBox.Ok)
         self.setIcon(QMessageBox.Information)
 
+
 app = QApplication(sys.argv)
 
 window = MainWindow()

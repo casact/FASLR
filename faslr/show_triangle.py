@@ -4,6 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 import pandas as pd
 
+
 class TableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, data):
