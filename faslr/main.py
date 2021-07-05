@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QMenu,
     QMessageBox,
+    QRadioButton,
     QStatusBar,
     QVBoxLayout
 )
@@ -89,6 +90,14 @@ class ConnectionDialog(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Connection")
+        self.layout = QVBoxLayout()
+
+        radiobutton = QRadioButton("Connect to existing database")
+        radiobutton.setChecked(True)
+        self.layout.addWidget(radiobutton)
+
+        radiobutton = QRadioButton("Create new database")
+        self.layout.addWidget(radiobutton)
 
         button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
@@ -96,7 +105,6 @@ class ConnectionDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-        self.layout = QVBoxLayout()
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
