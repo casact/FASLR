@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QDialog,
     QDialogButtonBox,
+    QFileDialog,
     QMainWindow,
     QMenu,
     QMessageBox,
@@ -24,7 +25,7 @@ class MainWindow(QMainWindow):
 
         # Flag to determine whether there is an active database connection. Most project-related functions
         # should be disabled unless a connection is established.
-        # connection_established = False
+        connection_established = False
 
         self.setMinimumWidth(400)
 
@@ -74,6 +75,10 @@ class MainWindow(QMainWindow):
 
         self.setStatusBar(QStatusBar(self))
 
+        # disable project-based menu items until connection is established
+        if not connection_established:
+            self.new_action.setEnabled(False)
+
     def edit_connection(self):
 
         dlg = ConnectionDialog(self)
@@ -102,11 +107,16 @@ class ConnectionDialog(QDialog):
         button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(button_layout)
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.open_existing_db)
         self.button_box.rejected.connect(self.reject)
 
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
+
+    def open_existing_db(self):
+        filename = QFileDialog.getOpenFileName(self, 'OpenFile')
+        print(filename)
+        self.close()
 
 
 class AboutDialog(QMessageBox):
