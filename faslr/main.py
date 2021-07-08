@@ -1,6 +1,11 @@
+import os
+import schema
+import sqlalchemy as sa
 import sys
 
 from constants import BUILD_VERSION
+
+from sqlalchemy.orm import sessionmaker
 
 from PyQt5.QtGui import QKeySequence
 
@@ -25,7 +30,7 @@ class MainWindow(QMainWindow):
 
         # Flag to determine whether there is an active database connection. Most project-related functions
         # should be disabled unless a connection is established.
-        connection_established = False
+        self.connection_established = False
 
         self.setMinimumWidth(400)
 
@@ -75,8 +80,13 @@ class MainWindow(QMainWindow):
 
         self.setStatusBar(QStatusBar(self))
 
-        # disable project-based menu items until connection is established
-        if not connection_established:
+        self.toggle_project_actions()
+
+    # disable project-based menu items until connection is established
+    def toggle_project_actions(self):
+        if self.connection_established:
+            self.new_action.setEnabled(True)
+        else:
             self.new_action.setEnabled(False)
 
     def edit_connection(self):
@@ -97,25 +107,59 @@ class ConnectionDialog(QDialog):
         self.setWindowTitle("Connection")
         self.layout = QVBoxLayout()
 
-        radiobutton = QRadioButton("Connect to existing database")
-        radiobutton.setChecked(True)
-        self.layout.addWidget(radiobutton)
+        self.existing_connection = QRadioButton("Connect to existing database")
+        self.existing_connection.setChecked(True)
+        self.layout.addWidget(self.existing_connection)
 
-        radiobutton = QRadioButton("Create new database")
-        self.layout.addWidget(radiobutton)
+        self.new_connection = QRadioButton("Create new database")
+        self.layout.addWidget(self.new_connection)
 
         button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(button_layout)
-        self.button_box.accepted.connect(self.open_existing_db)
+        self.button_box.accepted.connect(self.make_connection)
         self.button_box.rejected.connect(self.reject)
 
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
+    def make_connection(self):
+
+        if self.existing_connection.isChecked():
+            self.open_existing_db()
+        elif self.new_connection.isChecked():
+            self.create_new_db()
+
+    def create_new_db(self):
+
+        if "PYCHARM_HOSTED" in os.environ:
+            filepath_option = QFileDialog.DontUseNativeDialog
+        else:
+            filepath_option = QFileDialog.ShowDirsOnly
+
+        filename = QFileDialog.getSaveFileName(
+            self,
+            'SaveFile',
+            '',
+            "Sqlite Database (*.db)",
+            options=filepath_option
+        )
+        print(filename[0])
+        engine = sa.create_engine(
+            'sqlite:///' + filename[0],
+            echo=True
+        )
+        session = sessionmaker(bind=engine)
+        schema.Base.metadata.create_all(engine)
+        session = session()
+        connection = engine.connect()
+
+        self.close()
+
     def open_existing_db(self):
         filename = QFileDialog.getOpenFileName(self, 'OpenFile')
         print(filename)
+        # parent.toggle_project_actions(self.parent)
         self.close()
 
 
