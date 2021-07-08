@@ -1,3 +1,4 @@
 chainladder
+pytest
 PyQt5
 sqlalchemy
