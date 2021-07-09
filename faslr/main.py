@@ -3,7 +3,10 @@ import schema
 import sqlalchemy as sa
 import sys
 
-from constants import BUILD_VERSION
+from constants import (
+    BUILD_VERSION,
+    QT_FILEPATH_OPTION
+)
 
 from sqlalchemy.orm import sessionmaker
 
@@ -132,17 +135,12 @@ class ConnectionDialog(QDialog):
 
     def create_new_db(self):
 
-        if "PYCHARM_HOSTED" in os.environ:
-            filepath_option = QFileDialog.DontUseNativeDialog
-        else:
-            filepath_option = QFileDialog.ShowDirsOnly
-
         filename = QFileDialog.getSaveFileName(
             self,
             'SaveFile',
             '',
             "Sqlite Database (*.db)",
-            options=filepath_option
+            options=QT_FILEPATH_OPTION
         )
         print(filename[0])
         engine = sa.create_engine(
