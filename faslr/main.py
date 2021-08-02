@@ -10,7 +10,16 @@ from constants import (
 
 from sqlalchemy.orm import sessionmaker
 
-from PyQt5.QtGui import QKeySequence
+from PyQt5.Qt import (
+    QStandardItem,
+    QStandardItemModel
+)
+
+from PyQt5.QtGui import (
+    QColor,
+    QFont,
+    QKeySequence
+)
 
 from PyQt5.QtWidgets import (
     QAction,
@@ -23,6 +32,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QRadioButton,
     QStatusBar,
+    QTreeView,
     QVBoxLayout
 )
 
@@ -35,7 +45,7 @@ class MainWindow(QMainWindow):
         # should be disabled unless a connection is established.
         self.connection_established = False
 
-        self.setMinimumWidth(400)
+        self.resize(500, 700)
 
         self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
 
@@ -49,6 +59,7 @@ class MainWindow(QMainWindow):
         self.new_action = QAction("&New Project", self)
         self.new_action.setShortcut(QKeySequence("Ctrl+n"))
         self.new_action.setStatusTip("Create new project.")
+        self.new_action.triggered.connect(self.new_project)
 
         self.import_action = QAction("&Import Project")
         self.import_action.setShortcut(QKeySequence("Ctrl+Shift+i"))
@@ -85,6 +96,19 @@ class MainWindow(QMainWindow):
 
         self.toggle_project_actions()
 
+        # navigation pane for project hierarchy
+
+        self.project_pane = QTreeView(self)
+        self.project_pane.setHeaderHidden(True)
+
+        self.project_model = QStandardItemModel()
+
+        self.project_root = self.project_model.invisibleRootItem()
+        self.project_pane.setModel(self.project_model)
+        self.project_pane.expandAll()
+
+        self.setCentralWidget(self.project_pane)
+
     # disable project-based menu items until connection is established
     def toggle_project_actions(self):
         if self.connection_established:
@@ -102,6 +126,17 @@ class MainWindow(QMainWindow):
         dlg = AboutDialog(self)
         dlg.exec_()
 
+    def new_project(self):
+        country = ProjectItem('United States', 16, set_bold=True)
+        lob = ProjectItem('Auto', 12, text_color=QColor(155, 0, 0))
+        state = ProjectItem('Illinois', 14)
+
+        country.appendRow(state)
+        state.appendRow(lob)
+
+        self.project_root.appendRow(country)
+        self.project_pane.expandAll()
+        print("new project created")
 
 class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
@@ -120,18 +155,20 @@ class ConnectionDialog(QDialog):
         button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
         self.button_box = QDialogButtonBox(button_layout)
-        self.button_box.accepted.connect(self.make_connection)
+        self.button_box.accepted.connect(lambda main_window=parent: self.make_connection(main_window))
         self.button_box.rejected.connect(self.reject)
 
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
-    def make_connection(self):
+    def make_connection(self, main_window):
 
         if self.existing_connection.isChecked():
             self.open_existing_db()
         elif self.new_connection.isChecked():
             self.create_new_db()
+            main_window.connection_established = True
+            main_window.toggle_project_actions()
 
     def create_new_db(self):
 
@@ -170,6 +207,18 @@ class AboutDialog(QMessageBox):
 
         self.setStandardButtons(QMessageBox.Ok)
         self.setIcon(QMessageBox.Information)
+
+
+class ProjectItem(QStandardItem):
+    def __init__(self, text='', font_size=12, set_bold=False, text_color=QColor(0, 0, 0)):
+        super().__init__()
+
+        project_font = QFont('Open Sans', font_size)
+        project_font.setBold(set_bold)
+
+        self.setForeground(text_color)
+        self.setFont(project_font)
+        self.setText(text)
 
 
 app = QApplication(sys.argv)
