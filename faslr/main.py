@@ -138,7 +138,7 @@ class ConnectionDialog(QDialog):
         filename = QFileDialog.getSaveFileName(
             self,
             'SaveFile',
-            '',
+            'untitled.db',
             "Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION
         )
