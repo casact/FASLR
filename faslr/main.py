@@ -27,6 +27,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QFormLayout,
     QLabel,
     QLineEdit,
     QMainWindow,
@@ -143,28 +144,11 @@ class ProjectDialog(QDialog):
         self.state_edit = QLineEdit()
         self.lob_edit = QLineEdit()
 
-        country_label = QLabel("Country: ")
-        state_label = QLabel("State: ")
-        lob_label = QLabel("Line of business: ")
-
         self.setWindowTitle("New Project")
-        self.layout = QVBoxLayout()
-
-        self.country_layout = QHBoxLayout()
-        self.country_layout.addWidget(country_label)
-        self.country_layout.addWidget(self.country_edit)
-
-        self.state_layout = QHBoxLayout()
-        self.state_layout.addWidget(state_label)
-        self.state_layout.addWidget(self.state_edit)
-
-        self.lob_layout = QHBoxLayout()
-        self.lob_layout.addWidget(lob_label)
-        self.lob_layout.addWidget(self.lob_edit)
-
-        self.layout.addLayout(self.country_layout)
-        self.layout.addLayout(self.state_layout)
-        self.layout.addLayout(self.lob_layout)
+        self.layout = QFormLayout()
+        self.layout.addRow("Country:", self.country_edit)
+        self.layout.addRow("State:", self.state_edit)
+        self.layout.addRow("Line of Business:", self.lob_edit)
 
         button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
