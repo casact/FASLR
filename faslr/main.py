@@ -27,12 +27,15 @@ from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QLabel,
+    QLineEdit,
     QMainWindow,
     QMenu,
     QMessageBox,
     QRadioButton,
     QStatusBar,
     QTreeView,
+    QHBoxLayout,
     QVBoxLayout
 )
 
@@ -127,16 +130,70 @@ class MainWindow(QMainWindow):
         dlg.exec_()
 
     def new_project(self):
-        country = ProjectItem('United States', 16, set_bold=True)
-        lob = ProjectItem('Auto', 12, text_color=QColor(155, 0, 0))
-        state = ProjectItem('Illinois', 14)
+
+        dlg = ProjectDialog(self)
+        dlg.exec_()
+
+
+class ProjectDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.country_edit = QLineEdit()
+        self.state_edit = QLineEdit()
+        self.lob_edit = QLineEdit()
+
+        country_label = QLabel("Country: ")
+        state_label = QLabel("State: ")
+        lob_label = QLabel("Line of business: ")
+
+        self.setWindowTitle("New Project")
+        self.layout = QVBoxLayout()
+
+        self.country_layout = QHBoxLayout()
+        self.country_layout.addWidget(country_label)
+        self.country_layout.addWidget(self.country_edit)
+
+        self.state_layout = QHBoxLayout()
+        self.state_layout.addWidget(state_label)
+        self.state_layout.addWidget(self.state_edit)
+
+        self.lob_layout = QHBoxLayout()
+        self.lob_layout.addWidget(lob_label)
+        self.lob_layout.addWidget(self.lob_edit)
+
+        self.layout.addLayout(self.country_layout)
+        self.layout.addLayout(self.state_layout)
+        self.layout.addLayout(self.lob_layout)
+
+        button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+
+        self.button_box = QDialogButtonBox(button_layout)
+
+        self.button_box = QDialogButtonBox(button_layout)
+        self.button_box.accepted.connect(lambda main_window=parent: self.make_project(main_window))
+        self.button_box.rejected.connect(self.reject)
+
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+
+    def make_project(self, main_window):
+
+        country = ProjectItem(self.country_edit.text(), 16, set_bold=True)
+        lob = ProjectItem(self.state_edit.text(), 12, text_color=QColor(155, 0, 0))
+        state = ProjectItem(self.lob_edit.text(), 14)
 
         country.appendRow(state)
         state.appendRow(lob)
 
-        self.project_root.appendRow(country)
-        self.project_pane.expandAll()
+        main_window.project_root.appendRow(country)
+        main_window.project_pane.expandAll()
         print("new project created")
+
+        self.close()
+
+
 
 class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
