@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
         # navigation pane for project hierarchy
 
         self.project_pane = QTreeView(self)
-        self.project_pane.setHeaderHidden(True)
+        self.project_pane.setHeaderHidden(False)
 
         self.project_model = QStandardItemModel()
 
@@ -178,7 +178,6 @@ class ProjectDialog(QDialog):
         self.close()
 
 
-
 class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -206,6 +205,8 @@ class ConnectionDialog(QDialog):
 
         if self.existing_connection.isChecked():
             self.open_existing_db()
+            main_window.connection_established = True
+            main_window.toggle_project_actions()
         elif self.new_connection.isChecked():
             self.create_new_db()
             main_window.connection_established = True
@@ -235,7 +236,13 @@ class ConnectionDialog(QDialog):
     def open_existing_db(self):
         filename = QFileDialog.getOpenFileName(self, 'OpenFile')
         print(filename)
-        # parent.toggle_project_actions(self.parent)
+        engine = sa.create_engine(
+            'sqlite:///' + filename[0],
+            echo=True
+        )
+        session = sessionmaker(bind=engine)
+        connection = engine.connect()
+
         self.close()
 
 
