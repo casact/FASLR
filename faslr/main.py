@@ -222,28 +222,31 @@ class ConnectionDialog(QDialog):
             options=QT_FILEPATH_OPTION
         )
         print(filename[0])
-        engine = sa.create_engine(
-            'sqlite:///' + filename[0],
-            echo=True
-        )
-        session = sessionmaker(bind=engine)
-        schema.Base.metadata.create_all(engine)
-        session = session()
-        connection = engine.connect()
 
-        self.close()
+        if not filename[0] == "":
+            engine = sa.create_engine(
+                'sqlite:///' + filename[0],
+                echo=True
+            )
+            session = sessionmaker(bind=engine)
+            schema.Base.metadata.create_all(engine)
+            session = session()
+            connection = engine.connect()
+            self.close()
 
     def open_existing_db(self):
         filename = QFileDialog.getOpenFileName(self, 'OpenFile')
         print(filename)
-        engine = sa.create_engine(
-            'sqlite:///' + filename[0],
-            echo=True
-        )
-        session = sessionmaker(bind=engine)
-        connection = engine.connect()
 
-        self.close()
+        if not filename[0] == "":
+            engine = sa.create_engine(
+                'sqlite:///' + filename[0],
+                echo=True
+            )
+            session = sessionmaker(bind=engine)
+            connection = engine.connect()
+
+            self.close()
 
 
 class AboutDialog(QMessageBox):
