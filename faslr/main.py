@@ -1,3 +1,4 @@
+import chainladder as cl
 import os
 import schema
 import sqlalchemy as sa
@@ -9,6 +10,8 @@ from constants import (
 )
 
 from sqlalchemy.orm import sessionmaker
+
+from triangle_model import TableModel
 
 from PyQt5.Qt import (
     QStandardItem,
@@ -42,6 +45,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QSplitter,
     QStatusBar,
+    QTableView,
     QTreeView,
     QHBoxLayout,
     QVBoxLayout,
@@ -130,16 +134,30 @@ class MainWindow(QMainWindow):
         self.project_pane.setModel(self.project_model)
         self.project_pane.expandAll()
 
-        self.analysis_pane = QFrame()
-        self.analysis_pane.setFrameShape(QFrame.StyledPanel)
+        # self.analysis_pane = QWidget()
+        # self.analysis_layout = QHBoxLayout()
+        # self.analysis_pane.setLayout(self.analysis_layout)
+        # self.analysis_pane.setFrameShape(QFrame.StyledPanel)
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.project_pane)
-        splitter.addWidget(self.analysis_pane)
+
+        # triangle placeholder
+
+        self.table = QTableView()
+
+        triangle = cl.load_sample('raa')
+        triangle = triangle.to_frame()
+
+        self.tri_model = TableModel(triangle)
+        self.table.setModel(self.tri_model)
+
+        # self.analysis_layout.addWidget(self.table)
+        splitter.addWidget(self.table)
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([125, 150])
-        self.layout.addWidget(splitter)
 
+        self.layout.addWidget(splitter)
         self.container = QWidget()
         self.container.setLayout(self.layout)
         self.setCentralWidget(self.container)
@@ -210,12 +228,13 @@ class ProjectDialog(QDialog):
             set_bold=True
         )
 
-        lob = ProjectItem(
-            self.state_edit.text(),
-            text_color=QColor(155, 0, 0)
-        )
         state = ProjectItem(
+            self.state_edit.text(),
+        )
+
+        lob = ProjectItem(
             self.lob_edit.text(),
+            text_color=QColor(155, 0, 0)
         )
 
         country.appendRow(state)
@@ -306,16 +325,45 @@ class ConnectionDialog(QDialog):
         return 'sqlite:///' + filename[0]
 
     def open_existing_db(self, main_window):
-        filename = QFileDialog.getOpenFileName(self, 'OpenFile')
-        print(filename)
+        db_filename = QFileDialog.getOpenFileName(self, 'OpenFile')[0]
 
         if not db_filename == "":
             engine = sa.create_engine(
-                'sqlite:///' + filename[0],
+                'sqlite:///' + db_filename,
                 echo=True
             )
-            # session = sessionmaker(bind=engine)
+            session = sessionmaker(bind=engine)()
+
             connection = engine.connect()
+
+            projects = session.query(
+                ProjectTable.country,
+                ProjectTable.state,
+                ProjectTable.line_of_business
+            ).all()
+
+            for country, state, line_of_business in projects:
+
+                country_item = ProjectItem(
+                    country,
+                    set_bold=True
+                )
+
+                state_item = ProjectItem(
+                    state,
+                )
+
+                lob_item = ProjectItem(
+                    line_of_business,
+                    text_color=QColor(155, 0, 0)
+                )
+
+                country_item.appendRow(state_item)
+                state_item.appendRow(lob_item)
+
+                main_window.project_root.appendRow(country_item)
+                main_window.project_pane.expandAll()
+
             connection.close()
 
             main_window.connection_established = True
