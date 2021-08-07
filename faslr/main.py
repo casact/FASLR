@@ -37,6 +37,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout
 )
 
+from schema import ProjectTable
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
         # Flag to determine whether there is an active database connection. Most project-related functions
         # should be disabled unless a connection is established.
         self.connection_established = False
+        self.db = None
 
         self.resize(500, 700)
 
@@ -161,12 +163,34 @@ class ProjectDialog(QDialog):
 
     def make_project(self, main_window):
 
+        # connect to the database
+        engine = sa.create_engine(
+            main_window.db,
+            echo=True
+        )
+        session = sessionmaker(bind=engine)
+        schema.Base.metadata.create_all(engine)
+        session = session()
+        connection = engine.connect()
+
         country = ProjectItem(self.country_edit.text(), 16, set_bold=True)
         lob = ProjectItem(self.state_edit.text(), 12, text_color=QColor(155, 0, 0))
         state = ProjectItem(self.lob_edit.text(), 14)
 
         country.appendRow(state)
         state.appendRow(lob)
+
+        session.add_all([
+            ProjectTable(
+                country=self.country_edit.text(),
+                state=self.state_edit.text(),
+                line_of_business=self.lob_edit.text()
+            )
+        ])
+
+        session.commit()
+
+        connection.close()
 
         main_window.project_root.appendRow(country)
         main_window.project_pane.expandAll()
@@ -205,7 +229,7 @@ class ConnectionDialog(QDialog):
             main_window.connection_established = True
             main_window.toggle_project_actions()
         elif self.new_connection.isChecked():
-            self.create_new_db()
+            main_window.db = self.create_new_db()
             main_window.connection_established = True
             main_window.toggle_project_actions()
 
@@ -229,7 +253,11 @@ class ConnectionDialog(QDialog):
             schema.Base.metadata.create_all(engine)
             session = session()
             connection = engine.connect()
+            connection.close()
+
             self.close()
+
+        return 'sqlite:///' + filename[0]
 
     def open_existing_db(self):
         filename = QFileDialog.getOpenFileName(self, 'OpenFile')
@@ -242,6 +270,7 @@ class ConnectionDialog(QDialog):
             )
             session = sessionmaker(bind=engine)
             connection = engine.connect()
+            connection.close()
 
             self.close()
 
