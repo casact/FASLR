@@ -1,4 +1,3 @@
-import os
 import schema
 import sqlalchemy as sa
 import sys
@@ -28,7 +27,6 @@ from PyQt5.QtWidgets import (
     QDialogButtonBox,
     QFileDialog,
     QFormLayout,
-    QLabel,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -36,7 +34,6 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QStatusBar,
     QTreeView,
-    QHBoxLayout,
     QVBoxLayout
 )
 
