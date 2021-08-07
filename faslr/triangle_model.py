@@ -32,27 +32,27 @@ class TableModel(QtCore.QAbstractTableModel):
                 return str(self._data.index[section])
 
 
-class MainWindow(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle("Raa Triangle Example")
-        self.setMinimumWidth(2100)
-        self.setMinimumHeight(700)
-
-        self.table = QtWidgets.QTableView()
-
-        triangle = cl.load_sample('raa')
-        triangle = triangle.to_frame()
-
-        self.model = TableModel(triangle)
-        self.table.setModel(self.model)
-
-        self.setCentralWidget(self.table)
-
-
-app=QtWidgets.QApplication(sys.argv)
-window=MainWindow()
-window.show()
-app.exec_()
+# class MainWindow(QtWidgets.QMainWindow):
+#
+#     def __init__(self):
+#         super().__init__()
+#
+#         self.setWindowTitle("Raa Triangle Example")
+#         self.setMinimumWidth(2100)
+#         self.setMinimumHeight(700)
+#
+#         self.table = QtWidgets.QTableView()
+#
+#         triangle = cl.load_sample('raa')
+#         triangle = triangle.to_frame()
+#
+#         self.model = TableModel(triangle)
+#         self.table.setModel(self.model)
+#
+#         self.setCentralWidget(self.table)
+#
+#
+# app=QtWidgets.QApplication(sys.argv)
+# window=MainWindow()
+# window.show()
+# app.exec_()
