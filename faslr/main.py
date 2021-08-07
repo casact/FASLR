@@ -249,15 +249,12 @@ class ConnectionDialog(QDialog):
     def make_connection(self, main_window):
 
         if self.existing_connection.isChecked():
-            self.open_existing_db()
-            main_window.connection_established = True
-            main_window.toggle_project_actions()
-        elif self.new_connection.isChecked():
-            main_window.db = self.create_new_db()
-            main_window.connection_established = True
-            main_window.toggle_project_actions()
+            self.open_existing_db(main_window=main_window)
 
-    def create_new_db(self):
+        elif self.new_connection.isChecked():
+            main_window.db = self.create_new_db(main_window=main_window)
+
+    def create_new_db(self, main_window):
 
         filename = QFileDialog.getSaveFileName(
             self,
@@ -273,7 +270,7 @@ class ConnectionDialog(QDialog):
         if os.path.isfile(db_filename):
             os.remove(db_filename)
 
-        if not filename[0] == "":
+        if not db_filename == "":
             engine = sa.create_engine(
                 'sqlite:///' + filename[0],
                 echo=True
@@ -286,9 +283,13 @@ class ConnectionDialog(QDialog):
 
             self.close()
 
+        if db_filename != "":
+            main_window.connection_established = True
+            main_window.toggle_project_actions()
+
         return 'sqlite:///' + filename[0]
 
-    def open_existing_db(self):
+    def open_existing_db(self, main_window):
         filename = QFileDialog.getOpenFileName(self, 'OpenFile')
         print(filename)
 
@@ -300,6 +301,9 @@ class ConnectionDialog(QDialog):
             session = sessionmaker(bind=engine)
             connection = engine.connect()
             connection.close()
+
+            main_window.connection_established = True
+            main_window.toggle_project_actions()
 
             self.close()
 
