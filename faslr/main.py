@@ -16,7 +16,7 @@ from PyQt5.Qt import (
 )
 
 from PyQt5.QtCore import (
-    Qt
+    Qt,
 )
 
 from PyQt5.QtGui import (
@@ -33,6 +33,8 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QFrame,
     QFormLayout,
+    QHeaderView,
+    QLabel,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -115,8 +117,14 @@ class MainWindow(QMainWindow):
 
         self.project_pane = QTreeView(self)
         self.project_pane.setHeaderHidden(False)
+        project_header_label = QLabel()
+        project_header_label.setText("hi")
+        # project_header = QHeaderView(QLabel)
+        # self.project_pane.setHeader(project_header_label)
+        # self.project_pane.setHeader()
 
         self.project_model = QStandardItemModel()
+        self.project_model.setHorizontalHeaderLabels(["Project"])
 
         self.project_root = self.project_model.invisibleRootItem()
         self.project_pane.setModel(self.project_model)
@@ -197,9 +205,18 @@ class ProjectDialog(QDialog):
         session = session()
         connection = engine.connect()
 
-        country = ProjectItem(self.country_edit.text(), 16, set_bold=True)
-        lob = ProjectItem(self.state_edit.text(), 12, text_color=QColor(155, 0, 0))
-        state = ProjectItem(self.lob_edit.text(), 14)
+        country = ProjectItem(
+            self.country_edit.text(),
+            set_bold=True
+        )
+
+        lob = ProjectItem(
+            self.state_edit.text(),
+            text_color=QColor(155, 0, 0)
+        )
+        state = ProjectItem(
+            self.lob_edit.text(),
+        )
 
         country.appendRow(state)
         state.appendRow(lob)
@@ -263,10 +280,9 @@ class ConnectionDialog(QDialog):
             "Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION
         )
-        print(filename[0])
 
         db_filename = filename[0]
-        print(os.path.isfile(db_filename))
+
         if os.path.isfile(db_filename):
             os.remove(db_filename)
 
@@ -275,9 +291,9 @@ class ConnectionDialog(QDialog):
                 'sqlite:///' + filename[0],
                 echo=True
             )
-            session = sessionmaker(bind=engine)
+            # session = sessionmaker(bind=engine)
             schema.Base.metadata.create_all(engine)
-            session = session()
+            # session = session()
             connection = engine.connect()
             connection.close()
 
@@ -298,7 +314,7 @@ class ConnectionDialog(QDialog):
                 'sqlite:///' + filename[0],
                 echo=True
             )
-            session = sessionmaker(bind=engine)
+            # session = sessionmaker(bind=engine)
             connection = engine.connect()
             connection.close()
 
@@ -320,7 +336,13 @@ class AboutDialog(QMessageBox):
 
 
 class ProjectItem(QStandardItem):
-    def __init__(self, text='', font_size=12, set_bold=False, text_color=QColor(0, 0, 0)):
+    def __init__(
+            self,
+            text='',
+            font_size=12,
+            set_bold=False,
+            text_color=QColor(0, 0, 0)
+    ):
         super().__init__()
 
         project_font = QFont('Open Sans', font_size)
