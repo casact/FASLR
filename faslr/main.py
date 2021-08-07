@@ -1,3 +1,4 @@
+import os
 import schema
 import sqlalchemy as sa
 import sys
@@ -14,6 +15,10 @@ from PyQt5.Qt import (
     QStandardItemModel
 )
 
+from PyQt5.QtCore import (
+    Qt
+)
+
 from PyQt5.QtGui import (
     QColor,
     QFont,
@@ -26,18 +31,23 @@ from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QFrame,
     QFormLayout,
     QLineEdit,
     QMainWindow,
     QMenu,
     QMessageBox,
     QRadioButton,
+    QSplitter,
     QStatusBar,
     QTreeView,
-    QVBoxLayout
+    QHBoxLayout,
+    QVBoxLayout,
+    QWidget
 )
 
 from schema import ProjectTable
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -51,6 +61,8 @@ class MainWindow(QMainWindow):
         self.resize(500, 700)
 
         self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
+
+        self.layout = QHBoxLayout()
 
         menu_bar = self.menuBar()
 
@@ -110,7 +122,19 @@ class MainWindow(QMainWindow):
         self.project_pane.setModel(self.project_model)
         self.project_pane.expandAll()
 
-        self.setCentralWidget(self.project_pane)
+        self.analysis_pane = QFrame()
+        self.analysis_pane.setFrameShape(QFrame.StyledPanel)
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(self.project_pane)
+        splitter.addWidget(self.analysis_pane)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([125, 150])
+        self.layout.addWidget(splitter)
+
+        self.container = QWidget()
+        self.container.setLayout(self.layout)
+        self.setCentralWidget(self.container)
 
     # disable project-based menu items until connection is established
     def toggle_project_actions(self):
@@ -244,6 +268,11 @@ class ConnectionDialog(QDialog):
         )
         print(filename[0])
 
+        db_filename = filename[0]
+        print(os.path.isfile(db_filename))
+        if os.path.isfile(db_filename):
+            os.remove(db_filename)
+
         if not filename[0] == "":
             engine = sa.create_engine(
                 'sqlite:///' + filename[0],
@@ -263,7 +292,7 @@ class ConnectionDialog(QDialog):
         filename = QFileDialog.getOpenFileName(self, 'OpenFile')
         print(filename)
 
-        if not filename[0] == "":
+        if not db_filename == "":
             engine = sa.create_engine(
                 'sqlite:///' + filename[0],
                 echo=True
