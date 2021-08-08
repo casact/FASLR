@@ -52,7 +52,12 @@ from PyQt5.QtWidgets import (
     QWidget
 )
 
-from schema import ProjectTable
+from schema import (
+    CountryTable,
+    LOBTable,
+    ProjectTable,
+    StateTable
+)
 
 
 class MainWindow(QMainWindow):
@@ -121,18 +126,15 @@ class MainWindow(QMainWindow):
 
         self.project_pane = QTreeView(self)
         self.project_pane.setHeaderHidden(False)
-        project_header_label = QLabel()
-        project_header_label.setText("hi")
-        # project_header = QHeaderView(QLabel)
-        # self.project_pane.setHeader(project_header_label)
-        # self.project_pane.setHeader()
 
         self.project_model = QStandardItemModel()
         self.project_model.setHorizontalHeaderLabels(["Project"])
 
         self.project_root = self.project_model.invisibleRootItem()
+
         self.project_pane.setModel(self.project_model)
         self.project_pane.expandAll()
+        self.project_pane.doubleClicked.connect(self.get_value)
 
         # self.analysis_pane = QWidget()
         # self.analysis_layout = QHBoxLayout()
@@ -161,6 +163,11 @@ class MainWindow(QMainWindow):
         self.container = QWidget()
         self.container.setLayout(self.layout)
         self.setCentralWidget(self.container)
+
+    def get_value(self, val):
+        print(val.data())
+        print(val.row())
+        print(val.column())
 
     # disable project-based menu items until connection is established
     def toggle_project_actions(self):
@@ -223,34 +230,72 @@ class ProjectDialog(QDialog):
         session = session()
         connection = engine.connect()
 
+        country_text = self.country_edit.text()
+        state_text = self.state_edit.text()
+        lob_text = self.lob_edit.text()
+
         country = ProjectItem(
-            self.country_edit.text(),
+            country_text,
             set_bold=True
         )
 
         state = ProjectItem(
-            self.state_edit.text(),
+            state_text,
         )
 
         lob = ProjectItem(
-            self.lob_edit.text(),
+            lob_text,
             text_color=QColor(155, 0, 0)
         )
 
-        country.appendRow(state)
-        state.appendRow(lob)
+        country_query = session.query(CountryTable).filter(CountryTable.country_name == country_text)
 
-        session.add_all([
-            ProjectTable(
-                country=self.country_edit.text(),
-                state=self.state_edit.text(),
-                line_of_business=self.lob_edit.text()
-            )
-        ])
+        new_project = ProjectTable()
+
+        if country_query.first() is None:
+            new_country = CountryTable(country_name=country_text)
+            new_state = StateTable(state_name=state_text)
+            new_lob = LOBTable(lob_type=lob_text)
+
+            new_country.state = [new_state]
+            new_lob.country = new_country
+            new_lob.state = new_state
+
+            new_project.country = new_country
+            new_project.state = new_state
+            new_project.lob = new_lob
+
+        else:
+            existing_country = country_query.first()
+            state_query = session.query(StateTable).filter(StateTable.state_name == state_text)
+            if state_query.first() is None:
+                new_state = StateTable(state_name=state_text)
+                new_state.country = existing_country
+                new_lob = LOBTable(lob_type=lob_text)
+                new_lob.country = existing_country
+                new_lob.state = new_state
+
+                new_project.country = existing_country
+                new_project.state = new_state
+                new_project.lob = new_lob
+            else:
+                existing_state = state_query.first()
+                new_lob = LOBTable(lob_type=lob_text)
+                new_lob.country = existing_country
+                new_lob.state = existing_state
+
+                new_project.country = existing_country
+                new_project.state = existing_state
+                new_project.lob = new_lob
+
+        session.add(new_project)
 
         session.commit()
 
         connection.close()
+
+        country.appendRow(state)
+        state.appendRow(lob)
 
         main_window.project_root.appendRow(country)
         main_window.project_pane.expandAll()
@@ -336,33 +381,70 @@ class ConnectionDialog(QDialog):
 
             connection = engine.connect()
 
-            projects = session.query(
-                ProjectTable.country,
-                ProjectTable.state,
-                ProjectTable.line_of_business
-            ).all()
+            # projects = session.query(
+            #     ProjectTable.country,
+            #     ProjectTable.state,
+            #     ProjectTable.line_of_business
+            # ).all()
 
-            for country, state, line_of_business in projects:
+            countries = session.query(CountryTable.country_id, CountryTable.country_name).all()
+
+            for country_id, country in countries:
 
                 country_item = ProjectItem(
                     country,
                     set_bold=True
                 )
 
-                state_item = ProjectItem(
-                    state,
-                )
+                states = session.query(StateTable.state_id, StateTable.state_name).filter(StateTable.country_id == country_id)
 
-                lob_item = ProjectItem(
-                    line_of_business,
-                    text_color=QColor(155, 0, 0)
-                )
+                for state_id, state in states:
 
-                country_item.appendRow(state_item)
-                state_item.appendRow(lob_item)
+                    state_item = ProjectItem(
+                        state,
+                    )
+
+                    lobs = session.query(
+                        LOBTable.lob_type
+                    ).filter(
+                        LOBTable.country_id == country_id
+                    ).filter(
+                        LOBTable.state_id == state_id
+                    )
+
+                    for lob in lobs:
+                        lob_item = ProjectItem(
+                            lob[0],
+                            text_color=QColor(155, 0, 0)
+                        )
+                        state_item.appendRow(lob_item)
+
+                    country_item.appendRow(state_item)
+
+            # for country, state, line_of_business in projects:
+            #
+            #     country_item = ProjectItem(
+            #         country,
+            #         set_bold=True
+            #     )
+            #
+            #     state_item = ProjectItem(
+            #         state,
+            #     )
+            #
+            #     lob_item = ProjectItem(
+            #         line_of_business,
+            #         text_color=QColor(155, 0, 0)
+            #     )
+            #
+            #     country_item.appendRow(state_item)
+            #     state_item.appendRow(lob_item)
 
                 main_window.project_root.appendRow(country_item)
-                main_window.project_pane.expandAll()
+            children = main_window.project_pane.get_children('')
+            for child in children:
+                print(child)
+            main_window.project_pane.expandAll()
 
             connection.close()
 
