@@ -13,6 +13,8 @@ from sqlalchemy.orm import sessionmaker
 
 from triangle_model import TableModel
 
+from uuid import uuid4
+
 from PyQt5.Qt import (
     QStandardItem,
     QStandardItemModel
@@ -127,14 +129,16 @@ class MainWindow(QMainWindow):
         self.project_pane = QTreeView(self)
         self.project_pane.setHeaderHidden(False)
 
+        self.project_pane.doubleClicked.connect(self.get_value)
+
         self.project_model = QStandardItemModel()
-        self.project_model.setHorizontalHeaderLabels(["Project"])
+        self.project_model.setHorizontalHeaderLabels(["Project", "Project_UUID"])
 
         self.project_root = self.project_model.invisibleRootItem()
 
         self.project_pane.setModel(self.project_model)
-        self.project_pane.expandAll()
-        self.project_pane.doubleClicked.connect(self.get_value)
+        # self.project_pane.setColumnHidden(1, True)
+
 
         # self.analysis_pane = QWidget()
         # self.analysis_layout = QHBoxLayout()
@@ -143,6 +147,8 @@ class MainWindow(QMainWindow):
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.project_pane)
+
+
 
         # triangle placeholder
 
@@ -165,9 +171,13 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.container)
 
     def get_value(self, val):
+        print(val)
         print(val.data())
         print(val.row())
         print(val.column())
+        ix_col_0 = self.project_model.sibling(val.row(), 1, val)
+        print(ix_col_0.data())
+
 
     # disable project-based menu items until connection is established
     def toggle_project_actions(self):
@@ -253,40 +263,70 @@ class ProjectDialog(QDialog):
         new_project = ProjectTable()
 
         if country_query.first() is None:
-            new_country = CountryTable(country_name=country_text)
-            new_state = StateTable(state_name=state_text)
-            new_lob = LOBTable(lob_type=lob_text)
+
+            country_uuid = str(uuid4())
+            state_uuid = str(uuid4())
+            lob_uuid = str(uuid4())
+
+            new_country = CountryTable(country_name=country_text, project_tree_uuid=country_uuid)
+            new_state = StateTable(state_name=state_text, project_tree_uuid=state_uuid)
+            new_lob = LOBTable(lob_type=lob_text, project_tree_uuid=lob_uuid)
 
             new_country.state = [new_state]
             new_lob.country = new_country
             new_lob.state = new_state
 
-            new_project.country = new_country
-            new_project.state = new_state
             new_project.lob = new_lob
+
+            country.appendRow([state, QStandardItem(state_uuid)])
+            state.appendRow([lob, QStandardItem(lob_uuid)])
+
+            main_window.project_root.appendRow([country, QStandardItem(country_uuid)])
 
         else:
             existing_country = country_query.first()
-            state_query = session.query(StateTable).filter(StateTable.state_name == state_text)
+            country_id = existing_country.country_id
+            country_uuid = existing_country.project_tree_uuid
+            state_query = session.query(StateTable).filter(StateTable.state_name == state_text).filter(StateTable.country_id == country_id)
             if state_query.first() is None:
-                new_state = StateTable(state_name=state_text)
+                state_uuid = str(uuid4())
+                lob_uuid = str(uuid4())
+                new_state = StateTable(state_name=state_text, project_tree_uuid=state_uuid)
                 new_state.country = existing_country
-                new_lob = LOBTable(lob_type=lob_text)
+                new_lob = LOBTable(lob_type=lob_text, project_tree_uuid=lob_uuid)
                 new_lob.country = existing_country
                 new_lob.state = new_state
 
-                new_project.country = existing_country
-                new_project.state = new_state
                 new_project.lob = new_lob
+
+                country_tree_item = main_window.project_model.findItems(country_uuid, Qt.MatchExactly, 1)
+                if country_tree_item:
+                    ix = main_window.project_model.indexFromItem(country_tree_item[0])
+                    ix_col_0 = main_window.project_model.sibling(ix.row(), 0, ix)
+                    it_col_0 = main_window.project_model.itemFromIndex(ix_col_0)
+                    it_col_0.appendRow([state, QStandardItem(state_uuid)])
+                    state.appendRow([lob, QStandardItem(lob_uuid)])
+
             else:
                 existing_state = state_query.first()
-                new_lob = LOBTable(lob_type=lob_text)
+                state_uuid = existing_state.project_tree_uuid
+                lob_uuid = str(uuid4())
+                new_lob = LOBTable(lob_type=lob_text, project_tree_uuid=lob_uuid)
                 new_lob.country = existing_country
                 new_lob.state = existing_state
 
-                new_project.country = existing_country
-                new_project.state = existing_state
                 new_project.lob = new_lob
+                state_tree_item = main_window.project_model.findItems(state_uuid, Qt.MatchRecursive, 1)
+                # state_tree_item = country_tree_item.findItems(state_uuid, Qt.MatchExactly, 1)
+                if state_tree_item:
+                    ix = main_window.project_model.indexFromItem(state_tree_item[0])
+                    print("hi")
+                    print(ix)
+                    print(ix.data())
+                    ix_col_0 = main_window.project_model.sibling(ix.row(), 0, ix)
+                    print(ix_col_0.data())
+                    it_col_0 = main_window.project_model.itemFromIndex(ix_col_0)
+                    it_col_0.appendRow([lob, QStandardItem(lob_uuid)])
 
         session.add(new_project)
 
@@ -294,11 +334,9 @@ class ProjectDialog(QDialog):
 
         connection.close()
 
-        country.appendRow(state)
-        state.appendRow(lob)
 
-        main_window.project_root.appendRow(country)
-        main_window.project_pane.expandAll()
+        # main_window.project_pane.expandAll()
+
         print("new project created")
 
         self.close()
@@ -330,7 +368,7 @@ class ConnectionDialog(QDialog):
     def make_connection(self, main_window):
 
         if self.existing_connection.isChecked():
-            self.open_existing_db(main_window=main_window)
+            main_window.db = self.open_existing_db(main_window=main_window)
 
         elif self.new_connection.isChecked():
             main_window.db = self.create_new_db(main_window=main_window)
@@ -367,10 +405,15 @@ class ConnectionDialog(QDialog):
             main_window.connection_established = True
             main_window.toggle_project_actions()
 
-        return 'sqlite:///' + filename[0]
+        return 'sqlite:///' + db_filename
 
     def open_existing_db(self, main_window):
-        db_filename = QFileDialog.getOpenFileName(self, 'OpenFile')[0]
+        db_filename = QFileDialog.getOpenFileName(
+            self,
+            'OpenFile',
+            '',
+            "Sqlite Database (*.db)",
+            options=QT_FILEPATH_OPTION)[0]
 
         if not db_filename == "":
             engine = sa.create_engine(
@@ -381,69 +424,49 @@ class ConnectionDialog(QDialog):
 
             connection = engine.connect()
 
-            # projects = session.query(
-            #     ProjectTable.country,
-            #     ProjectTable.state,
-            #     ProjectTable.line_of_business
-            # ).all()
+            countries = session.query(CountryTable.country_id, CountryTable.country_name, CountryTable.project_tree_uuid).all()
 
-            countries = session.query(CountryTable.country_id, CountryTable.country_name).all()
-
-            for country_id, country in countries:
+            for country_id, country, country_uuid in countries:
 
                 country_item = ProjectItem(
                     country,
                     set_bold=True
                 )
+                
+                country_row = [country_item, QStandardItem(country_uuid)]
 
-                states = session.query(StateTable.state_id, StateTable.state_name).filter(StateTable.country_id == country_id)
+                states = session.query(StateTable.state_id, StateTable.state_name, StateTable.project_tree_uuid).filter(StateTable.country_id == country_id)
 
-                for state_id, state in states:
+                for state_id, state, state_uuid in states:
 
                     state_item = ProjectItem(
                         state,
                     )
 
+                    state_row = [state_item, QStandardItem(state_uuid)]
+
                     lobs = session.query(
-                        LOBTable.lob_type
+                        LOBTable.lob_type, LOBTable.project_tree_uuid
                     ).filter(
                         LOBTable.country_id == country_id
                     ).filter(
                         LOBTable.state_id == state_id
                     )
 
-                    for lob in lobs:
+                    for lob, lob_uuid in lobs:
                         lob_item = ProjectItem(
-                            lob[0],
+                            lob,
                             text_color=QColor(155, 0, 0)
                         )
-                        state_item.appendRow(lob_item)
 
-                    country_item.appendRow(state_item)
+                        lob_row = [lob_item, QStandardItem(lob_uuid)]
 
-            # for country, state, line_of_business in projects:
-            #
-            #     country_item = ProjectItem(
-            #         country,
-            #         set_bold=True
-            #     )
-            #
-            #     state_item = ProjectItem(
-            #         state,
-            #     )
-            #
-            #     lob_item = ProjectItem(
-            #         line_of_business,
-            #         text_color=QColor(155, 0, 0)
-            #     )
-            #
-            #     country_item.appendRow(state_item)
-            #     state_item.appendRow(lob_item)
+                        state_item.appendRow(lob_row)
 
-                main_window.project_root.appendRow(country_item)
-            children = main_window.project_pane.get_children('')
-            for child in children:
-                print(child)
+                    country_item.appendRow(state_row)
+
+                main_window.project_root.appendRow(country_row)
+
             main_window.project_pane.expandAll()
 
             connection.close()
@@ -452,6 +475,8 @@ class ConnectionDialog(QDialog):
             main_window.toggle_project_actions()
 
             self.close()
+
+        return 'sqlite:///' + db_filename
 
 
 class AboutDialog(QMessageBox):
