@@ -1,6 +1,8 @@
+from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     Column,
+    DateTime,
     Integer,
     ForeignKey,
     String
@@ -19,40 +21,36 @@ class ProjectTable(Base):
         primary_key=True
     )
 
-    country_id = Column(
-        Integer,
-        ForeignKey('country.country_id')
-    )
-    state_id = Column(
-        Integer,
-        ForeignKey('state.state_id')
-    )
     lob_id = Column(
         Integer,
         ForeignKey("lob.lob_id")
     )
 
-    country = relationship(
-        "CountryTable", back_populates="project"
+    user_id = Column(
+        Integer,
+        ForeignKey("user.user_id")
     )
 
-    state = relationship(
-        "StateTable", back_populates="project"
+    created_on = Column(
+        DateTime,
+        default=datetime.now
     )
 
     lob = relationship(
         "LOBTable", back_populates="project"
     )
 
+    user = relationship(
+        "UserTable", back_populates="project"
+    )
+
     def __repr__(self):
         return "<ProjectTable(" \
-               "country_id='%s', " \
-               "state_id='%s', " \
                "lob_id='%s', " \
+               "created_on='%s'" \
                ")>" % (
-                   self.country_id,
-                   self.state_id,
-                   self.lob_id
+                   self.lob_id,
+                   self.created_on
                )
 
 
@@ -68,10 +66,6 @@ class CountryTable(Base):
 
     state = relationship(
         "StateTable", back_populates="country"
-    )
-
-    project = relationship(
-        "ProjectTable", back_populates="country"
     )
 
     lob = relationship(
@@ -102,8 +96,6 @@ class StateTable(Base):
     state_name = Column(String)
 
     country = relationship("CountryTable", back_populates="state")
-
-    project = relationship("ProjectTable", back_populates="state")
 
     lob = relationship("LOBTable", back_populates="state")
 
@@ -154,3 +146,21 @@ class LOBTable(Base):
                    self.lob_type
                )
 
+
+class UserTable(Base):
+    __tablename__ = 'user'
+
+    user_id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    project = relationship(
+        "ProjectTable", back_populates="user"
+    )
+
+    def __repr__(self):
+        return "UserTable(" \
+               ")>" % (
+
+               )
