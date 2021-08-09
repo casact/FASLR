@@ -31,6 +31,10 @@ class ProjectTable(Base):
         ForeignKey("user.user_id")
     )
 
+    # project_tree_uuid = Column(
+    #     String
+    # )
+
     created_on = Column(
         DateTime,
         default=datetime.now
@@ -64,6 +68,10 @@ class CountryTable(Base):
 
     country_name = Column(String)
 
+    project_tree_uuid = Column(
+        String
+    )
+
     state = relationship(
         "StateTable", back_populates="country"
     )
@@ -75,8 +83,10 @@ class CountryTable(Base):
     def __repr__(self):
         return "CountryTable(" \
                "country_name='%s', " \
+               "project_tree_uuid='%s', " \
                ")>" % (
-                   self.country_name
+                   self.country_name,
+                   self.project_tree_uuid
                )
 
 
@@ -95,6 +105,8 @@ class StateTable(Base):
 
     state_name = Column(String)
 
+    project_tree_uuid = Column(String)
+
     country = relationship("CountryTable", back_populates="state")
 
     lob = relationship("LOBTable", back_populates="state")
@@ -102,8 +114,10 @@ class StateTable(Base):
     def __repr__(self):
         return "StateTable(" \
                "state_name='%s', " \
+               "project_tree_uuid='%s', " \
                ")>" % (
-                   self.country_name
+                   self.country_name,
+                   self.project_tree_uuid
                )
 
 
@@ -125,6 +139,10 @@ class LOBTable(Base):
         ForeignKey('state.state_id')
     )
 
+    project_tree_uuid = Column(
+        String
+    )
+
     lob_type = Column(String)
 
     country = relationship(
@@ -142,8 +160,10 @@ class LOBTable(Base):
     def __repr__(self):
         return "LOBTable(" \
                "lob_type='%s', " \
+               "project_tree_uuid='%s', " \
                ")>" % (
-                   self.lob_type
+                   self.lob_type,
+                   self.project_tree_uuid
                )
 
 
