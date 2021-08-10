@@ -139,7 +139,6 @@ class MainWindow(QMainWindow):
         self.project_pane.setModel(self.project_model)
         # self.project_pane.setColumnHidden(1, True)
 
-
         # self.analysis_pane = QWidget()
         # self.analysis_layout = QHBoxLayout()
         # self.analysis_pane.setLayout(self.analysis_layout)
@@ -147,8 +146,6 @@ class MainWindow(QMainWindow):
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.project_pane)
-
-
 
         # triangle placeholder
 
@@ -177,7 +174,6 @@ class MainWindow(QMainWindow):
         print(val.column())
         ix_col_0 = self.project_model.sibling(val.row(), 1, val)
         print(ix_col_0.data())
-
 
     # disable project-based menu items until connection is established
     def toggle_project_actions(self):
@@ -287,7 +283,12 @@ class ProjectDialog(QDialog):
             existing_country = country_query.first()
             country_id = existing_country.country_id
             country_uuid = existing_country.project_tree_uuid
-            state_query = session.query(StateTable).filter(StateTable.state_name == state_text).filter(StateTable.country_id == country_id)
+            state_query = session.query(StateTable).filter(
+                StateTable.state_name == state_text
+            ).filter(
+                StateTable.country_id == country_id
+            )
+
             if state_query.first() is None:
                 state_uuid = str(uuid4())
                 lob_uuid = str(uuid4())
@@ -333,7 +334,6 @@ class ProjectDialog(QDialog):
         session.commit()
 
         connection.close()
-
 
         # main_window.project_pane.expandAll()
 
@@ -424,7 +424,11 @@ class ConnectionDialog(QDialog):
 
             connection = engine.connect()
 
-            countries = session.query(CountryTable.country_id, CountryTable.country_name, CountryTable.project_tree_uuid).all()
+            countries = session.query(
+                CountryTable.country_id,
+                CountryTable.country_name,
+                CountryTable.project_tree_uuid
+            ).all()
 
             for country_id, country, country_uuid in countries:
 
@@ -433,9 +437,18 @@ class ConnectionDialog(QDialog):
                     set_bold=True
                 )
                 
-                country_row = [country_item, QStandardItem(country_uuid)]
+                country_row = [
+                    country_item,
+                    QStandardItem(country_uuid)
+                ]
 
-                states = session.query(StateTable.state_id, StateTable.state_name, StateTable.project_tree_uuid).filter(StateTable.country_id == country_id)
+                states = session.query(
+                    StateTable.state_id,
+                    StateTable.state_name,
+                    StateTable.project_tree_uuid
+                ).filter(
+                    StateTable.country_id == country_id
+                )
 
                 for state_id, state, state_uuid in states:
 
