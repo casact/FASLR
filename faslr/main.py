@@ -4,6 +4,8 @@ import schema
 import sqlalchemy as sa
 import sys
 
+from connection import connect_db
+
 from constants import (
     BUILD_VERSION,
     QT_FILEPATH_OPTION
@@ -227,14 +229,8 @@ class ProjectDialog(QDialog):
     def make_project(self, main_window):
 
         # connect to the database
-        engine = sa.create_engine(
-            main_window.db,
-            echo=True
-        )
-        session = sessionmaker(bind=engine)
-        schema.Base.metadata.create_all(engine)
-        session = session()
-        connection = engine.connect()
+        print(main_window.db)
+        session, connection = connect_db(db_path=main_window.db)
 
         country_text = self.country_edit.text()
         state_text = self.state_edit.text()
@@ -401,7 +397,7 @@ class ConnectionDialog(QDialog):
             main_window.connection_established = True
             main_window.toggle_project_actions()
 
-        return 'sqlite:///' + db_filename
+        return db_filename
 
     def open_existing_db(self, main_window):
         db_filename = QFileDialog.getOpenFileName(
@@ -412,13 +408,7 @@ class ConnectionDialog(QDialog):
             options=QT_FILEPATH_OPTION)[0]
 
         if not db_filename == "":
-            engine = sa.create_engine(
-                'sqlite:///' + db_filename,
-                echo=True
-            )
-            session = sessionmaker(bind=engine)()
-
-            connection = engine.connect()
+            session, connection = connect_db(db_path=db_filename)
 
             countries = session.query(
                 CountryTable.country_id,
@@ -485,7 +475,7 @@ class ConnectionDialog(QDialog):
 
             self.close()
 
-        return 'sqlite:///' + db_filename
+        return db_filename
 
 
 class AboutDialog(QMessageBox):
