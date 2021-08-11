@@ -321,11 +321,7 @@ class ProjectDialog(QDialog):
                 # state_tree_item = country_tree_item.findItems(state_uuid, Qt.MatchExactly, 1)
                 if state_tree_item:
                     ix = main_window.project_model.indexFromItem(state_tree_item[0])
-                    print("hi")
-                    print(ix)
-                    print(ix.data())
                     ix_col_0 = main_window.project_model.sibling(ix.row(), 0, ix)
-                    print(ix_col_0.data())
                     it_col_0 = main_window.project_model.itemFromIndex(ix_col_0)
                     it_col_0.appendRow([lob, QStandardItem(lob_uuid)])
 

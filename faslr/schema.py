@@ -31,10 +31,6 @@ class ProjectTable(Base):
         ForeignKey("user.user_id")
     )
 
-    # project_tree_uuid = Column(
-    #     String
-    # )
-
     created_on = Column(
         DateTime,
         default=datetime.now
