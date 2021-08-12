@@ -13,7 +13,7 @@ from constants import (
 
 from sqlalchemy.orm import sessionmaker
 
-from triangle_model import TableModel
+from triangle_model import TriangleModel
 
 from uuid import uuid4
 
@@ -156,7 +156,7 @@ class MainWindow(QMainWindow):
         triangle = cl.load_sample('raa')
         triangle = triangle.to_frame()
 
-        self.tri_model = TableModel(triangle)
+        self.tri_model = TriangleModel(triangle)
         self.table.setModel(self.tri_model)
 
         # self.analysis_layout.addWidget(self.table)

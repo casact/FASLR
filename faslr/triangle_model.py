@@ -5,10 +5,10 @@ from PyQt5.QtCore import Qt
 import pandas as pd
 
 
-class TableModel(QtCore.QAbstractTableModel):
+class TriangleModel(QtCore.QAbstractTableModel):
 
     def __init__(self, data):
-        super(TableModel, self).__init__()
+        super(TriangleModel, self).__init__()
         self._data = data
 
     def data(self, index, role):
@@ -30,29 +30,3 @@ class TableModel(QtCore.QAbstractTableModel):
 
             if orientation == Qt.Vertical:
                 return str(self._data.index[section])
-
-
-# class MainWindow(QtWidgets.QMainWindow):
-#
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.setWindowTitle("Raa Triangle Example")
-#         self.setMinimumWidth(2100)
-#         self.setMinimumHeight(700)
-#
-#         self.table = QtWidgets.QTableView()
-#
-#         triangle = cl.load_sample('raa')
-#         triangle = triangle.to_frame()
-#
-#         self.model = TableModel(triangle)
-#         self.table.setModel(self.model)
-#
-#         self.setCentralWidget(self.table)
-#
-#
-# app=QtWidgets.QApplication(sys.argv)
-# window=MainWindow()
-# window.show()
-# app.exec_()
