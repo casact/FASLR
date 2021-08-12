@@ -1,8 +1,5 @@
-import chainladder as cl
-import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
-import pandas as pd
 
 
 class TriangleModel(QtCore.QAbstractTableModel):
@@ -11,15 +8,15 @@ class TriangleModel(QtCore.QAbstractTableModel):
         super(TriangleModel, self).__init__()
         self._data = data
 
-    def data(self, index, role):
+    def data(self, index, role=None):
         if role == Qt.DisplayRole:
             value = self._data.iloc[index.row(), index.column()]
             return str(value)
 
-    def rowCount(self, index):
+    def rowCount(self, parent=None, *args, **kwargs):
         return self._data.shape[0]
 
-    def columnCount(self, index):
+    def columnCount(self, parent=None, *args, **kwargs):
         return self._data.shape[1]
 
     def headerData(self, section, orientation, role):
