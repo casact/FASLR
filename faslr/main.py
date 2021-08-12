@@ -1,21 +1,18 @@
 import chainladder as cl
-import os
-import schema
-import sqlalchemy as sa
 import sys
 
-from connection import connect_db
-
-from constants import (
-    BUILD_VERSION,
-    QT_FILEPATH_OPTION
+from connection import (
+    connect_db,
+    ConnectionDialog
 )
 
-from sqlalchemy.orm import sessionmaker
+from constants import (
+    BUILD_VERSION
+)
 
-from triangle_model import TriangleModel
-
-from uuid import uuid4
+from project import (
+    ProjectItem
+)
 
 from PyQt5.Qt import (
     QStandardItem,
@@ -28,7 +25,6 @@ from PyQt5.QtCore import (
 
 from PyQt5.QtGui import (
     QColor,
-    QFont,
     QKeySequence
 )
 
@@ -37,22 +33,16 @@ from PyQt5.QtWidgets import (
     QApplication,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
-    QFrame,
     QFormLayout,
-    QHeaderView,
-    QLabel,
     QLineEdit,
     QMainWindow,
     QMenu,
     QMessageBox,
-    QRadioButton,
     QSplitter,
     QStatusBar,
     QTableView,
     QTreeView,
     QHBoxLayout,
-    QVBoxLayout,
     QWidget
 )
 
@@ -62,6 +52,10 @@ from schema import (
     ProjectTable,
     StateTable
 )
+
+from triangle_model import TriangleModel
+
+from uuid import uuid4
 
 
 class MainWindow(QMainWindow):
@@ -84,11 +78,13 @@ class MainWindow(QMainWindow):
         self.connection_action = QAction("&Connection", self)
         self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
         self.connection_action.setStatusTip("Edit database connection.")
+        # noinspection PyUnresolvedReferences
         self.connection_action.triggered.connect(self.edit_connection)
 
         self.new_action = QAction("&New Project", self)
         self.new_action.setShortcut(QKeySequence("Ctrl+n"))
         self.new_action.setStatusTip("Create new project.")
+        # noinspection PyUnresolvedReferences
         self.new_action.triggered.connect(self.new_project)
 
         self.import_action = QAction("&Import Project")
@@ -105,6 +101,7 @@ class MainWindow(QMainWindow):
 
         self.about_action = QAction("&About", self)
         self.about_action.setStatusTip("About")
+        # noinspection PyUnresolvedReferences
         self.about_action.triggered.connect(self.display_about)
 
         file_menu = QMenu("&File", self)
@@ -131,6 +128,7 @@ class MainWindow(QMainWindow):
         self.project_pane = QTreeView(self)
         self.project_pane.setHeaderHidden(False)
 
+        # noinspection PyUnresolvedReferences
         self.project_pane.doubleClicked.connect(self.get_value)
 
         self.project_model = QStandardItemModel()
@@ -219,7 +217,9 @@ class ProjectDialog(QDialog):
         self.button_box = QDialogButtonBox(button_layout)
 
         self.button_box = QDialogButtonBox(button_layout)
+        # noinspection PyUnresolvedReferences
         self.button_box.accepted.connect(lambda main_window=parent: self.make_project(main_window))
+        # noinspection PyUnresolvedReferences
         self.button_box.rejected.connect(self.reject)
 
         self.layout.addWidget(self.button_box)
@@ -334,150 +334,6 @@ class ProjectDialog(QDialog):
         self.close()
 
 
-class ConnectionDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        self.setWindowTitle("Connection")
-        self.layout = QVBoxLayout()
-
-        self.existing_connection = QRadioButton("Connect to existing database")
-        self.existing_connection.setChecked(True)
-        self.layout.addWidget(self.existing_connection)
-
-        self.new_connection = QRadioButton("Create new database")
-        self.layout.addWidget(self.new_connection)
-
-        button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-
-        self.button_box = QDialogButtonBox(button_layout)
-        self.button_box.accepted.connect(lambda main_window=parent: self.make_connection(main_window))
-        self.button_box.rejected.connect(self.reject)
-
-        self.layout.addWidget(self.button_box)
-        self.setLayout(self.layout)
-
-    def make_connection(self, main_window):
-
-        if self.existing_connection.isChecked():
-            main_window.db = self.open_existing_db(main_window=main_window)
-
-        elif self.new_connection.isChecked():
-            main_window.db = self.create_new_db(main_window=main_window)
-
-    def create_new_db(self, main_window):
-
-        filename = QFileDialog.getSaveFileName(
-            self,
-            'SaveFile',
-            'untitled.db',
-            "Sqlite Database (*.db)",
-            options=QT_FILEPATH_OPTION
-        )
-
-        db_filename = filename[0]
-
-        if os.path.isfile(db_filename):
-            os.remove(db_filename)
-
-        if not db_filename == "":
-            engine = sa.create_engine(
-                'sqlite:///' + filename[0],
-                echo=True
-            )
-            # session = sessionmaker(bind=engine)
-            schema.Base.metadata.create_all(engine)
-            # session = session()
-            connection = engine.connect()
-            connection.close()
-
-            self.close()
-
-        if db_filename != "":
-            main_window.connection_established = True
-            main_window.toggle_project_actions()
-
-        return db_filename
-
-    def open_existing_db(self, main_window):
-        db_filename = QFileDialog.getOpenFileName(
-            self,
-            'OpenFile',
-            '',
-            "Sqlite Database (*.db)",
-            options=QT_FILEPATH_OPTION)[0]
-
-        if not db_filename == "":
-            session, connection = connect_db(db_path=db_filename)
-
-            countries = session.query(
-                CountryTable.country_id,
-                CountryTable.country_name,
-                CountryTable.project_tree_uuid
-            ).all()
-
-            for country_id, country, country_uuid in countries:
-
-                country_item = ProjectItem(
-                    country,
-                    set_bold=True
-                )
-                
-                country_row = [
-                    country_item,
-                    QStandardItem(country_uuid)
-                ]
-
-                states = session.query(
-                    StateTable.state_id,
-                    StateTable.state_name,
-                    StateTable.project_tree_uuid
-                ).filter(
-                    StateTable.country_id == country_id
-                )
-
-                for state_id, state, state_uuid in states:
-
-                    state_item = ProjectItem(
-                        state,
-                    )
-
-                    state_row = [state_item, QStandardItem(state_uuid)]
-
-                    lobs = session.query(
-                        LOBTable.lob_type, LOBTable.project_tree_uuid
-                    ).filter(
-                        LOBTable.country_id == country_id
-                    ).filter(
-                        LOBTable.state_id == state_id
-                    )
-
-                    for lob, lob_uuid in lobs:
-                        lob_item = ProjectItem(
-                            lob,
-                            text_color=QColor(155, 0, 0)
-                        )
-
-                        lob_row = [lob_item, QStandardItem(lob_uuid)]
-
-                        state_item.appendRow(lob_row)
-
-                    country_item.appendRow(state_row)
-
-                main_window.project_root.appendRow(country_row)
-
-            main_window.project_pane.expandAll()
-
-            connection.close()
-
-            main_window.connection_established = True
-            main_window.toggle_project_actions()
-
-            self.close()
-
-        return db_filename
-
-
 class AboutDialog(QMessageBox):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -487,24 +343,6 @@ class AboutDialog(QMessageBox):
 
         self.setStandardButtons(QMessageBox.Ok)
         self.setIcon(QMessageBox.Information)
-
-
-class ProjectItem(QStandardItem):
-    def __init__(
-            self,
-            text='',
-            font_size=12,
-            set_bold=False,
-            text_color=QColor(0, 0, 0)
-    ):
-        super().__init__()
-
-        project_font = QFont('Open Sans', font_size)
-        project_font.setBold(set_bold)
-
-        self.setForeground(text_color)
-        self.setFont(project_font)
-        self.setText(text)
 
 
 app = QApplication(sys.argv)
