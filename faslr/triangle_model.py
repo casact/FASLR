@@ -19,11 +19,11 @@ class TriangleModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent=None, *args, **kwargs):
         return self._data.shape[1]
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, p_int, qt_orientation, role=None):
         # section is the index of the column/row.
         if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return str(self._data.columns[section])
+            if qt_orientation == Qt.Horizontal:
+                return str(self._data.columns[p_int])
 
-            if orientation == Qt.Vertical:
-                return str(self._data.index[section])
+            if qt_orientation == Qt.Vertical:
+                return str(self._data.index[p_int])
