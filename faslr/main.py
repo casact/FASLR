@@ -7,6 +7,8 @@ from connection import (
     ConnectionDialog
 )
 
+from project import ProjectDialog
+
 from PyQt5.Qt import (
     QStandardItemModel
 )
@@ -174,6 +176,7 @@ class MainWindow(QMainWindow):
         # function to display new project dialog box
         dlg = ProjectDialog(self)
         dlg.exec_()
+
 
 app = QApplication(sys.argv)
 
