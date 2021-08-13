@@ -10,7 +10,7 @@ from schema import (
     StateTable,
 )
 
-from project import ProjectItem
+from project_item import ProjectItem
 
 from PyQt5.Qt import (
     QColor,
