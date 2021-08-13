@@ -7,13 +7,12 @@ from schema import (
     StateTable
 )
 
-from uuid import uuid4
+from project_item import ProjectItem
 
 from PyQt5.QtCore import Qt
 
 from PyQt5.QtGui import (
     QColor,
-    QFont,
     QStandardItem
 )
 
@@ -24,23 +23,7 @@ from PyQt5.QtWidgets import (
     QLineEdit
 )
 
-
-class ProjectItem(QStandardItem):
-    def __init__(
-            self,
-            text='',
-            font_size=12,
-            set_bold=False,
-            text_color=QColor(0, 0, 0)
-    ):
-        super().__init__()
-
-        project_font = QFont('Open Sans', font_size)
-        project_font.setBold(set_bold)
-
-        self.setForeground(text_color)
-        self.setFont(project_font)
-        self.setText(text)
+from uuid import uuid4
 
 
 class ProjectDialog(QDialog):
