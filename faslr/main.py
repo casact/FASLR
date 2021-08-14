@@ -34,6 +34,8 @@ from PyQt5.QtWidgets import (
     QWidget
 )
 
+from settings import SettingsDialog
+
 from triangle_model import TriangleModel
 
 
@@ -46,7 +48,7 @@ class MainWindow(QMainWindow):
         self.connection_established = False
         self.db = None
 
-        self.resize(500, 700)
+        self.resize(2500, 900)
 
         self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
 
@@ -77,6 +79,8 @@ class MainWindow(QMainWindow):
         self.settings_action = QAction("&Settings")
         self.settings_action.setShortcut("Ctrl+Shift+t")
         self.settings_action.setStatusTip("Open settings dialog box.")
+        # noinspection PyUnresolvedReferences
+        self.settings_action.triggered.connect(self.display_settings)
 
         self.about_action = QAction("&About", self)
         self.about_action.setStatusTip("About")
@@ -175,6 +179,10 @@ class MainWindow(QMainWindow):
     def new_project(self):
         # function to display new project dialog box
         dlg = ProjectDialog(self)
+        dlg.exec_()
+
+    def display_settings(self):
+        dlg = SettingsDialog(self)
         dlg.exec_()
 
 
