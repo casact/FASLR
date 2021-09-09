@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFrame,
+    QHBoxLayout,
     QListView,
     QVBoxLayout,
     QSplitter,
@@ -55,9 +56,9 @@ class SettingsDialog(QDialog):
 
         self.list_pane = QListView()
 
-        self.list_model = SettingsListModel()
+        self.list_model = SettingsListModel(SETTINGS_LIST)
 
-        self.list_pane.setModel(SettingsListModel(SETTINGS_LIST))
+        self.list_pane.setModel(self.list_model)
         self.placeholder = QFrame()
 
         splitter = QSplitter(Qt.Horizontal)
@@ -69,3 +70,8 @@ class SettingsDialog(QDialog):
         self.layout.addWidget(splitter)
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
+
+        self.list_pane.clicked.connect(self.update_config_layout)
+
+    def update_config_layout(self, index):
+        print(index.data())
