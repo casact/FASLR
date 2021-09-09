@@ -1,3 +1,7 @@
+"""
+Module containing classes pertaining to application settings.
+"""
+
 from constants import SETTINGS_LIST
 
 from PyQt5.QtCore import (
@@ -16,6 +20,10 @@ from PyQt5.QtWidgets import (
 
 
 class SettingsListModel(QAbstractListModel):
+    """
+    Model for the list of settings that appears in the left-hand pane. Selecting an item should change the
+    corresponding layout in the right-hand pane.
+    """
     def __init__(self, setting_items=None):
         super(SettingsListModel, self).__init__()
         self.setting_items = setting_items or []
@@ -29,6 +37,10 @@ class SettingsListModel(QAbstractListModel):
 
 
 class SettingsDialog(QDialog):
+    """
+    Dialog box for settings. The left pane contains the list of available settings, and the right pane
+    is a layout that contains various options one may be able to configure for the corresponding setting.
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
 
