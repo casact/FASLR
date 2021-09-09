@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
 
     def display_settings(self):
         dlg = SettingsDialog(self)
-        dlg.exec_()
+        dlg.show()
 
 
 app = QApplication(sys.argv)
