@@ -76,7 +76,6 @@ class SettingsDialog(QDialog):
         self.list_model = SettingsListModel(SETTINGS_LIST)
 
         self.list_pane.setModel(self.list_model)
-        # self.placeholder = QWidget()
         self.configuration_layout = QStackedWidget()
         self.startup_connected_container = QWidget()
         self.startup_unconnected_container = QWidget()
