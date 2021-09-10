@@ -107,74 +107,79 @@ class ConnectionDialog(QDialog):
             options=QT_FILEPATH_OPTION)[0]
 
         if not db_filename == "":
-            session, connection = connect_db(db_path=db_filename)
 
-            countries = session.query(
-                CountryTable.country_id,
-                CountryTable.country_name,
-                CountryTable.project_tree_uuid
-            ).all()
-
-            for country_id, country, country_uuid in countries:
-
-                country_item = ProjectItem(
-                    country,
-                    set_bold=True
-                )
-
-                country_row = [
-                    country_item,
-                    QStandardItem(country_uuid)
-                ]
-
-                states = session.query(
-                    StateTable.state_id,
-                    StateTable.state_name,
-                    StateTable.project_tree_uuid
-                ).filter(
-                    StateTable.country_id == country_id
-                )
-
-                for state_id, state, state_uuid in states:
-
-                    state_item = ProjectItem(
-                        state,
-                    )
-
-                    state_row = [state_item, QStandardItem(state_uuid)]
-
-                    lobs = session.query(
-                        LOBTable.lob_type, LOBTable.project_tree_uuid
-                    ).filter(
-                        LOBTable.country_id == country_id
-                    ).filter(
-                        LOBTable.state_id == state_id
-                    )
-
-                    for lob, lob_uuid in lobs:
-                        lob_item = ProjectItem(
-                            lob,
-                            text_color=QColor(155, 0, 0)
-                        )
-
-                        lob_row = [lob_item, QStandardItem(lob_uuid)]
-
-                        state_item.appendRow(lob_row)
-
-                    country_item.appendRow(state_row)
-
-                main_window.project_root.appendRow(country_row)
-
-            main_window.project_pane.expandAll()
-
-            connection.close()
-
-            main_window.connection_established = True
-            main_window.toggle_project_actions()
-
+            populate_project_tree(db_filename=db_filename, main_window=main_window)
             self.close()
 
         return db_filename
+
+def populate_project_tree(db_filename, main_window):
+
+        session, connection = connect_db(db_path=db_filename)
+
+        countries = session.query(
+            CountryTable.country_id,
+            CountryTable.country_name,
+            CountryTable.project_tree_uuid
+        ).all()
+
+        for country_id, country, country_uuid in countries:
+
+            country_item = ProjectItem(
+                country,
+                set_bold=True
+            )
+
+            country_row = [
+                country_item,
+                QStandardItem(country_uuid)
+            ]
+
+            states = session.query(
+                StateTable.state_id,
+                StateTable.state_name,
+                StateTable.project_tree_uuid
+            ).filter(
+                StateTable.country_id == country_id
+            )
+
+            for state_id, state, state_uuid in states:
+
+                state_item = ProjectItem(
+                    state,
+                )
+
+                state_row = [state_item, QStandardItem(state_uuid)]
+
+                lobs = session.query(
+                    LOBTable.lob_type, LOBTable.project_tree_uuid
+                ).filter(
+                    LOBTable.country_id == country_id
+                ).filter(
+                    LOBTable.state_id == state_id
+                )
+
+                for lob, lob_uuid in lobs:
+                    lob_item = ProjectItem(
+                        lob,
+                        text_color=QColor(155, 0, 0)
+                    )
+
+                    lob_row = [lob_item, QStandardItem(lob_uuid)]
+
+                    state_item.appendRow(lob_row)
+
+                country_item.appendRow(state_row)
+
+            main_window.project_root.appendRow(country_row)
+
+        main_window.project_pane.expandAll()
+
+        connection.close()
+
+        main_window.connection_established = True
+        main_window.toggle_project_actions()
+
 
 
 def connect_db(db_path: str):
