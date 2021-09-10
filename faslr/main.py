@@ -1,10 +1,12 @@
 import chainladder as cl
+import configparser
 import sys
 
 from about import AboutDialog
 
 from connection import (
-    ConnectionDialog
+    ConnectionDialog,
+    populate_project_tree
 )
 
 from project import ProjectDialog
@@ -37,6 +39,12 @@ from PyQt5.QtWidgets import (
 from settings import SettingsDialog
 
 from triangle_model import TriangleModel
+
+config_path = 'faslr.ini'
+config = configparser.ConfigParser()
+config.read(config_path)
+config.sections()
+startup_db = config['STARTUP_CONNECTION']['startup_db']
 
 
 class MainWindow(QMainWindow):
@@ -149,6 +157,9 @@ class MainWindow(QMainWindow):
         self.container = QWidget()
         self.container.setLayout(self.layout)
         self.setCentralWidget(self.container)
+
+        if startup_db != "None":
+            populate_project_tree(db_filename=startup_db, main_window=self)
 
     def get_value(self, val):
         # Just some scaffolding that helps me navigate positions within the QTreeView model
