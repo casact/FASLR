@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget
 )
 
-config_path = 'faslr/faslr.ini'
+config_path = 'faslr.ini'
 config = configparser.ConfigParser()
 config.read(config_path)
 config.sections()
@@ -63,6 +63,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
 
         self.resize(1000, 700)
+        self.setWindowTitle("Settings")
 
         self.layout = QVBoxLayout()
 
@@ -75,12 +76,14 @@ class SettingsDialog(QDialog):
 
         self.list_model = SettingsListModel(SETTINGS_LIST)
 
+        self.db_label = QLabel()
+
         self.list_pane.setModel(self.list_model)
         self.configuration_layout = QStackedWidget()
         self.startup_connected_container = QWidget()
         self.startup_unconnected_container = QWidget()
         self.startup_unconnected_layout()
-        self.startup_connected_layout(db_filename=startup_db)
+        self.startup_connected_layout()
         self.configuration_layout.addWidget(self.startup_connected_container)
         self.configuration_layout.addWidget(self.startup_unconnected_container)
         self.configuration_layout.setCurrentIndex(0)
@@ -109,6 +112,7 @@ class SettingsDialog(QDialog):
                 self.configuration_layout.setCurrentIndex(0)
             else:
                 print('zxcv')
+                self.db_label.setText(startup_db)
                 self.configuration_layout.setCurrentIndex(1)
 
     def startup_unconnected_layout(self):
@@ -121,16 +125,22 @@ class SettingsDialog(QDialog):
         connect_button.clicked.connect(self.set_connection)
         self.startup_connected_container.setLayout(layout)
 
-    def startup_connected_layout(self, db_filename):
+    def startup_connected_layout(self):
         layout = QVBoxLayout()
         label = QLabel("Upon startup, connect to: ")
-        db_label = QLabel(db_filename)
         reset_connection = QPushButton("Reset Connection")
         layout.addWidget(label)
-        layout.addWidget(db_label)
+        layout.addWidget(self.db_label)
         layout.addWidget(reset_connection)
         layout.setAlignment(Qt.AlignTop)
+        reset_connection.clicked.connect(self.reset_connection)
         self.startup_unconnected_container.setLayout(layout)
+
+    def reset_connection(self):
+        config['STARTUP_CONNECTION']['startup_db'] = "None"
+        with open(config_path, 'w') as configfile:
+            config.write(configfile)
+        self.configuration_layout.setCurrentIndex(0)
 
     def set_connection(self):
         db_filename = QFileDialog.getOpenFileName(
@@ -141,12 +151,14 @@ class SettingsDialog(QDialog):
             options=QT_FILEPATH_OPTION)[0]
 
         print(db_filename)
-        self.startup_connected_layout(db_filename=db_filename)
-        global startup_db
-        startup_db = db_filename
-        config['STARTUP_CONNECTION']['startup_db'] = db_filename
-        with open(config_path, 'w') as configfile:
-            config.write(configfile)
-        self.configuration_layout.setCurrentIndex(1)
+        if db_filename != "":
+            self.db_label.setText(db_filename)
+            self.configuration_layout.setCurrentIndex(1)
+            global startup_db
+            startup_db = db_filename
+            config['STARTUP_CONNECTION']['startup_db'] = db_filename
+            with open(config_path, 'w') as configfile:
+                config.write(configfile)
+            self.configuration_layout.setCurrentIndex(1)
 
 
