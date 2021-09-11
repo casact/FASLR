@@ -11,7 +11,6 @@ from constants import (
 
 from PyQt5.QtCore import (
     QAbstractListModel,
-    QObjectCleanupHandler,
     Qt
 )
 
@@ -19,15 +18,12 @@ from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
-    QFrame,
-    QHBoxLayout,
     QLabel,
     QListView,
     QPushButton,
     QWidget,
     QVBoxLayout,
     QSplitter,
-    QStackedLayout,
     QStackedWidget
 )
 
@@ -36,6 +32,7 @@ config = configparser.ConfigParser()
 config.read(config_path)
 config.sections()
 startup_db = config['STARTUP_CONNECTION']['startup_db']
+
 
 class SettingsListModel(QAbstractListModel):
     """
@@ -100,32 +97,47 @@ class SettingsDialog(QDialog):
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
+        # noinspection PyUnresolvedReferences
         self.list_pane.clicked.connect(self.update_config_layout)
 
     def update_config_layout(self, index):
+        """
+        Method that updates the configuration layout depending on which item in the settings list is selected.
+        :param index:
+        :return:
+        """
         print(index.data())
 
         if index.data() == "Startup":
             print(startup_db)
             if startup_db == "None":
-                print('asdf')
                 self.configuration_layout.setCurrentIndex(0)
             else:
-                print('zxcv')
                 self.db_label.setText(startup_db)
                 self.configuration_layout.setCurrentIndex(1)
 
     def startup_unconnected_layout(self):
+        """
+        Layout that asks whether the user wants to connect to a database automatically upon startup, assuming
+        that there is no database yet configured to do so.
+        :return:
+        """
         layout = QVBoxLayout()
         label = QLabel("Upon startup, connect to: ")
         connect_button = QPushButton("Add Connection")
         layout.addWidget(label)
         layout.addWidget(connect_button)
         layout.setAlignment(Qt.AlignTop)
+        # noinspection PyUnresolvedReferences
         connect_button.clicked.connect(self.set_connection)
         self.startup_connected_container.setLayout(layout)
 
     def startup_connected_layout(self):
+        """
+        Layout that tells the user which database will be connected to upon startup, if the user has already
+        specified such a database.
+        :return:
+        """
         layout = QVBoxLayout()
         label = QLabel("Upon startup, connect to: ")
         reset_connection = QPushButton("Reset Connection")
@@ -133,16 +145,29 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.db_label)
         layout.addWidget(reset_connection)
         layout.setAlignment(Qt.AlignTop)
+        # noinspection PyUnresolvedReferences
         reset_connection.clicked.connect(self.reset_connection)
         self.startup_unconnected_container.setLayout(layout)
 
     def reset_connection(self):
+        """
+        This method decouples the database from automatic connection upon startup, and returns the layout
+        to be that of the unconnected state.
+        :return:
+        """
         config['STARTUP_CONNECTION']['startup_db'] = "None"
         with open(config_path, 'w') as configfile:
             config.write(configfile)
         self.configuration_layout.setCurrentIndex(0)
 
     def set_connection(self):
+        """
+        Method that obtains the filename of the database to be connected to at startup, and updates the
+        configuration file.
+        :return:
+        """
+
+        # Obtain the filename
         db_filename = QFileDialog.getOpenFileName(
             self,
             'OpenFile',
@@ -150,7 +175,7 @@ class SettingsDialog(QDialog):
             "Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION)[0]
 
-        print(db_filename)
+        # If the filename is not blank or the user does not cancel, update the configuration file and layout
         if db_filename != "":
             self.db_label.setText(db_filename)
             self.configuration_layout.setCurrentIndex(1)
@@ -160,5 +185,3 @@ class SettingsDialog(QDialog):
             with open(config_path, 'w') as configfile:
                 config.write(configfile)
             self.configuration_layout.setCurrentIndex(1)
-
-
