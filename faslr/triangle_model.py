@@ -1,9 +1,17 @@
-import numpy as np
+import csv
+import io
+
 from PyQt5 import QtCore
+
+from PyQt5 import QtGui
+
+from PyQt5 import QtWidgets
 
 from PyQt5.QtCore import Qt
 
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QKeySequence
+
+from PyQt5.QtWidgets import QAction, QMenu, QTableView
 
 
 class TriangleModel(QtCore.QAbstractTableModel):
@@ -48,3 +56,58 @@ class TriangleModel(QtCore.QAbstractTableModel):
 
             if qt_orientation == Qt.Vertical:
                 return str(self._data.index[p_int])
+
+
+class TriangleView(QTableView):
+    def __init__(self):
+        super().__init__()
+
+        self.copy_action = QAction("&Copy", self)
+        self.copy_action.setShortcut(QKeySequence("Ctrl+c"))
+        self.copy_action.setStatusTip("Copy selection to clipboard.")
+        # noinspection PyUnresolvedReferences
+        self.copy_action.triggered.connect(self.copySelection)
+
+        self.installEventFilter(self)
+
+    def contextMenuEvent(self, event):
+        """
+        When right clicking a cell, activate context menu.
+        :param event:
+        :return:
+        """
+        menu = QMenu()
+        menu.addAction(self.copy_action)
+        menu.exec(event.globalPos())
+
+    def copy_selection(self):
+        """Method to copy selected values to clipboard so they can be pasted elsewhere, like Excel."""
+        selection = self.selectedIndexes()
+        if selection:
+            rows = sorted(index.row() for index in selection)
+            columns = sorted(index.column() for index in selection)
+            rowcount = rows[-1] - rows[0] + 1
+            colcount = columns[-1] - columns[0] + 1
+            table = [[''] * colcount for _ in range(rowcount)]
+            for index in selection:
+                row = index.row() - rows[0]
+                column = index.column() - columns[0]
+                table[row][column] = index.data()
+            stream = io.StringIO()
+            csv.writer(stream, delimiter='\t').writerows(table)
+            QtWidgets.qApp.clipboard().setText(stream.getvalue())
+        return
+
+    def eventFilter(self, source, event):
+        """
+        Override default copy method.
+        :param source:
+        :param event:
+        :return:
+        """
+        if (event.type() == QtCore.QEvent.KeyPress and
+                # noinspection PyUnresolvedReferences
+                event.matches(QtGui.QKeySequence.Copy)):
+            self.copy_selection()
+            return True
+        return super().eventFilter(source, event)

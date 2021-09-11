@@ -30,7 +30,6 @@ from PyQt5.QtWidgets import (
     QMenu,
     QSplitter,
     QStatusBar,
-    QTableView,
     QTreeView,
     QHBoxLayout,
     QWidget
@@ -38,7 +37,7 @@ from PyQt5.QtWidgets import (
 
 from settings import SettingsDialog
 
-from triangle_model import TriangleModel
+from triangle_model import TriangleModel, TriangleView
 
 config_path = 'faslr.ini'
 config = configparser.ConfigParser()
@@ -128,25 +127,22 @@ class MainWindow(QMainWindow):
         self.project_root = self.project_model.invisibleRootItem()
 
         self.project_pane.setModel(self.project_model)
-        # self.project_pane.setColumnHidden(1, True)
-
-        # self.analysis_pane = QWidget()
-        # self.analysis_layout = QHBoxLayout()
-        # self.analysis_pane.setLayout(self.analysis_layout)
-        # self.analysis_pane.setFrameShape(QFrame.StyledPanel)
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.project_pane)
 
         # triangle placeholder
 
-        self.table = QTableView()
+        self.table = TriangleView()
 
         triangle = cl.load_sample('raa')
         triangle = triangle.to_frame()
 
         self.tri_model = TriangleModel(triangle)
         self.table.setModel(self.tri_model)
+        # noinspection PyUnresolvedReferences
+        self.table.doubleClicked.connect(self.get_value)
+        # self.table.contextMenuEvent.connect(self.test_menu)
 
         # self.analysis_layout.addWidget(self.table)
         splitter.addWidget(self.table)
@@ -161,14 +157,20 @@ class MainWindow(QMainWindow):
         if startup_db != "None":
             populate_project_tree(db_filename=startup_db, main_window=self)
 
+    # def contextMenuEvent(self, QContextMenuEvent):
+    #     menu = QMenu()
+    #     menu.addAction(self.new_action)
+    #     menu.exec(QContextMenuEvent.globalPos())
+
     def get_value(self, val):
         # Just some scaffolding that helps me navigate positions within the QTreeView model
-        print(val)
-        print(val.data())
-        print(val.row())
-        print(val.column())
-        ix_col_0 = self.project_model.sibling(val.row(), 1, val)
-        print(ix_col_0.data())
+        # print(val)
+        # print(val.data())
+        # print(val.row())
+        # print(val.column())
+        # ix_col_0 = self.project_model.sibling(val.row(), 1, val)
+        # print(ix_col_0.data())
+        print(self.table.selectedIndexes())
 
     def toggle_project_actions(self):
         # disable project-based menu items until connection is established
