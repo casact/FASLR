@@ -66,7 +66,7 @@ class TriangleView(QTableView):
         self.copy_action.setShortcut(QKeySequence("Ctrl+c"))
         self.copy_action.setStatusTip("Copy selection to clipboard.")
         # noinspection PyUnresolvedReferences
-        self.copy_action.triggered.connect(self.copySelection)
+        self.copy_action.triggered.connect(self.copy_selection)
 
         self.installEventFilter(self)
 
