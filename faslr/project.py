@@ -13,14 +13,17 @@ from PyQt5.QtCore import Qt
 
 from PyQt5.QtGui import (
     QColor,
+    QKeySequence,
     QStandardItem
 )
 
 from PyQt5.QtWidgets import (
+    QAction,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QLineEdit,
+    QMenu,
     QTreeView
 )
 
@@ -166,3 +169,18 @@ class ProjectDialog(QDialog):
 class ProjectTreeView(QTreeView):
     def __init__(self):
         super().__init__()
+
+        self.new_analysis_action = QAction("&New Analysis", self)
+        self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
+        self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
+
+
+    def contextMenuEvent(self, event):
+        """
+        When right clicking a cell, activate context menu.
+        :param event:
+        :return:
+        """
+        menu = QMenu()
+        menu.addAction(self.new_analysis_action)
+        menu.exec(event.globalPos())
