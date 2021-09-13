@@ -9,7 +9,10 @@ from connection import (
     populate_project_tree
 )
 
-from project import ProjectDialog
+from project import (
+    ProjectDialog,
+    ProjectTreeView
+)
 
 from PyQt5.Qt import (
     QStandardItemModel
@@ -30,7 +33,6 @@ from PyQt5.QtWidgets import (
     QMenu,
     QSplitter,
     QStatusBar,
-    QTreeView,
     QHBoxLayout,
     QWidget
 )
@@ -115,7 +117,7 @@ class MainWindow(QMainWindow):
 
         # navigation pane for project hierarchy
 
-        self.project_pane = QTreeView(self)
+        self.project_pane = ProjectTreeView()
         self.project_pane.setHeaderHidden(False)
 
         # noinspection PyUnresolvedReferences
@@ -163,7 +165,7 @@ class MainWindow(QMainWindow):
     #     menu.exec(QContextMenuEvent.globalPos())
 
     def get_value(self, val):
-        # Just some scaffolding that helps me navigate positions within the QTreeView model
+        # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
         # print(val)
         # print(val.data())
         # print(val.row())

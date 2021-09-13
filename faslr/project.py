@@ -20,7 +20,8 @@ from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
-    QLineEdit
+    QLineEdit,
+    QTreeView
 )
 
 from uuid import uuid4
@@ -160,3 +161,8 @@ class ProjectDialog(QDialog):
         print("new project created")
 
         self.close()
+
+
+class ProjectTreeView(QTreeView):
+    def __init__(self):
+        super().__init__()
