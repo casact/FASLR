@@ -1,20 +1,29 @@
 import csv
 import io
 
-from PyQt5 import QtCore
-
-from PyQt5 import QtGui
-
 from PyQt5 import QtWidgets
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    QAbstractTableModel,
+    QEvent,
+    Qt,
+    QVariant
+)
 
-from PyQt5.QtGui import QColor, QKeySequence
+from PyQt5.QtGui import (
+    QColor,
+    QKeySequence
+)
 
-from PyQt5.QtWidgets import QAction, QMenu, QTableView
+from PyQt5.QtWidgets import (
+    QAction,
+    qApp,
+    QMenu,
+    QTableView
+)
 
 
-class TriangleModel(QtCore.QAbstractTableModel):
+class TriangleModel(QAbstractTableModel):
 
     def __init__(self, data):
         super(TriangleModel, self).__init__()
@@ -31,8 +40,8 @@ class TriangleModel(QtCore.QAbstractTableModel):
             else:
                 display_value = "{0:,.0f}".format(value)
                 display_value = str(display_value)
-            self.setData(self.index(index.row(), index.column()), QtCore.QVariant(QtCore.Qt.AlignRight),
-                         QtCore.Qt.TextAlignmentRole)
+            self.setData(self.index(index.row(), index.column()), QVariant(Qt.AlignRight),
+                         Qt.TextAlignmentRole)
 
             return display_value
 
@@ -95,7 +104,7 @@ class TriangleView(QTableView):
                 table[row][column] = index.data()
             stream = io.StringIO()
             csv.writer(stream, delimiter='\t').writerows(table)
-            QtWidgets.qApp.clipboard().setText(stream.getvalue())
+            qApp.clipboard().setText(stream.getvalue())
         return
 
     def eventFilter(self, source, event):
@@ -105,9 +114,9 @@ class TriangleView(QTableView):
         :param event:
         :return:
         """
-        if (event.type() == QtCore.QEvent.KeyPress and
+        if (event.type() == QEvent.KeyPress and
                 # noinspection PyUnresolvedReferences
-                event.matches(QtGui.QKeySequence.Copy)):
+                event.matches(QKeySequence.Copy)):
             self.copy_selection()
             return True
         return super().eventFilter(source, event)
