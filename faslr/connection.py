@@ -1,8 +1,9 @@
+import configparser
 import os
 import schema
 import sqlalchemy as sa
 
-from constants import QT_FILEPATH_OPTION
+from constants import CONFIG_PATH, QT_FILEPATH_OPTION
 
 from schema import (
     CountryTable,
@@ -113,73 +114,73 @@ class ConnectionDialog(QDialog):
 
         return db_filename
 
+
 def populate_project_tree(db_filename, main_window):
 
-        session, connection = connect_db(db_path=db_filename)
+    session, connection = connect_db(db_path=db_filename)
 
-        countries = session.query(
-            CountryTable.country_id,
-            CountryTable.country_name,
-            CountryTable.project_tree_uuid
-        ).all()
+    countries = session.query(
+        CountryTable.country_id,
+        CountryTable.country_name,
+        CountryTable.project_tree_uuid
+    ).all()
 
-        for country_id, country, country_uuid in countries:
+    for country_id, country, country_uuid in countries:
 
-            country_item = ProjectItem(
-                country,
-                set_bold=True
+        country_item = ProjectItem(
+            country,
+            set_bold=True
+        )
+
+        country_row = [
+            country_item,
+            QStandardItem(country_uuid)
+        ]
+
+        states = session.query(
+            StateTable.state_id,
+            StateTable.state_name,
+            StateTable.project_tree_uuid
+        ).filter(
+            StateTable.country_id == country_id
+        )
+
+        for state_id, state, state_uuid in states:
+
+            state_item = ProjectItem(
+                state,
             )
 
-            country_row = [
-                country_item,
-                QStandardItem(country_uuid)
-            ]
+            state_row = [state_item, QStandardItem(state_uuid)]
 
-            states = session.query(
-                StateTable.state_id,
-                StateTable.state_name,
-                StateTable.project_tree_uuid
+            lobs = session.query(
+                LOBTable.lob_type, LOBTable.project_tree_uuid
             ).filter(
-                StateTable.country_id == country_id
+                LOBTable.country_id == country_id
+            ).filter(
+                LOBTable.state_id == state_id
             )
 
-            for state_id, state, state_uuid in states:
-
-                state_item = ProjectItem(
-                    state,
+            for lob, lob_uuid in lobs:
+                lob_item = ProjectItem(
+                    lob,
+                    text_color=QColor(155, 0, 0)
                 )
 
-                state_row = [state_item, QStandardItem(state_uuid)]
+                lob_row = [lob_item, QStandardItem(lob_uuid)]
 
-                lobs = session.query(
-                    LOBTable.lob_type, LOBTable.project_tree_uuid
-                ).filter(
-                    LOBTable.country_id == country_id
-                ).filter(
-                    LOBTable.state_id == state_id
-                )
+                state_item.appendRow(lob_row)
 
-                for lob, lob_uuid in lobs:
-                    lob_item = ProjectItem(
-                        lob,
-                        text_color=QColor(155, 0, 0)
-                    )
+            country_item.appendRow(state_row)
 
-                    lob_row = [lob_item, QStandardItem(lob_uuid)]
+        main_window.project_root.appendRow(country_row)
 
-                    state_item.appendRow(lob_row)
+    main_window.project_pane.expandAll()
 
-                country_item.appendRow(state_row)
+    connection.close()
 
-            main_window.project_root.appendRow(country_row)
-
-        main_window.project_pane.expandAll()
-
-        connection.close()
-
-        main_window.connection_established = True
-        main_window.toggle_project_actions()
-
+    main_window.connection_established = True
+    main_window.toggle_project_actions()
 
 
 def connect_db(db_path: str):
@@ -190,3 +191,13 @@ def connect_db(db_path: str):
     session = sessionmaker(bind=engine)()
     connection = engine.connect()
     return session, connection
+
+
+def get_startup_db_path():
+    config_path = CONFIG_PATH
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    config.sections()
+    startup_db = config['STARTUP_CONNECTION']['startup_db']
+
+    return startup_db
