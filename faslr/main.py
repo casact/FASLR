@@ -1,4 +1,5 @@
 import chainladder as cl
+import logging
 import sys
 
 from about import AboutDialog
@@ -8,6 +9,8 @@ from connection import (
     get_startup_db_path,
     populate_project_tree
 )
+
+from constants import ROOT_PATH
 
 from project import (
     ProjectDialog,
@@ -40,6 +43,15 @@ from PyQt5.QtWidgets import (
 from settings import SettingsDialog
 
 from triangle_model import TriangleModel, TriangleView
+
+logging.basicConfig(
+    filename= ROOT_PATH + '/faslr.log',
+    filemode='w',
+    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+    datefmt='%H:%M:%S',
+    level=logging.DEBUG)
+
+logging.info("Begin logging.")
 
 startup_db = get_startup_db_path()
 
