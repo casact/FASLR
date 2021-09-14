@@ -5,6 +5,7 @@ Module containing classes pertaining to application settings.
 import configparser
 
 from constants import (
+    CONFIG_PATH,
     QT_FILEPATH_OPTION,
     SETTINGS_LIST
 )
@@ -27,7 +28,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget
 )
 
-config_path = 'faslr.ini'
+config_path = CONFIG_PATH
 config = configparser.ConfigParser()
 config.read(config_path)
 config.sections()

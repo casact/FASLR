@@ -1,11 +1,11 @@
 import chainladder as cl
-import configparser
 import sys
 
 from about import AboutDialog
 
 from connection import (
     ConnectionDialog,
+    get_startup_db_path,
     populate_project_tree
 )
 
@@ -41,11 +41,7 @@ from settings import SettingsDialog
 
 from triangle_model import TriangleModel, TriangleView
 
-config_path = 'faslr.ini'
-config = configparser.ConfigParser()
-config.read(config_path)
-config.sections()
-startup_db = config['STARTUP_CONNECTION']['startup_db']
+startup_db = get_startup_db_path()
 
 
 class MainWindow(QMainWindow):
@@ -166,7 +162,7 @@ class MainWindow(QMainWindow):
 
     def get_value(self, val):
         # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
-        # print(val)
+        print(val)
         # print(val.data())
         # print(val.row())
         # print(val.column())
