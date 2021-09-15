@@ -1,5 +1,6 @@
 import chainladder as cl
 import logging
+import os
 import sys
 
 from about import AboutDialog
@@ -45,7 +46,7 @@ from settings import SettingsDialog
 from triangle_model import TriangleModel, TriangleView
 
 logging.basicConfig(
-    filename= ROOT_PATH + '/faslr.log',
+    filename= os.path.join(ROOT_PATH, 'faslr.log'),
     filemode='w',
     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
     datefmt='%H:%M:%S',

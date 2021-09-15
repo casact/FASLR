@@ -17,6 +17,6 @@ SETTINGS_LIST = [
 
 ROOT_PATH = dirname(dirname(os.path.realpath(__file__)))
 
-CONFIG_PATH = ROOT_PATH + '/faslr.ini'
+CONFIG_PATH = os.path.join(ROOT_PATH, 'faslr.ini')
 
-TEMPLATES_PATH = dirname(os.path.realpath(__file__)) + '/templates'
+TEMPLATES_PATH = os.path.join(dirname(os.path.realpath(__file__)), 'templates')
