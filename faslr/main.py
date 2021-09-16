@@ -1,6 +1,7 @@
 import chainladder as cl
 import logging
 import os
+import platform
 import sys
 
 from about import AboutDialog
@@ -45,6 +46,8 @@ from settings import SettingsDialog
 
 from triangle_model import TriangleModel, TriangleView
 
+os_name = platform.platform()
+
 logging.basicConfig(
     filename= os.path.join(ROOT_PATH, 'faslr.log'),
     filemode='w',
@@ -53,6 +56,7 @@ logging.basicConfig(
     level=logging.DEBUG)
 
 logging.info("Begin logging.")
+logging.info("FASLR initialized on " + os_name)
 
 startup_db = get_startup_db_path()
 
@@ -60,6 +64,7 @@ startup_db = get_startup_db_path()
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        logging.info("Main window initialized.")
 
         # Flag to determine whether there is an active database connection. Most project-related functions
         # should be disabled unless a connection is established.
