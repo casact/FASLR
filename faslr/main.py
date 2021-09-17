@@ -12,7 +12,11 @@ from connection import (
     populate_project_tree
 )
 
-from constants import ROOT_PATH
+from constants import (
+    CONFIG_PATH,
+    ROOT_PATH,
+    TEMPLATES_PATH
+)
 
 from project import (
     ProjectDialog,
@@ -44,12 +48,19 @@ from PyQt5.QtWidgets import (
 
 from settings import SettingsDialog
 
+from shutil import copyfile
+
 from triangle_model import TriangleModel, TriangleView
+
+# initialize configuration file if it does not exist
+if not os.path.exists(CONFIG_PATH):
+    config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
+    copyfile(config_template_path, CONFIG_PATH)
 
 os_name = platform.platform()
 
 logging.basicConfig(
-    filename= os.path.join(ROOT_PATH, 'faslr.log'),
+    filename=os.path.join(ROOT_PATH, 'faslr.log'),
     filemode='w',
     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
     datefmt='%H:%M:%S',
@@ -211,7 +222,7 @@ class MainWindow(QMainWindow):
         dlg.exec_()
 
     def display_settings(self):
-        dlg = SettingsDialog(self)
+        dlg = SettingsDialog(parent=self, config_path=CONFIG_PATH)
         dlg.show()
 
 

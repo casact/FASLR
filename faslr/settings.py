@@ -5,7 +5,6 @@ Module containing classes pertaining to application settings.
 import configparser
 
 from constants import (
-    CONFIG_PATH,
     QT_FILEPATH_OPTION,
     SETTINGS_LIST
 )
@@ -27,12 +26,6 @@ from PyQt5.QtWidgets import (
     QSplitter,
     QStackedWidget
 )
-
-config_path = CONFIG_PATH
-config = configparser.ConfigParser()
-config.read(config_path)
-config.sections()
-startup_db = config['STARTUP_CONNECTION']['startup_db']
 
 
 class SettingsListModel(QAbstractListModel):
@@ -57,8 +50,14 @@ class SettingsDialog(QDialog):
     Dialog box for settings. The left pane contains the list of available settings, and the right pane
     is a layout that contains various options one may be able to configure for the corresponding setting.
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, config_path=None):
         super().__init__(parent)
+
+        self.config_path = config_path
+        self.config = configparser.ConfigParser()
+        self.config.read(self.config_path)
+        self.config.sections()
+        self.startup_db = self.config['STARTUP_CONNECTION']['startup_db']
 
         self.resize(1000, 700)
         self.setWindowTitle("Settings")
@@ -110,11 +109,11 @@ class SettingsDialog(QDialog):
         print(index.data())
 
         if index.data() == "Startup":
-            print(startup_db)
-            if startup_db == "None":
+            print(self.startup_db)
+            if self.startup_db == "None":
                 self.configuration_layout.setCurrentIndex(0)
             else:
-                self.db_label.setText(startup_db)
+                self.db_label.setText(self.startup_db)
                 self.configuration_layout.setCurrentIndex(1)
 
     def startup_unconnected_layout(self):
@@ -156,9 +155,9 @@ class SettingsDialog(QDialog):
         to be that of the unconnected state.
         :return:
         """
-        config['STARTUP_CONNECTION']['startup_db'] = "None"
-        with open(config_path, 'w') as configfile:
-            config.write(configfile)
+        self.config['STARTUP_CONNECTION']['startup_db'] = "None"
+        with open(self.config_path, 'w') as configfile:
+            self.config.write(configfile)
         self.configuration_layout.setCurrentIndex(0)
 
     def set_connection(self):
@@ -180,9 +179,8 @@ class SettingsDialog(QDialog):
         if db_filename != "":
             self.db_label.setText(db_filename)
             self.configuration_layout.setCurrentIndex(1)
-            global startup_db
-            startup_db = db_filename
-            config['STARTUP_CONNECTION']['startup_db'] = db_filename
-            with open(config_path, 'w') as configfile:
-                config.write(configfile)
+            self.startup_db = db_filename
+            self.config['STARTUP_CONNECTION']['startup_db'] = db_filename
+            with open(self.config_path, 'w') as configfile:
+                self.config.write(configfile)
             self.configuration_layout.setCurrentIndex(1)
