@@ -52,11 +52,6 @@ from shutil import copyfile
 
 from triangle_model import TriangleModel, TriangleView
 
-# initialize configuration file if it does not exist
-if not os.path.exists(CONFIG_PATH):
-    config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
-    copyfile(config_template_path, CONFIG_PATH)
-
 os_name = platform.platform()
 
 logging.basicConfig(
@@ -68,6 +63,13 @@ logging.basicConfig(
 
 logging.info("Begin logging.")
 logging.info("FASLR initialized on " + os_name)
+
+# initialize configuration file if it does not exist
+if not os.path.exists(CONFIG_PATH):
+    logging.info("No configuration file detected. Initializing a new one from template.")
+    config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
+    copyfile(config_template_path, CONFIG_PATH)
+
 
 startup_db = get_startup_db_path()
 
