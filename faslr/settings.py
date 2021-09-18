@@ -3,14 +3,17 @@ Module containing classes pertaining to application settings.
 """
 
 import configparser
+import os
 
 from constants import (
+    CONFIG_PATH,
     QT_FILEPATH_OPTION,
     SETTINGS_LIST
 )
 
 from PyQt5.QtCore import (
     QAbstractListModel,
+    QCoreApplication,
     Qt
 )
 
@@ -79,10 +82,15 @@ class SettingsDialog(QDialog):
         self.configuration_layout = QStackedWidget()
         self.startup_connected_container = QWidget()
         self.startup_unconnected_container = QWidget()
+        self.user_container = QWidget()
+
         self.startup_unconnected_layout()
         self.startup_connected_layout()
+        self.user_layout()
+
         self.configuration_layout.addWidget(self.startup_connected_container)
         self.configuration_layout.addWidget(self.startup_unconnected_container)
+        self.configuration_layout.addWidget(self.user_container)
         self.configuration_layout.setCurrentIndex(0)
         self.list_pane.setCurrentIndex(self.list_model.index(0))
         self.update_config_layout(self.list_pane.currentIndex())
@@ -115,6 +123,8 @@ class SettingsDialog(QDialog):
             else:
                 self.db_label.setText(self.startup_db)
                 self.configuration_layout.setCurrentIndex(1)
+        elif index.data() == "User":
+            self.configuration_layout.setCurrentIndex(2)
 
     def startup_unconnected_layout(self):
         """
@@ -148,6 +158,16 @@ class SettingsDialog(QDialog):
         # noinspection PyUnresolvedReferences
         reset_connection.clicked.connect(self.reset_connection)
         self.startup_unconnected_container.setLayout(layout)
+
+    def user_layout(self):
+        layout = QVBoxLayout()
+        delete_configuration_button = QPushButton("Delete Configuration")
+        delete_configuration_button.setStatusTip("Delete the user config file and quit the application.")
+        layout.addWidget(delete_configuration_button)
+        layout.setAlignment(Qt.AlignTop)
+        # noinspection PyUnresolvedReferences
+        delete_configuration_button.clicked.connect(self.delete_configuration)
+        self.user_container.setLayout(layout)
 
     def reset_connection(self):
         """
@@ -184,3 +204,9 @@ class SettingsDialog(QDialog):
             with open(self.config_path, 'w') as configfile:
                 self.config.write(configfile)
             self.configuration_layout.setCurrentIndex(1)
+
+    def delete_configuration(self):
+        self.close()
+        self.parent().close()
+        os.remove(CONFIG_PATH)
+        QCoreApplication.instance().quit()
