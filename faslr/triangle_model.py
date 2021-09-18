@@ -1,8 +1,6 @@
 import csv
 import io
 
-from PyQt5 import QtWidgets
-
 from PyQt5.QtCore import (
     QAbstractTableModel,
     QEvent,
@@ -114,9 +112,8 @@ class TriangleView(QTableView):
         :param event:
         :return:
         """
-        if (event.type() == QEvent.KeyPress and
-                # noinspection PyUnresolvedReferences
-                event.matches(QKeySequence.Copy)):
+        # noinspection PyUnresolvedReferences
+        if event.type() == QEvent.KeyPress and event.matches(QKeySequence.Copy):
             self.copy_selection()
             return True
         return super().eventFilter(source, event)
