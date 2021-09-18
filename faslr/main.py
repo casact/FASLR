@@ -43,6 +43,7 @@ from PyQt5.QtWidgets import (
     QSplitter,
     QStatusBar,
     QHBoxLayout,
+    QTabWidget,
     QWidget
 )
 
@@ -162,19 +163,58 @@ class MainWindow(QMainWindow):
 
         # triangle placeholder
 
-        self.table = TriangleView()
+        self.raa_table = TriangleView()
 
-        triangle = cl.load_sample('raa')
-        triangle = triangle.to_frame()
+        raa_triangle = cl.load_sample('raa')
+        raa_triangle = raa_triangle.to_frame()
 
-        self.tri_model = TriangleModel(triangle)
-        self.table.setModel(self.tri_model)
+        self.raa_model = TriangleModel(raa_triangle)
+        self.raa_table.setModel(self.raa_model)
         # noinspection PyUnresolvedReferences
-        self.table.doubleClicked.connect(self.get_value)
+        self.raa_table.doubleClicked.connect(self.get_value)
         # self.table.contextMenuEvent.connect(self.test_menu)
 
-        # self.analysis_layout.addWidget(self.table)
-        splitter.addWidget(self.table)
+        self.abc_table = TriangleView()
+        abc_triangle = cl.load_sample('abc')
+        abc_triangle = abc_triangle.to_frame()
+        self.abc_model = TriangleModel(abc_triangle)
+        self.abc_table.setModel(self.abc_model)
+        # noinspection PyUnresolvedReferences
+        self.abc_table.doubleClicked.connect(self.get_value)
+
+        self.analysis_pane = QTabWidget()
+        self.analysis_pane.setTabsClosable(True)
+        self.analysis_pane.setMovable(True)
+        self.analysis_pane.addTab(self.raa_table, "RAA")
+        self.analysis_pane.addTab(self.abc_table, "ABC")
+
+        self.analysis_pane.setStyleSheet(
+            """
+            QTabWidget::pane {
+
+              top:-1px; 
+              background: rgb(245, 245, 245);; 
+            } 
+            
+            QTabBar::tab {
+              background: rgb(230, 230, 230); 
+              border: 1px solid darkgrey; 
+              padding: 5px;
+              padding-left: 10px;
+              height: 30px;
+            } 
+            
+            QTabBar::tab:selected { 
+              background: rgb(245, 245, 245); 
+              margin-bottom: -1px; 
+            }
+            """
+        )
+
+        # noinspection PyUnresolvedReferences
+        self.analysis_pane.tabCloseRequested.connect(self.remove_tab)
+
+        splitter.addWidget(self.analysis_pane)
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([125, 150])
 
@@ -226,6 +266,9 @@ class MainWindow(QMainWindow):
     def display_settings(self):
         dlg = SettingsDialog(parent=self, config_path=CONFIG_PATH)
         dlg.show()
+
+    def remove_tab(self, index):
+        self.analysis_pane.removeTab(index)
 
 
 app = QApplication(sys.argv)
