@@ -3,6 +3,7 @@ Module containing classes pertaining to application settings.
 """
 
 import configparser
+import logging
 import os
 
 from constants import (
@@ -55,6 +56,7 @@ class SettingsDialog(QDialog):
     """
     def __init__(self, parent=None, config_path=None):
         super().__init__(parent)
+        logging.info("Settings window initialized.")
 
         self.config_path = config_path
         self.config = configparser.ConfigParser()

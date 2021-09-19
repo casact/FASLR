@@ -188,6 +188,7 @@ class MainWindow(QMainWindow):
         self.analysis_pane.addTab(self.raa_table, "RAA")
         self.analysis_pane.addTab(self.abc_table, "ABC")
 
+        # This styling is mostly done to add a border right beneath the tab
         self.analysis_pane.setStyleSheet(
             """
             QTabWidget::pane {
@@ -225,11 +226,6 @@ class MainWindow(QMainWindow):
 
         if startup_db != "None":
             populate_project_tree(db_filename=startup_db, main_window=self)
-
-    # def contextMenuEvent(self, QContextMenuEvent):
-    #     menu = QMenu()
-    #     menu.addAction(self.new_action)
-    #     menu.exec(QContextMenuEvent.globalPos())
 
     def get_value(self, val):
         # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
