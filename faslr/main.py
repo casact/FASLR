@@ -4,10 +4,7 @@ import os
 import platform
 import sys
 
-from about import AboutDialog
-
 from connection import (
-    ConnectionDialog,
     get_startup_db_path,
     populate_project_tree
 )
@@ -18,8 +15,11 @@ from constants import (
     TEMPLATES_PATH
 )
 
+from menu import (
+    MainMenuBar
+)
+
 from project import (
-    ProjectDialog,
     ProjectTreeView
 )
 
@@ -31,23 +31,16 @@ from PyQt5.QtCore import (
     Qt,
 )
 
-from PyQt5.QtGui import (
-    QKeySequence
-)
-
 from PyQt5.QtWidgets import (
-    QAction,
     QApplication,
     QMainWindow,
-    QMenu,
     QSplitter,
     QStatusBar,
     QHBoxLayout,
+    QVBoxLayout,
     QTabWidget,
     QWidget
 )
-
-from settings import SettingsDialog
 
 from shutil import copyfile
 
@@ -89,59 +82,15 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
 
-        self.layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
 
-        menu_bar = self.menuBar()
+        self.body_layout = QHBoxLayout()
 
-        self.connection_action = QAction("&Connection", self)
-        self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
-        self.connection_action.setStatusTip("Edit database connection.")
-        # noinspection PyUnresolvedReferences
-        self.connection_action.triggered.connect(self.edit_connection)
-
-        self.new_action = QAction("&New Project", self)
-        self.new_action.setShortcut(QKeySequence("Ctrl+n"))
-        self.new_action.setStatusTip("Create new project.")
-        # noinspection PyUnresolvedReferences
-        self.new_action.triggered.connect(self.new_project)
-
-        self.import_action = QAction("&Import Project")
-        self.import_action.setShortcut(QKeySequence("Ctrl+Shift+i"))
-        self.import_action.setStatusTip("Import a project from another data source.")
-
-        self.engine_action = QAction("&Select Engine")
-        self.engine_action.setShortcut("Ctrl+shift+e")
-        self.engine_action.setStatusTip("Select a reserving engine.")
-
-        self.settings_action = QAction("&Settings")
-        self.settings_action.setShortcut("Ctrl+Shift+t")
-        self.settings_action.setStatusTip("Open settings dialog box.")
-        # noinspection PyUnresolvedReferences
-        self.settings_action.triggered.connect(self.display_settings)
-
-        self.about_action = QAction("&About", self)
-        self.about_action.setStatusTip("About")
-        # noinspection PyUnresolvedReferences
-        self.about_action.triggered.connect(self.display_about)
-
-        file_menu = QMenu("&File", self)
-        menu_bar.addMenu(file_menu)
-        menu_bar.addMenu("&Edit")
-        tools_menu = menu_bar.addMenu("&Tools")
-        help_menu = menu_bar.addMenu("&Help")
-
-        file_menu.addAction(self.connection_action)
-        file_menu.addAction(self.new_action)
-        file_menu.addAction(self.import_action)
-        file_menu.addAction(self.settings_action)
-
-        tools_menu.addAction(self.engine_action)
-
-        help_menu.addAction(self.about_action)
+        self.menu_bar = MainMenuBar(parent=self)
 
         self.setStatusBar(QStatusBar(self))
 
-        self.toggle_project_actions()
+        self.menu_bar.toggle_project_actions()
 
         # navigation pane for project hierarchy
 
@@ -219,10 +168,17 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([125, 150])
 
-        self.layout.addWidget(splitter)
-        self.container = QWidget()
-        self.container.setLayout(self.layout)
-        self.setCentralWidget(self.container)
+        self.body_layout.addWidget(splitter)
+        self.body_container = QWidget()
+        self.body_container.setLayout(self.body_layout)
+        self.main_container = QWidget()
+        self.layout.addWidget(self.menu_bar)
+        self.layout.addWidget(self.body_container, stretch=1)
+        self.layout.setAlignment(Qt.AlignTop)
+        self.main_container.setLayout(self.layout)
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setCentralWidget(self.main_container)
 
         if startup_db != "None":
             populate_project_tree(db_filename=startup_db, main_window=self)
@@ -236,32 +192,6 @@ class MainWindow(QMainWindow):
         # ix_col_0 = self.project_model.sibling(val.row(), 1, val)
         # print(ix_col_0.data())
         print(self.table.selectedIndexes())
-
-    def toggle_project_actions(self):
-        # disable project-based menu items until connection is established
-        if self.connection_established:
-            self.new_action.setEnabled(True)
-        else:
-            self.new_action.setEnabled(False)
-
-    def edit_connection(self):
-        # function triggers the connection dialog box to connect to a database
-        dlg = ConnectionDialog(self)
-        dlg.exec_()
-
-    def display_about(self):
-        # function to display about dialog box
-        dlg = AboutDialog(self)
-        dlg.exec_()
-
-    def new_project(self):
-        # function to display new project dialog box
-        dlg = ProjectDialog(self)
-        dlg.exec_()
-
-    def display_settings(self):
-        dlg = SettingsDialog(parent=self, config_path=CONFIG_PATH)
-        dlg.show()
 
     def remove_tab(self, index):
         self.analysis_pane.removeTab(index)
