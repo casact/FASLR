@@ -176,8 +176,12 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.body_container, stretch=1)
         self.layout.setAlignment(Qt.AlignTop)
         self.main_container.setLayout(self.layout)
+
+        # Otherwise, we get too much space between the menu bar and the top of the app and between
+        # the menu bar and body pane
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
+
         self.setCentralWidget(self.main_container)
 
         if startup_db != "None":
