@@ -1,5 +1,11 @@
 from constants import BUILD_VERSION
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import (
+    QLabel,
+    QMessageBox,
+    QVBoxLayout
+)
+
+from PyQt5.QtCore import Qt
 
 
 class AboutDialog(QMessageBox):
@@ -8,7 +14,12 @@ class AboutDialog(QMessageBox):
         super().__init__(parent)
 
         self.setWindowTitle("About")
-        self.setText("FASLR v" + BUILD_VERSION + "\n\nGit Repository: https://github.com/genedan/FASLR")
+
+        self.setTextFormat(Qt.RichText)
+
+        faslr_version = "FASLR v" + BUILD_VERSION
+
+        self.setText(faslr_version + "<br /> <br />" + "<a href='https://github.com/genedan/FASLR'>GitHub Repo</a>")
 
         self.setStandardButtons(QMessageBox.Ok)
         self.setIcon(QMessageBox.Information)
