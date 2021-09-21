@@ -24,6 +24,12 @@ FASLR will support departments with multiple users, who will have the ability to
 
 ![client-server-model](docs/_static/client_server.png)
 
+## Contributing
+
+You can evaluate the working version of FASLR by executing the [main.py](https://github.com/casact/FASLR/blob/main/faslr/main.py) program in the [faslr](https://github.com/casact/FASLR/tree/main/faslr) directory.
+
+To learn more about the current structure of the repository, read [ARCHITECTURE.md](https://github.com/casact/FASLR/blob/main/ARCHITECTURE.md).
+
 ## Supported Operating Systems
 
 Due to the dominance of Windows in most modern-day actuarial departments, FASLR is intended to be supported on Windows. However, most of the current development is being done on Linux, which is also intended to be supported in order to keep the project fully open source. 
