@@ -44,10 +44,15 @@ from PyQt5.QtWidgets import (
 
 from shutil import copyfile
 
-from triangle_model import TriangleModel, TriangleView
+from triangle_model import (
+    TriangleModel,
+    TriangleView
+)
 
+# Get OS information from the user.
 os_name = platform.platform()
 
+# Initialize logging
 logging.basicConfig(
     filename=os.path.join(ROOT_PATH, 'faslr.log'),
     filemode='w',
@@ -64,7 +69,7 @@ if not os.path.exists(CONFIG_PATH):
     config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
     copyfile(config_template_path, CONFIG_PATH)
 
-
+# If a startup db has been indicated, get the path.
 startup_db = get_startup_db_path()
 
 
@@ -121,7 +126,6 @@ class MainWindow(QMainWindow):
         self.raa_table.setModel(self.raa_model)
         # noinspection PyUnresolvedReferences
         self.raa_table.doubleClicked.connect(self.get_value)
-        # self.table.contextMenuEvent.connect(self.test_menu)
 
         self.abc_table = TriangleView()
         abc_triangle = cl.load_sample('abc')
@@ -198,6 +202,11 @@ class MainWindow(QMainWindow):
         print(self.table.selectedIndexes())
 
     def remove_tab(self, index):
+        """
+        Deletes an open tab from the analysis pane.
+        :param index:
+        :return:
+        """
         self.analysis_pane.removeTab(index)
 
 
