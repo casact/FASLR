@@ -1,3 +1,6 @@
+"""
+Contains the menu bar of the main window i.e., the horizontal bar that has stuff like File, Edit, Tools, About, etc.
+"""
 from about import AboutDialog
 
 from connection import ConnectionDialog
@@ -87,6 +90,7 @@ class MainMenuBar(QMenuBar):
         dlg.exec_()
 
     def display_settings(self):
+        # launch settings window
         dlg = SettingsDialog(parent=self, config_path=CONFIG_PATH)
         dlg.show()
 

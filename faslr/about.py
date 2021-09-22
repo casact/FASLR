@@ -1,8 +1,6 @@
 from constants import BUILD_VERSION
 from PyQt5.QtWidgets import (
-    QLabel,
     QMessageBox,
-    QVBoxLayout
 )
 
 from PyQt5.QtCore import Qt
@@ -14,6 +12,8 @@ class AboutDialog(QMessageBox):
         super().__init__(parent)
 
         self.setWindowTitle("About")
+
+        # Hyperlink to the GitHub repo
 
         self.setTextFormat(Qt.RichText)
 
