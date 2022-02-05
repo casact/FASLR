@@ -211,6 +211,11 @@ class MainWindow(QMainWindow):
         """
         self.analysis_pane.removeTab(index)
 
+    def closeEvent(self, event):
+        logging.info("Main window close.")
+
+        event.accept()  # let the window close
+
 
 app = QApplication(sys.argv)
 
