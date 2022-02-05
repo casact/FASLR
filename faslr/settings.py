@@ -212,3 +212,13 @@ class SettingsDialog(QDialog):
         self.parent().close()
         os.remove(CONFIG_PATH)
         QCoreApplication.instance().quit()
+
+    def accept(self):
+        logging.info("Settings accepted.")
+
+        self.close()
+
+    def closeEvent(self, event):
+        logging.info("Settings window closed.")
+
+        event.accept()  # let the window close
