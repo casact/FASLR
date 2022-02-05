@@ -1,4 +1,5 @@
 import configparser
+import logging
 import os
 import schema
 import sqlalchemy as sa
@@ -34,6 +35,7 @@ class ConnectionDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        logging.info("Connection window initialized.")
 
         self.setWindowTitle("Connection")
         self.layout = QVBoxLayout()
@@ -113,6 +115,16 @@ class ConnectionDialog(QDialog):
             self.close()
 
         return db_filename
+
+    def reject(self):
+        logging.info("User pressed cancel on connection window.")
+
+        self.close()
+
+    def closeEvent(self, event):
+        logging.info("Connection window closed.")
+
+        event.accept()  # let the window close
 
 
 def populate_project_tree(db_filename, main_window):
