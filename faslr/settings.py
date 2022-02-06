@@ -208,9 +208,9 @@ class SettingsDialog(QDialog):
             self.configuration_layout.setCurrentIndex(1)
 
     def delete_configuration(self):
-        self.close()
-        self.parent().close()
         os.remove(CONFIG_PATH)
+        self.close()
+        self.parent().parent.close()
         QCoreApplication.instance().quit()
 
     def accept(self):
