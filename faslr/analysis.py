@@ -17,6 +17,7 @@ from triangle_model import (
 
 
 class AnalysisTab(QTabWidget):
+    # should eventually contain the TriangleColumnTab
     def __init__(self, triangle: Triangle = None, lob: str = None, column=None):
         super().__init__()
 
@@ -29,11 +30,6 @@ class AnalysisTab(QTabWidget):
         self.column_box = QComboBox()
         self.column_box.setFixedWidth(200)
         self.column_box.addItems(list(self.triangle.columns))
-
-        # if lob is None:
-        #     self.triangle_column = self.triangle[column]
-        # else:
-        #     self.triangle_column = self.triangle[self.triangle['lob'] == self.lob][column]
 
         self.triangle_column = get_column(
             triangle=self.triangle,
@@ -64,3 +60,7 @@ class AnalysisTab(QTabWidget):
         self.triangle_frame = self.triangle_column.to_frame()
         self.triangle_model = TriangleModel(self.triangle_frame)
         self.triangle_view.setModel(self.triangle_model)
+
+
+# class TriangleColumnTab(QTabWidget):
+     # West-facing tabs to switch between columns of a triangle.
