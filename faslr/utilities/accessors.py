@@ -14,3 +14,16 @@ def get_cell_scalar(
         ][column].link_ratio.to_frame().squeeze()
 
     return cell_scalar
+
+
+def get_column(
+        triangle: Type[Triangle],
+        column: str,
+        lob: str
+) -> Triangle:
+
+    if lob is None:
+        triangle_column = triangle[column]
+    else:
+        triangle_column = triangle[triangle['lob'] == lob][column]
+    return triangle_column
