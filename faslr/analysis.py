@@ -1,3 +1,5 @@
+from utilities.accessors import get_column
+
 from chainladder import Triangle
 
 from PyQt5.QtCore import Qt
@@ -19,6 +21,7 @@ class AnalysisTab(QTabWidget):
         super().__init__()
 
         self.triangle = triangle
+        self.lob = lob
 
         self.layout = QVBoxLayout()
 
@@ -27,11 +30,20 @@ class AnalysisTab(QTabWidget):
         self.column_box.setFixedWidth(200)
         self.column_box.addItems(list(self.triangle.columns))
 
-        self.triangle = triangle[triangle['lob'] == lob][column]
+        # if lob is None:
+        #     self.triangle_column = self.triangle[column]
+        # else:
+        #     self.triangle_column = self.triangle[self.triangle['lob'] == self.lob][column]
+
+        self.triangle_column = get_column(
+            triangle=self.triangle,
+            lob=self.lob,
+            column=column
+        )
 
         self.triangle_view = TriangleView()
 
-        self.triangle_frame = self.triangle.to_frame()
+        self.triangle_frame = self.triangle_column.to_frame()
 
         self.triangle_model = TriangleModel(self.triangle_frame)
         self.triangle_view.setModel(self.triangle_model)
@@ -40,3 +52,15 @@ class AnalysisTab(QTabWidget):
         self.layout.addWidget(self.triangle_view)
 
         self.setLayout(self.layout)
+
+        self.column_box.currentTextChanged.connect(self.change_column)
+
+    def change_column(self, s):
+        self.triangle_column = get_column(
+            triangle=self.triangle,
+            lob=self.lob,
+            column=s
+        )
+        self.triangle_frame = self.triangle_column.to_frame()
+        self.triangle_model = TriangleModel(self.triangle_frame)
+        self.triangle_view.setModel(self.triangle_model)
