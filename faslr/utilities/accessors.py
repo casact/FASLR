@@ -4,7 +4,7 @@ from chainladder import Triangle
 
 
 def get_cell_scalar(
-        triangle: Type[Triangle],
+        triangle: Triangle,
         origin: str,
         age: int,
         column: str
@@ -17,7 +17,7 @@ def get_cell_scalar(
 
 
 def get_column(
-        triangle: Type[Triangle],
+        triangle: Triangle,
         column: str,
         lob: str
 ) -> Triangle:
