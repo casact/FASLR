@@ -5,6 +5,7 @@ from PyQt5.QtCore import (
     QAbstractTableModel,
     QEvent,
     Qt,
+    QSize,
     QVariant
 )
 
@@ -14,10 +15,17 @@ from PyQt5.QtGui import (
 )
 
 from PyQt5.QtWidgets import (
+    QAbstractButton,
     QAction,
+    QApplication,
     qApp,
+    QLabel,
     QMenu,
-    QTableView
+    QStyle,
+    QStylePainter,
+    QStyleOptionHeader,
+    QTableView,
+    QVBoxLayout
 )
 
 
@@ -77,10 +85,66 @@ class TriangleView(QTableView):
 
         self.installEventFilter(self)
 
+        btn = self.findChild(QAbstractButton)
+        btn.setText("Accident Year")
+
+        btn.setToolTip('Toggle selecting all table cells')
+        btn.installEventFilter(self)
+        btn_label = QLabel("AY")
+        btn_label.setAlignment(Qt.AlignCenter)
+        btn_layout = QVBoxLayout()
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.addWidget(btn_label)
+        btn.setLayout(btn_layout)
+        opt = QStyleOptionHeader()
+
+        self.setStyleSheet(
+            """
+            QTableCornerButton::section{
+                border-width: 1px; 
+                border-style: solid; 
+                border-color:none darkgrey darkgrey none;
+            }
+            """
+        )
+
+        s = QSize(btn.style().sizeFromContents(
+            QStyle.CT_HeaderSection, opt, QSize(), btn).
+                  expandedTo(QApplication.globalStrut()))
+
+        if s.isValid():
+            self.verticalHeader().setMinimumWidth(s.width())
+
+    def eventFilter(self, obj, event):
+        if event.type() != QEvent.Paint or not isinstance(
+                obj, QAbstractButton):
+            return False
+
+        # Paint by hand (borrowed from QTableCornerButton)
+        opt = QStyleOptionHeader()
+        opt.initFrom(obj)
+        style_state = QStyle.State_None
+        if obj.isEnabled():
+            style_state |= QStyle.State_Enabled
+        if obj.isActiveWindow():
+            style_state |= QStyle.State_Active
+        if obj.isDown():
+            style_state |= QStyle.State_Sunken
+        opt.state = style_state
+        opt.rect = obj.rect()
+        # This line is the only difference to QTableCornerButton
+        opt.text = obj.text()
+        opt.position = QStyleOptionHeader.OnlyOneSection
+        painter = QStylePainter(obj)
+        painter.drawControl(QStyle.CE_Header, opt)
+
+        return True
+
     def contextMenuEvent(self, event):
         """
-        When right clicking a cell, activate context menu.
-        :param event:
+        When right-clicking a cell, activate context menu.
+
+        :param: event
         :return:
         """
         menu = QMenu()
@@ -88,7 +152,7 @@ class TriangleView(QTableView):
         menu.exec(event.globalPos())
 
     def copy_selection(self):
-        """Method to copy selected values to clipboard so they can be pasted elsewhere, like Excel."""
+        """Method to copy selected values to clipboard, so they can be pasted elsewhere, like Excel."""
         selection = self.selectedIndexes()
         if selection:
             rows = sorted(index.row() for index in selection)
@@ -104,16 +168,3 @@ class TriangleView(QTableView):
             csv.writer(stream, delimiter='\t').writerows(table)
             qApp.clipboard().setText(stream.getvalue())
         return
-
-    def eventFilter(self, source, event):
-        """
-        Override default copy method.
-        :param source:
-        :param event:
-        :return:
-        """
-        # noinspection PyUnresolvedReferences
-        if event.type() == QEvent.KeyPress and event.matches(QKeySequence.Copy):
-            self.copy_selection()
-            return True
-        return super().eventFilter(source, event)
