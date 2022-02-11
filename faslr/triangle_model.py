@@ -86,9 +86,6 @@ class TriangleView(QTableView):
         self.installEventFilter(self)
 
         btn = self.findChild(QAbstractButton)
-        btn.setText("Accident Year")
-
-        btn.setToolTip('Toggle selecting all table cells')
         btn.installEventFilter(self)
         btn_label = QLabel("AY")
         btn_label.setAlignment(Qt.AlignCenter)
