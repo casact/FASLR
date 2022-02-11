@@ -29,7 +29,8 @@ from PyQt5.Qt import (
 
 from PyQt5.QtCore import (
     QModelIndex,
-    Qt
+    Qt,
+    QThreadPool
 )
 
 from PyQt5.QtWidgets import (
@@ -53,6 +54,9 @@ from triangle_model import (
 # Get OS information from the user.
 os_name = platform.platform()
 
+# Get max thread count.
+max_threads = QThreadPool().maxThreadCount()
+
 # Initialize logging
 logging.basicConfig(
     filename=os.path.join(ROOT_PATH, 'faslr.log'),
@@ -63,6 +67,7 @@ logging.basicConfig(
 
 logging.info("Begin logging.")
 logging.info("FASLR initialized on " + os_name)
+logging.info("%d threads available for computation." % max_threads)
 
 # initialize configuration file if it does not exist
 if not os.path.exists(CONFIG_PATH):
