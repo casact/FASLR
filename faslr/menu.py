@@ -99,8 +99,8 @@ class MainMenuBar(QMenuBar):
 
         if self.parent.connection_established:
             self.new_action.setEnabled(True)
-            print("it made it")
+
         else:
             self.new_action.setEnabled(False)
-            print("it didn't make it")
+
 
