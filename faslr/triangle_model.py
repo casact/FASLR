@@ -31,10 +31,10 @@ from PyQt5.QtWidgets import (
 
 class TriangleModel(QAbstractTableModel):
 
-    def __init__(self, data):
+    def __init__(self, data, value_type):
         super(TriangleModel, self).__init__()
         self._data = data
-
+        self.value_type = value_type
         self.n_rows = self.rowCount()
         self.n_columns = self.columnCount()
 
@@ -44,7 +44,14 @@ class TriangleModel(QAbstractTableModel):
             if str(value) == "nan":
                 display_value = ""
             else:
-                display_value = "{0:,.0f}".format(value)
+                if self.value_type == "value":
+
+                    display_value = "{0:,.0f}".format(value)
+
+                else:
+
+                    display_value = "{0:,.3f}".format(value)
+
                 display_value = str(display_value)
             self.setData(self.index(index.row(), index.column()), QVariant(Qt.AlignRight),
                          Qt.TextAlignmentRole)
