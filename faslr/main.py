@@ -1,8 +1,9 @@
-import chainladder as cl
 import logging
 import os
 import platform
 import sys
+
+from analysis import AnalysisTab
 
 from connection import (
     get_startup_db_path,
@@ -46,10 +47,7 @@ from PyQt5.QtWidgets import (
 
 from shutil import copyfile
 
-from triangle_model import (
-    TriangleModel,
-    TriangleView
-)
+from utilities.sample import load_sample
 
 # Get OS information from the user.
 os_name = platform.platform()
@@ -123,37 +121,28 @@ class MainWindow(QMainWindow):
 
         # triangle placeholder
 
-        self.raa_table = TriangleView()
-
-        raa_triangle = cl.load_sample('raa')
-        raa_triangle = raa_triangle.to_frame()
-
-        self.raa_model = TriangleModel(raa_triangle)
-        self.raa_table.setModel(self.raa_model)
-        # noinspection PyUnresolvedReferences
-        self.raa_table.doubleClicked.connect(self.get_value)
-
-        self.abc_table = TriangleView()
-        abc_triangle = cl.load_sample('abc')
-        abc_triangle = abc_triangle.to_frame()
-        self.abc_model = TriangleModel(abc_triangle)
-        self.abc_table.setModel(self.abc_model)
-        # noinspection PyUnresolvedReferences
-        self.abc_table.doubleClicked.connect(self.get_value)
+        self.auto_triangle = load_sample('us_industry_auto')
+        self.xyz_triangle = load_sample('xyz')
+        self.auto_tab = AnalysisTab(
+            triangle=self.auto_triangle
+        )
+        self.xyz_tab = AnalysisTab(
+            triangle=self.xyz_triangle
+        )
 
         self.analysis_pane = QTabWidget()
         self.analysis_pane.setTabsClosable(True)
         self.analysis_pane.setMovable(True)
-        self.analysis_pane.addTab(self.raa_table, "RAA")
-        self.analysis_pane.addTab(self.abc_table, "ABC")
+        self.analysis_pane.addTab(self.auto_tab, "Auto")
+        self.analysis_pane.addTab(self.xyz_tab, "XYZ")
 
         # This styling is mostly done to add a border right beneath the tab
         self.analysis_pane.setStyleSheet(
             """
             QTabWidget::pane {
-
+              border: 1px solid darkgrey;
               top:-1px; 
-              background: rgb(245, 245, 245);; 
+              background: rgb(245, 245, 245); 
             } 
             
             QTabBar::tab {
@@ -211,8 +200,6 @@ class MainWindow(QMainWindow):
     def remove_tab(self, index: int):
         """
         Deletes an open tab from the analysis pane.
-        :param index:
-        :return:
         """
         self.analysis_pane.removeTab(index)
 
