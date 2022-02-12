@@ -52,22 +52,23 @@ class ConnectionDialog(QDialog):
         self.button_box = QDialogButtonBox(button_layout)
 
         # noinspection PyUnresolvedReferences
-        self.button_box.accepted.connect(lambda main_window=parent: self.make_connection(main_window))
+        self.button_box.accepted.connect(lambda menu_bar=parent: self.make_connection(menu_bar))
         # noinspection PyUnresolvedReferences
         self.button_box.rejected.connect(self.reject)
 
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
-    def make_connection(self, main_window):
+    def make_connection(self, menu_bar):
+        main_window = menu_bar.parent
 
         if self.existing_connection.isChecked():
-            main_window.db = self.open_existing_db(main_window=main_window)
+            menu_bar.db = self.open_existing_db(main_window=main_window)
 
         elif self.new_connection.isChecked():
-            main_window.db = self.create_new_db(main_window=main_window)
+            main_window.db = self.create_new_db(menu_bar=menu_bar)
 
-    def create_new_db(self, main_window):
+    def create_new_db(self, menu_bar):
 
         filename = QFileDialog.getSaveFileName(
             self,
@@ -96,8 +97,8 @@ class ConnectionDialog(QDialog):
             self.close()
 
         if db_filename != "":
-            main_window.connection_established = True
-            main_window.toggle_project_actions()
+            menu_bar.parent.connection_established = True
+            menu_bar.toggle_project_actions()
 
         return db_filename
 
