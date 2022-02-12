@@ -33,6 +33,7 @@ from uuid import uuid4
 class ProjectDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.main_window = parent.parent
 
         self.country_edit = QLineEdit()
         self.state_edit = QLineEdit()
@@ -50,7 +51,7 @@ class ProjectDialog(QDialog):
 
         self.button_box = QDialogButtonBox(button_layout)
         # noinspection PyUnresolvedReferences
-        self.button_box.accepted.connect(lambda main_window=parent: self.make_project(main_window))
+        self.button_box.accepted.connect(lambda main_window=self.main_window: self.make_project(main_window))
         # noinspection PyUnresolvedReferences
         self.button_box.rejected.connect(self.reject)
 
