@@ -96,7 +96,11 @@ class MainMenuBar(QMenuBar):
 
     def toggle_project_actions(self):
         # disable project-based menu items until connection is established
+
         if self.parent.connection_established:
             self.new_action.setEnabled(True)
+            print("it made it")
         else:
             self.new_action.setEnabled(False)
+            print("it didn't make it")
+
