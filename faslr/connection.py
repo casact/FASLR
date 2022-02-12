@@ -32,6 +32,10 @@ from sqlalchemy.orm import sessionmaker
 
 
 class ConnectionDialog(QDialog):
+    """
+    Dialog box for connecting to a backend database. Can choose to either create a new one or
+    connect to an existing one.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -60,6 +64,10 @@ class ConnectionDialog(QDialog):
         self.setLayout(self.layout)
 
     def make_connection(self, menu_bar):
+        """
+        Depending on what the user selects, triggers function to either connect to an existing database
+        or to a new one.
+        """
         main_window = menu_bar.parent
 
         if self.existing_connection.isChecked():
@@ -69,6 +77,9 @@ class ConnectionDialog(QDialog):
             main_window.db = self.create_new_db(menu_bar=menu_bar)
 
     def create_new_db(self, menu_bar):
+        """
+        Creates a new backend database.
+        """
 
         filename = QFileDialog.getSaveFileName(
             self,
@@ -88,9 +99,8 @@ class ConnectionDialog(QDialog):
                 'sqlite:///' + filename[0],
                 echo=True
             )
-            # session = sessionmaker(bind=engine)
+
             schema.Base.metadata.create_all(engine)
-            # session = session()
             connection = engine.connect()
             connection.close()
 
@@ -103,6 +113,9 @@ class ConnectionDialog(QDialog):
         return db_filename
 
     def open_existing_db(self, main_window):
+        """
+        Opens a connection to an existing database.
+        """
         db_filename = QFileDialog.getOpenFileName(
             self,
             'OpenFile',
@@ -118,17 +131,27 @@ class ConnectionDialog(QDialog):
         return db_filename
 
     def reject(self):
+        """
+        Closes the connection dialog box if the user presses cancel.
+        """
         logging.info("User pressed cancel on connection window.")
 
         self.close()
 
     def closeEvent(self, event):
+        """
+        Closes the connection dialog box.
+        """
         logging.info("Connection window closed.")
 
         event.accept()  # let the window close
 
 
 def populate_project_tree(db_filename, main_window):
+    """
+    Upon connection to an existing database, populates the project tree in the left-hand pane of the
+    main window based on what projects have been saved to the database.
+    """
 
     session, connection = connect_db(db_path=db_filename)
 
@@ -197,6 +220,9 @@ def populate_project_tree(db_filename, main_window):
 
 
 def connect_db(db_path: str):
+    """
+    Connects the the db. Shortens amount of code required to do so.
+    """
     engine = sa.create_engine(
         'sqlite:///' + db_path,
         echo=True
@@ -207,6 +233,9 @@ def connect_db(db_path: str):
 
 
 def get_startup_db_path():
+    """
+    Extracts the db path when the user opts to connect to one automatically upon startup.
+    """
     config_path = CONFIG_PATH
     config = configparser.ConfigParser()
     config.read(config_path)
