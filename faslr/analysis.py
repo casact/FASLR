@@ -4,10 +4,13 @@ from chainladder import Triangle
 
 from PyQt5.QtCore import Qt
 
+from PyQt5.QtGui import QColor
+
 from PyQt5.QtWidgets import (
     QComboBox,
     QTabWidget,
-    QVBoxLayout
+    QVBoxLayout,
+    QWidget
 )
 
 from triangle_model import (
@@ -17,8 +20,11 @@ from triangle_model import (
 
 value_types = ['Values', 'Link Ratios']
 
+# class AnalysisPane(QTabWidget):
+#     self.layout = QVBoxLayout()
 
-class AnalysisTab(QTabWidget):
+
+class AnalysisTab(QWidget):
     # should eventually contain the TriangleColumnTab
     def __init__(
             self, triangle: Triangle,
@@ -67,7 +73,7 @@ class AnalysisTab(QTabWidget):
         self.column_tab.setStyleSheet(
             """
             QTabBar::tab:first {
-                margin-top: 44px;
+                margin-top: 42px;
             }
             
             
@@ -77,7 +83,7 @@ class AnalysisTab(QTabWidget):
               padding: 5px;
               padding-left: 10px;
               height: 250px;
-              margin-right: 3px;
+              margin-right: -1px;
             } 
 
             QTabBar::tab:selected { 
@@ -87,25 +93,34 @@ class AnalysisTab(QTabWidget):
             """
         )
 
+        self.setAutoFillBackground(True)
+        palette = self.palette()
+
+        palette.setColor(self.backgroundRole(), QColor.fromRgb(240, 240, 240))
+
+        self.setPalette(palette)
+
         self.value_box.currentTextChanged.connect(self.update_value_type)
 
     def update_value_type(self):
 
-        index = self.column_tab.currentIndex()
-        tab_name = self.column_tab.tabText(index)
+        # index = self.column_tab.currentIndex()
 
         if self.value_box.currentText() == "Link Ratios":
             value_type = 'ratio'
-            link_ratios = self.triangle.link_ratio
-
-            triangle_frame = link_ratios[self.column_list[index]].to_frame()
+            triangle = self.triangle.link_ratio
 
         else:
             value_type = 'value'
-            triangle_frame = self.triangle[self.column_list[index]].to_frame()
+            triangle = self.triangle
 
-        triangle_model = TriangleModel(triangle_frame, value_type)
-        self.triangle_views[tab_name].setModel(triangle_model)
+        for i in range(len(self.column_list)):
+            index = i
+            tab_name = self.column_tab.tabText(index)
+            triangle_frame = triangle[self.column_list[index]].to_frame()
+
+            triangle_model = TriangleModel(triangle_frame, value_type)
+            self.triangle_views[tab_name].setModel(triangle_model)
 
 
 class ColumnTab(QTabWidget):
