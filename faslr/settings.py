@@ -113,8 +113,6 @@ class SettingsDialog(QDialog):
     def update_config_layout(self, index):
         """
         Method that updates the configuration layout depending on which item in the settings list is selected.
-        :param index:
-        :return:
         """
         print(index.data())
 
@@ -210,6 +208,7 @@ class SettingsDialog(QDialog):
     def delete_configuration(self):
         os.remove(CONFIG_PATH)
         self.close()
+        # noinspection PyUnresolvedReferences
         self.parent().parent.close()
         QCoreApplication.instance().quit()
 

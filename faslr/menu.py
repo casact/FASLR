@@ -102,5 +102,3 @@ class MainMenuBar(QMenuBar):
 
         else:
             self.new_action.setEnabled(False)
-
-

@@ -221,7 +221,7 @@ def populate_project_tree(db_filename, main_window):
 
 def connect_db(db_path: str):
     """
-    Connects the the db. Shortens amount of code required to do so.
+    Connects the db. Shortens amount of code required to do so.
     """
     engine = sa.create_engine(
         'sqlite:///' + db_path,
