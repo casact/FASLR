@@ -27,6 +27,7 @@ class DevelopmentTab(QWidget):
         self.link_frame = self.link_ratios.to_frame()
 
         self.development_factors = cl.Development().fit(triangle)
+        self.cdf_frame = self.development_factors.cdf_.to_frame()
 
         self.development_frame = self.development_factors.ldf_.to_frame()
 
@@ -38,8 +39,13 @@ class DevelopmentTab(QWidget):
         self.factor_view = FactorView()
         self.factor_view.setModel(self.factor_model)
 
+        self.cdf_model = FactorModel(self.cdf_frame)
+        self.cdf_view = FactorView()
+        self.cdf_view.setModel(self.cdf_model)
+
         self.layout.addWidget(self.triangle_view)
         self.layout.addWidget(self.factor_view)
+        self.layout.addWidget(self.cdf_view)
         self.setLayout(self.layout)
 
 
