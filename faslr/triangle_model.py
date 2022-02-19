@@ -56,15 +56,17 @@ class TriangleModel(QAbstractTableModel):
 
             value = self._data.iloc[index.row(), index.column()]
 
+            # Display blank when there are nans in the lower-right hand of the triangle.
             if str(value) == "nan":
 
                 display_value = ""
             else:
-
+                # "value" means stuff like losses and premiums, should have 2 decimal places.
                 if self.value_type == "value":
 
                     display_value = "{0:,.0f}".format(value)
 
+                # for "ratio", want to display 3 decimal places.
                 else:
 
                     display_value = "{0:,.3f}".format(value)
@@ -144,6 +146,7 @@ class TriangleView(QTableView):
         btn.setLayout(btn_layout)
         opt = QStyleOptionHeader()
 
+        # Set the styling for the table corner so that it matches the rest of the headers.
         self.setStyleSheet(
             """
             QTableCornerButton::section{
