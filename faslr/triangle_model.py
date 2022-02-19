@@ -31,19 +31,36 @@ from PyQt5.QtWidgets import (
 
 class TriangleModel(QAbstractTableModel):
 
-    def __init__(self, data, value_type):
-        super(TriangleModel, self).__init__()
+    def __init__(
+            self,
+            data,
+            value_type
+    ):
+        super(
+            TriangleModel,
+            self
+        ).__init__()
+
         self._data = data
         self.value_type = value_type
         self.n_rows = self.rowCount()
         self.n_columns = self.columnCount()
 
-    def data(self, index, role=None):
+    def data(
+            self,
+            index,
+            role=None
+    ):
+
         if role == Qt.DisplayRole:
+
             value = self._data.iloc[index.row(), index.column()]
+
             if str(value) == "nan":
+
                 display_value = ""
             else:
+
                 if self.value_type == "value":
 
                     display_value = "{0:,.0f}".format(value)
@@ -53,8 +70,15 @@ class TriangleModel(QAbstractTableModel):
                     display_value = "{0:,.3f}".format(value)
 
                 display_value = str(display_value)
-            self.setData(self.index(index.row(), index.column()), QVariant(Qt.AlignRight),
-                         Qt.TextAlignmentRole)
+
+            self.setData(
+                self.index(
+                    index.row(),
+                    index.column()
+                ),
+                QVariant(Qt.AlignRight),
+                Qt.TextAlignmentRole
+            )
 
             return display_value
 
@@ -64,13 +88,31 @@ class TriangleModel(QAbstractTableModel):
         if role == Qt.BackgroundRole and (index.column() >= self.n_rows - index.row()):
             return QColor(238, 237, 238)
 
-    def rowCount(self, parent=None, *args, **kwargs):
+    def rowCount(
+            self,
+            parent=None,
+            *args,
+            **kwargs
+    ):
+
         return self._data.shape[0]
 
-    def columnCount(self, parent=None, *args, **kwargs):
+    def columnCount(
+            self,
+            parent=None,
+            *args,
+            **kwargs
+    ):
+
         return self._data.shape[1]
 
-    def headerData(self, p_int, qt_orientation, role=None):
+    def headerData(
+            self,
+            p_int,
+            qt_orientation,
+            role=None
+    ):
+
         # section is the index of the column/row.
         if role == Qt.DisplayRole:
             if qt_orientation == Qt.Horizontal:
