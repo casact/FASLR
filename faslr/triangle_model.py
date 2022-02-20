@@ -10,7 +10,6 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtGui import (
-    QColor,
     QKeySequence
 )
 
@@ -26,6 +25,13 @@ from PyQt5.QtWidgets import (
     QStyleOptionHeader,
     QTableView,
     QVBoxLayout
+)
+
+from style.triangle import (
+    BLANK_TEXT,
+    LOWER_DIAG_COLOR,
+    RATIO_STYLE,
+    VALUE_STYLE
 )
 
 
@@ -59,17 +65,17 @@ class TriangleModel(QAbstractTableModel):
             # Display blank when there are nans in the lower-right hand of the triangle.
             if str(value) == "nan":
 
-                display_value = ""
+                display_value = BLANK_TEXT
             else:
                 # "value" means stuff like losses and premiums, should have 2 decimal places.
                 if self.value_type == "value":
 
-                    display_value = "{0:,.0f}".format(value)
+                    display_value = VALUE_STYLE.format(value)
 
                 # for "ratio", want to display 3 decimal places.
                 else:
 
-                    display_value = "{0:,.3f}".format(value)
+                    display_value = RATIO_STYLE.format(value)
 
                 display_value = str(display_value)
 
@@ -88,7 +94,7 @@ class TriangleModel(QAbstractTableModel):
             return Qt.AlignRight
 
         if role == Qt.BackgroundRole and (index.column() >= self.n_rows - index.row()):
-            return QColor(238, 237, 238)
+            return LOWER_DIAG_COLOR
 
     def rowCount(
             self,
