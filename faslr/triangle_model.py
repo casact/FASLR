@@ -1,6 +1,8 @@
 import csv
 import io
 
+from chainladder import Triangle
+
 from PyQt5.QtCore import (
     QAbstractTableModel,
     QEvent,
@@ -40,15 +42,17 @@ class TriangleModel(QAbstractTableModel):
 
     def __init__(
             self,
-            data,
-            value_type
+            triangle: Triangle,
+            value_type: str
     ):
         super(
             TriangleModel,
             self
         ).__init__()
 
-        self._data = data
+        self.triangle = triangle
+
+        self._data = triangle.to_frame()
         self.value_type = value_type
         self.n_rows = self.rowCount()
         self.n_columns = self.columnCount()
