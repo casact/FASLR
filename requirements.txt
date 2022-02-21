@@ -1,4 +1,5 @@
 chainladder
+numpy
 pandas
 pytest
 PyQt5
