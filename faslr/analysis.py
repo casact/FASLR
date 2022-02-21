@@ -58,9 +58,7 @@ class AnalysisTab(QWidget):
 
             self.triangle_views[i] = TriangleView()
 
-            triangle_frame = triangle_column.to_frame()
-
-            triangle_model = TriangleModel(triangle_frame, 'value')
+            triangle_model = TriangleModel(triangle_column, 'value')
             self.triangle_views[i].setModel(triangle_model)
 
             self.column_tab.addTab(self.triangle_views[i], i)
@@ -117,9 +115,9 @@ class AnalysisTab(QWidget):
         for i in range(len(self.column_list)):
             index = i
             tab_name = self.column_tab.tabText(index)
-            triangle_frame = triangle[self.column_list[index]].to_frame()
+            triangle = triangle[self.column_list[index]]
 
-            triangle_model = TriangleModel(triangle_frame, value_type)
+            triangle_model = TriangleModel(triangle, value_type)
             self.triangle_views[tab_name].setModel(triangle_model)
 
 
