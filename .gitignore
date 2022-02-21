@@ -2,3 +2,6 @@ db/
 sql_test.py
 faslr.ini
 scratch*.py
+.idea/
+*.log
+*.db
