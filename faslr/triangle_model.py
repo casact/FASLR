@@ -10,6 +10,7 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtGui import (
+    QFont,
     QKeySequence
 )
 
@@ -51,6 +52,8 @@ class TriangleModel(QAbstractTableModel):
         self.value_type = value_type
         self.n_rows = self.rowCount()
         self.n_columns = self.columnCount()
+        self.excl_frame = self._data.copy()
+        self.excl_frame.loc[:] = False
 
     def data(
             self,
@@ -96,6 +99,15 @@ class TriangleModel(QAbstractTableModel):
         if role == Qt.BackgroundRole and (index.column() >= self.n_rows - index.row()):
             return LOWER_DIAG_COLOR
 
+        if (role == Qt.FontRole) and (self.value_type == "ratio"):
+            font = QFont()
+            exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
+            if exclude:
+                font.setStrikeOut(True)
+            else:
+                font.setStrikeOut(False)
+            return font
+
     def rowCount(
             self,
             parent=None,
@@ -128,6 +140,14 @@ class TriangleModel(QAbstractTableModel):
 
             if qt_orientation == Qt.Vertical:
                 return str(self._data.index[p_int])
+
+    def toggle_exclude(self, index):
+        exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
+
+        if exclude:
+            self.excl_frame.iloc[[index.row()], [index.column()]] = False
+        else:
+            self.excl_frame.iloc[[index.row()], [index.column()]] = True
 
 
 class TriangleView(QTableView):
@@ -169,6 +189,15 @@ class TriangleView(QTableView):
 
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())
+
+        self.doubleClicked.connect(self.exclude_ratio)
+
+    def exclude_ratio(self, event):
+        selection = self.selectedIndexes()
+
+        for index in selection:
+            index.model().toggle_exclude(index=index)
+            self.model().dataChanged.emit(index, index)
 
     def eventFilter(self, obj, event):
         if event.type() != QEvent.Paint or not isinstance(

@@ -28,6 +28,7 @@ class FactorModel(QAbstractTableModel):
         self.n_columns = self.columnCount()
 
     def data(self, index, role=None):
+
         if role == Qt.DisplayRole:
             value = self._data.iloc[index.row(), index.column()]
             if str(value) == "nan":
