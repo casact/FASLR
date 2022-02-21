@@ -16,6 +16,7 @@ FASLR will have a simple layout. The collapsible side pane will contain a naviga
 The analysis pane is where the user will be able to conduct a reserve analysis. This will be the area where the actuary can view triangles, select and perform actuarial methods, and view graphs. The user will also be able to toggle between an analysis view (doing the work) and project metadata (project status, peer review, sign off).
 
 ![basic-interface-filled](docs/_static/basic_ui_09082021.png)
+![basic-interface-filled](docs/_static/dev_demo.gif)
 ![basic-interface](docs/_static/basic_interface.png)
 
 ## Department Integration
