@@ -102,8 +102,6 @@ class AnalysisTab(QWidget):
 
     def update_value_type(self):
 
-        # index = self.column_tab.currentIndex()
-
         if self.value_box.currentText() == "Link Ratios":
             value_type = 'ratio'
             triangle = self.triangle.link_ratio
@@ -115,9 +113,9 @@ class AnalysisTab(QWidget):
         for i in range(len(self.column_list)):
             index = i
             tab_name = self.column_tab.tabText(index)
-            triangle = triangle[self.column_list[index]]
+            triangle_column = triangle[self.column_list[index]]
 
-            triangle_model = TriangleModel(triangle, value_type)
+            triangle_model = TriangleModel(triangle_column, value_type)
             self.triangle_views[tab_name].setModel(triangle_model)
 
 
