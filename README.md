@@ -33,4 +33,4 @@ To learn more about the current structure of the repository, read [ARCHITECTURE.
 
 ## Supported Operating Systems
 
-Due to the dominance of Windows in most modern-day actuarial departments, FASLR is intended to be supported on Windows. However, most of the current development is being done on Linux, which is also intended to be supported in order to keep the project fully open source. 
+FASLR is currently supported on Linux. However, I recognize that almost all actuarial work is done on Windows machines, so there may be plans in the future to make things compatible with that operating system. 
