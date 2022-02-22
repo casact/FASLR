@@ -327,6 +327,5 @@ def get_display_data(ratios, factors: DataFrame):
     )
 
     factor_frame = factors.ldf_.to_frame()
-    # factor_frame.iloc[0].name = "LDF"
     factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
     return pd.concat([ratios, blank_row, factor_frame])
