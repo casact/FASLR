@@ -2,7 +2,11 @@ from PyQt5.QtGui import QColor
 
 BLANK_TEXT = ""
 
+EXCL_FACTOR_COLOR = QColor(255, 230, 230)
+
 LOWER_DIAG_COLOR = QColor(238, 237, 238)
+
+MAIN_TRIANGLE_COLOR = QColor(255, 255, 255)
 
 RATIO_STYLE = "{0:,.3f}"
 

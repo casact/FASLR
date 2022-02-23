@@ -20,7 +20,6 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtGui import (
-    QColor,
     QFont,
     QKeySequence
 )
@@ -41,7 +40,9 @@ from PyQt5.QtWidgets import (
 
 from style.triangle import (
     BLANK_TEXT,
+    EXCL_FACTOR_COLOR,
     LOWER_DIAG_COLOR,
+    MAIN_TRIANGLE_COLOR,
     RATIO_STYLE,
     VALUE_STYLE
 )
@@ -62,7 +63,7 @@ class FactorModel(QAbstractTableModel):
         self.triangle = triangle
         self._data = triangle.link_ratio.to_frame()
         self.link_frame = triangle.link_ratio.to_frame()
-        self.n_rows = self.rowCount()
+        self.n_triangle_rows = self.rowCount()
 
         self.development = cl.Development(average="volume")
 
@@ -74,7 +75,7 @@ class FactorModel(QAbstractTableModel):
         self.value_type = value_type
         self.excl_frame = self._data.copy()
         self.excl_frame.loc[:] = False
-        self.blank_row_num = self.n_rows + 1
+        self.blank_row_num = self.n_triangle_rows + 1
 
     def data(
             self,
@@ -118,16 +119,16 @@ class FactorModel(QAbstractTableModel):
             return Qt.AlignRight
 
         if role == Qt.BackgroundRole:
-            if (index.column() >= self.n_rows - index.row()) and \
+            if (index.column() >= self.n_triangle_rows - index.row()) and \
                     (index.row() < self.blank_row_num):
                 return LOWER_DIAG_COLOR
             elif index.row() < self.blank_row_num:
                 exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
 
                 if exclude:
-                    return QColor(255, 230, 230)
+                    return EXCL_FACTOR_COLOR
                 else:
-                    return QColor(255, 255, 255)
+                    return MAIN_TRIANGLE_COLOR
         if (role == Qt.FontRole) and (self.value_type == "ratio") and (index.row() < self.blank_row_num):
             font = QFont()
             exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
@@ -198,7 +199,10 @@ class FactorModel(QAbstractTableModel):
 
                     pass
 
-        self.development = cl.Development(drop=drop_list, average="volume")
+        self.development = cl.Development(
+            drop=drop_list,
+            average="volume"
+        )
 
         self._data = self.get_display_data(
             ratios=self.link_frame,
@@ -206,11 +210,18 @@ class FactorModel(QAbstractTableModel):
         )
 
         print(self._data)
-        self.dataChanged.emit(index, index)
+        self.dataChanged.emit(
+            index,
+            index
+        )
         # noinspection PyUnresolvedReferences
         self.layoutChanged.emit()
 
-    def get_display_data(self, ratios, development: Development) -> DataFrame:
+    def get_display_data(
+            self,
+            ratios,
+            development: Development
+    ) -> DataFrame:
 
         factors = development.fit(self.triangle)
 
@@ -225,7 +236,12 @@ class FactorModel(QAbstractTableModel):
         # noinspection PyUnresolvedReferences
         factor_frame = factors.ldf_.to_frame()
         factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
-        return pd.concat([ratios, blank_row, factor_frame])
+
+        return pd.concat([
+            ratios,
+            blank_row,
+            factor_frame
+        ])
 
 
 class FactorView(QTableView):
@@ -262,8 +278,11 @@ class FactorView(QTableView):
         )
 
         s = QSize(btn.style().sizeFromContents(
-            QStyle.CT_HeaderSection, opt, QSize(), btn).
-                  expandedTo(QApplication.globalStrut()))
+            QStyle.CT_HeaderSection,
+            opt,
+            QSize(),
+            btn
+        ).expandedTo(QApplication.globalStrut()))
 
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())
