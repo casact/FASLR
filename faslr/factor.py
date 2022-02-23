@@ -4,7 +4,10 @@ import io
 import numpy as np
 import pandas as pd
 
-from chainladder import Triangle
+from chainladder import (
+    Development,
+    Triangle
+)
 
 from pandas import DataFrame
 
@@ -61,11 +64,11 @@ class FactorModel(QAbstractTableModel):
         self.link_frame = triangle.link_ratio.to_frame()
         self.n_rows = self.rowCount()
 
-        self.development_factors = cl.Development(average="volume").fit(self.triangle)
+        self.development = cl.Development(average="volume")
 
-        self._data = get_display_data(
+        self._data = self.get_display_data(
             ratios=self.link_frame,
-            factors=self.development_factors
+            development=self.development
         )
 
         self.value_type = value_type
@@ -195,19 +198,34 @@ class FactorModel(QAbstractTableModel):
 
                     pass
 
-        development = cl.Development(drop=drop_list, average="volume")
+        self.development = cl.Development(drop=drop_list, average="volume")
 
-        self.development_factors = development.fit(self.triangle)
-        self._data = get_display_data(
+        self._data = self.get_display_data(
             ratios=self.link_frame,
-            factors=self.development_factors
+            development=self.development
         )
-
-        # print(development.fit_transform(self.triangle).link_ratio)
 
         print(self._data)
         self.dataChanged.emit(index, index)
+        # noinspection PyUnresolvedReferences
         self.layoutChanged.emit()
+
+    def get_display_data(self, ratios, development: Development) -> DataFrame:
+
+        factors = development.fit(self.triangle)
+
+        data = {"": [np.nan] * len(ratios.columns)}
+
+        blank_row = pd.DataFrame.from_dict(
+            data,
+            orient="index",
+            columns=ratios.columns
+        )
+
+        # noinspection PyUnresolvedReferences
+        factor_frame = factors.ldf_.to_frame()
+        factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
+        return pd.concat([ratios, blank_row, factor_frame])
 
 
 class FactorView(QTableView):
@@ -314,18 +332,3 @@ class FactorView(QTableView):
             csv.writer(stream, delimiter='\t').writerows(table)
             qApp.clipboard().setText(stream.getvalue())
         return
-
-
-def get_display_data(ratios, factors: DataFrame):
-
-    data = {"": [np.nan] * len(ratios.columns)}
-
-    blank_row = pd.DataFrame.from_dict(
-        data,
-        orient="index",
-        columns=ratios.columns
-    )
-
-    factor_frame = factors.ldf_.to_frame()
-    factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
-    return pd.concat([ratios, blank_row, factor_frame])

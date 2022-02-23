@@ -20,9 +20,6 @@ from triangle_model import (
 
 value_types = ['Values', 'Link Ratios']
 
-# class AnalysisPane(QTabWidget):
-#     self.layout = QVBoxLayout()
-
 
 class AnalysisTab(QWidget):
     # should eventually contain the TriangleColumnTab
