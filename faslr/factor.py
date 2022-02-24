@@ -128,16 +128,20 @@ class FactorModel(QAbstractTableModel):
             return Qt.AlignRight
 
         if role == Qt.BackgroundRole:
+            # Case when the index is on the lower diagonal
             if (index.column() >= self.n_triangle_rows - index.row()) and \
                     (index.row() < self.blank_row_num):
                 return LOWER_DIAG_COLOR
+            # Case when the index is on the triangle
             elif index.row() < self.blank_row_num:
                 exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
-
+                # Change color if factor is excluded
                 if exclude:
                     return EXCL_FACTOR_COLOR
                 else:
                     return MAIN_TRIANGLE_COLOR
+
+        # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
         if (role == Qt.FontRole) and (self.value_type == "ratio") and (index.row() < self.blank_row_num):
             font = QFont()
             exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
