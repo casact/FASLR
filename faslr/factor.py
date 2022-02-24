@@ -61,20 +61,29 @@ class FactorModel(QAbstractTableModel):
         ).__init__()
 
         self.triangle = triangle
-        self._data = triangle.link_ratio.to_frame()
         self.link_frame = triangle.link_ratio.to_frame()
-        self.n_triangle_rows = self.rowCount()
+
+        # Get number of rows in triangle portion of tab.
+        self.n_triangle_rows = self.triangle.shape[2] - 1
 
         self.development = cl.Development(average="volume")
 
+        # Extract data from the triangle that gets displayed in the tab.
         self._data = self.get_display_data(
             ratios=self.link_frame,
             development=self.development
         )
 
         self.value_type = value_type
+
+        # excl_frame is a dataframe that is the same size of the triangle which uses
+        # boolean values to indicate which factors in the corresponding triangle should be excluded
+        # it is first initialized to be all False, indicating no factors excluded initially
         self.excl_frame = self._data.copy()
         self.excl_frame.loc[:] = False
+
+        # Get the position of a blank row to be inserted between the end of the triangle
+        # and before the development factors
         self.blank_row_num = self.n_triangle_rows + 1
 
     def data(
