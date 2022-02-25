@@ -185,6 +185,9 @@ class FactorModel(QAbstractTableModel):
                 return str(self._data.index[p_int])
 
     def toggle_exclude(self, index):
+        """
+        Sets values of the exclusion frame to True or False to indicate whether a link ratio should be excluded.
+        """
         exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
 
         if exclude:
@@ -193,7 +196,9 @@ class FactorModel(QAbstractTableModel):
             self.excl_frame.iloc[[index.row()], [index.column()]] = True
 
     def recalculate_factors(self, index):
-
+        """
+        Method to update the view and LDFs as the user strikes out link ratios.
+        """
         drop_list = []
         for i in range(self.link_frame.shape[0]):
             for j in range(self.link_frame.shape[1]):
@@ -235,6 +240,9 @@ class FactorModel(QAbstractTableModel):
             ratios,
             development: Development
     ) -> DataFrame:
+        """
+        Concatenates the link ratio triangle and LDFs below it to be displayed in the GUI.
+        """
 
         factors = development.fit(self.triangle)
 
