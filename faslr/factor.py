@@ -66,13 +66,8 @@ class FactorModel(QAbstractTableModel):
         # Get number of rows in triangle portion of tab.
         self.n_triangle_rows = self.triangle.shape[2] - 1
 
-        self.development = cl.Development(average="volume")
-
         # Extract data from the triangle that gets displayed in the tab.
-        self._data = self.get_display_data(
-            ratios=self.link_frame,
-            development=self.development
-        )
+        self._data = self.get_display_data()
 
         self.value_type = value_type
 
@@ -204,7 +199,6 @@ class FactorModel(QAbstractTableModel):
             for j in range(self.link_frame.shape[1]):
 
                 exclude = self.excl_frame.iloc[[i], [j]].squeeze()
-                print(exclude)
 
                 if exclude:
 
@@ -217,17 +211,8 @@ class FactorModel(QAbstractTableModel):
 
                     pass
 
-        self.development = cl.Development(
-            drop=drop_list,
-            average="volume"
-        )
+        self._data = self.get_display_data(drop_list=drop_list)
 
-        self._data = self.get_display_data(
-            ratios=self.link_frame,
-            development=self.development
-        )
-
-        print(self._data)
         self.dataChanged.emit(
             index,
             index
@@ -237,12 +222,14 @@ class FactorModel(QAbstractTableModel):
 
     def get_display_data(
             self,
-            ratios,
-            development: Development
+            drop_list=None
     ) -> DataFrame:
         """
         Concatenates the link ratio triangle and LDFs below it to be displayed in the GUI.
         """
+        ratios = self.link_frame
+
+        development = cl.Development(drop=drop_list, average="volume")
 
         factors = development.fit(self.triangle)
 
