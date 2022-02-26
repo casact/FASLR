@@ -92,6 +92,8 @@ class FactorModel(QAbstractTableModel):
 
         self.selected_spacer_row = self.triangle_spacer_row + 1
 
+        self.selected_row_num = self.selected_spacer_row + 1
+
     def data(
             self,
             index,
@@ -209,6 +211,21 @@ class FactorModel(QAbstractTableModel):
 
         self.recalculate_factors(index=index)
 
+    def select_ldf_row(self, index):
+
+        self.selected_row.iloc[[0]] = self.factor_frame.iloc[[0]]
+        self.recalculate_factors(index=index)
+
+    def clear_selected_ldfs(self, index):
+
+        self.selected_row.iloc[[0]] = np.nan
+        self.recalculate_factors(index=index)
+
+    def clear_selected_ldf(self, index):
+
+        self.selected_row.iloc[[0], [index.column()]] = np.nan
+        self.recalculate_factors(index=index)
+
     def recalculate_factors(self, index):
         """
         Method to update the view and LDFs as the user strikes out link ratios.
@@ -264,8 +281,6 @@ class FactorModel(QAbstractTableModel):
         factor_frame = factors.ldf_.to_frame()
         factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
         self.factor_frame = factor_frame
-
-        print(self.selected_row)
 
         return pd.concat([
             ratios,
@@ -328,8 +343,13 @@ class FactorView(QTableView):
     def vertical_header_double_click(self):
         selection = self.selectedIndexes()
 
-        for index in selection:
-            print(index.row(), index.column())
+        index = selection[0]
+        row_num = index.row()
+
+        if row_num == self.model().triangle_spacer_row:
+            self.model().select_ldf_row(index=index)
+        elif row_num == self.model().selected_row_num:
+            self.model().clear_selected_ldfs(index=index)
 
     def process_double_click(self):
         selection = self.selectedIndexes()
@@ -340,6 +360,8 @@ class FactorView(QTableView):
                 index.model().recalculate_factors(index=index)
             elif index.row() < index.model().selected_spacer_row:
                 index.model().select_factor(index=index)
+            elif index.row() == index.model().selected_row_num:
+                index.model().clear_selected_ldf(index=index)
 
     def exclude_ratio(self):
         selection = self.selectedIndexes()
