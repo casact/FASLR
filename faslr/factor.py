@@ -89,6 +89,7 @@ class FactorModel(QAbstractTableModel):
         # Get the position of a blank row to be inserted between the end of the triangle
         # and before the development factors
         self.triangle_spacer_row = self.n_triangle_rows + 1
+        self.ldf_row = self.triangle_spacer_row
 
         self.selected_spacer_row = self.triangle_spacer_row + 1
 
@@ -103,23 +104,31 @@ class FactorModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
 
-            # Display blank when there are nans in the lower-right hand of the triangle.
-            if str(value) == "nan":
-
-                display_value = BLANK_TEXT
-            else:
-                # "value" means stuff like losses and premiums, should have 2 decimal places.
-                if self.value_type == "value":
-
-                    display_value = VALUE_STYLE.format(value)
-
-                # for "ratio", want to display 3 decimal places.
+            if col == "Ultimate Loss":
+                if index.row() > self.n_triangle_rows - 1:
+                    display_value = BLANK_TEXT
                 else:
+                    display_value = VALUE_STYLE.format(value)
+            else:
 
-                    display_value = RATIO_STYLE.format(value)
+                # Display blank when there are nans in the lower-right hand of the triangle.
+                if str(value) == "nan":
 
-                display_value = str(display_value)
+                    display_value = BLANK_TEXT
+                else:
+                    # "value" means stuff like losses and premiums, should have 2 decimal places.
+                    if self.value_type == "value":
+
+                        display_value = VALUE_STYLE.format(value)
+
+                    # for "ratio", want to display 3 decimal places.
+                    else:
+
+                        display_value = RATIO_STYLE.format(value)
+
+            display_value = str(display_value)
 
             self.setData(
                 self.index(
@@ -136,20 +145,26 @@ class FactorModel(QAbstractTableModel):
             return Qt.AlignRight
 
         if role == Qt.BackgroundRole:
-            # Case when the index is on the lower diagonal
-            if (index.column() >= self.n_triangle_rows - index.row()) and \
-                    (index.row() < self.triangle_spacer_row):
-                return LOWER_DIAG_COLOR
-            # Case when the index is on the triangle
-            elif index.row() < self.triangle_spacer_row:
-                exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
-                # Change color if factor is excluded
-                if exclude:
-                    return EXCL_FACTOR_COLOR
-                else:
+            if self._data.columns[index.column()] != "Ultimate Loss":
+                # Case when the index is on the lower diagonal
+                if (index.column() >= self.n_triangle_rows - index.row()) and \
+                        (index.row() < self.triangle_spacer_row):
+                    return LOWER_DIAG_COLOR
+                # Case when the index is on the triangle
+                elif index.row() < self.triangle_spacer_row:
+                    exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
+                    # Change color if factor is excluded
+                    if exclude:
+                        return EXCL_FACTOR_COLOR
+                    else:
+                        return MAIN_TRIANGLE_COLOR
+                elif index.row() == self.selected_spacer_row:
+                    return LOWER_DIAG_COLOR
+            else:
+                if (index.row() < self.triangle_spacer_row - 1) | (index.row() in [self.selected_row_num, self.ldf_row]):
                     return MAIN_TRIANGLE_COLOR
-            elif index.row() == self.selected_spacer_row:
-                return LOWER_DIAG_COLOR
+                else:
+                    return LOWER_DIAG_COLOR
 
         # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
         if (role == Qt.FontRole) and (self.value_type == "ratio") and (index.row() < self.triangle_spacer_row):
@@ -263,7 +278,7 @@ class FactorModel(QAbstractTableModel):
         """
         Concatenates the link ratio triangle and LDFs below it to be displayed in the GUI.
         """
-        ratios = self.link_frame
+        ratios = self.link_frame.copy()
 
         development = cl.Development(drop=drop_list, average="volume")
 
@@ -281,6 +296,23 @@ class FactorModel(QAbstractTableModel):
         factor_frame = factors.ldf_.to_frame()
         factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
         self.factor_frame = factor_frame
+
+        # fit factors
+        patterns = {}
+        for i in range(ratios.shape[1]):
+            col = int(str(self.link_frame.columns[i]).split('-')[0])
+            patterns[col] = self.selected_row.iloc[[0], [i]].squeeze().copy()
+
+        selected_dev = cl.DevelopmentConstant(
+            patterns=patterns,
+            style="ldf"
+        ).fit_transform(self.triangle)
+
+        selected_model = cl.Chainladder().fit(selected_dev)
+        ultimate_frame = selected_model.ultimate_.to_frame()
+
+        ratios[""] = np.nan
+        ratios["Ultimate Loss"] = ultimate_frame.iloc[:, [0]]
 
         return pd.concat([
             ratios,
