@@ -62,6 +62,15 @@ class FactorModel(QAbstractTableModel):
 
         self.triangle = triangle
         self.link_frame = triangle.link_ratio.to_frame()
+        self.factor_frame = None
+
+        selected_data = {"Selected": [np.nan] * len(self.link_frame.columns)}
+
+        self.selected_row = pd.DataFrame.from_dict(
+            selected_data,
+            orient="index",
+            columns=self.link_frame.columns
+        )
 
         # Get number of rows in triangle portion of tab.
         self.n_triangle_rows = self.triangle.shape[2] - 1
@@ -79,7 +88,9 @@ class FactorModel(QAbstractTableModel):
 
         # Get the position of a blank row to be inserted between the end of the triangle
         # and before the development factors
-        self.blank_row_num = self.n_triangle_rows + 1
+        self.triangle_spacer_row = self.n_triangle_rows + 1
+
+        self.selected_spacer_row = self.triangle_spacer_row + 1
 
     def data(
             self,
@@ -125,19 +136,21 @@ class FactorModel(QAbstractTableModel):
         if role == Qt.BackgroundRole:
             # Case when the index is on the lower diagonal
             if (index.column() >= self.n_triangle_rows - index.row()) and \
-                    (index.row() < self.blank_row_num):
+                    (index.row() < self.triangle_spacer_row):
                 return LOWER_DIAG_COLOR
             # Case when the index is on the triangle
-            elif index.row() < self.blank_row_num:
+            elif index.row() < self.triangle_spacer_row:
                 exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
                 # Change color if factor is excluded
                 if exclude:
                     return EXCL_FACTOR_COLOR
                 else:
                     return MAIN_TRIANGLE_COLOR
+            elif index.row() == self.selected_spacer_row:
+                return LOWER_DIAG_COLOR
 
         # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
-        if (role == Qt.FontRole) and (self.value_type == "ratio") and (index.row() < self.blank_row_num):
+        if (role == Qt.FontRole) and (self.value_type == "ratio") and (index.row() < self.triangle_spacer_row):
             font = QFont()
             exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
             if exclude:
@@ -190,6 +203,12 @@ class FactorModel(QAbstractTableModel):
         else:
             self.excl_frame.iloc[[index.row()], [index.column()]] = True
 
+    def select_factor(self, index):
+
+        self.selected_row.iloc[[0], [index.column()]] = self.factor_frame.iloc[[0], [index.column()]].copy()
+
+        self.recalculate_factors(index=index)
+
     def recalculate_factors(self, index):
         """
         Method to update the view and LDFs as the user strikes out link ratios.
@@ -233,10 +252,10 @@ class FactorModel(QAbstractTableModel):
 
         factors = development.fit(self.triangle)
 
-        data = {"": [np.nan] * len(ratios.columns)}
+        blank_data = {"": [np.nan] * len(ratios.columns)}
 
         blank_row = pd.DataFrame.from_dict(
-            data,
+            blank_data,
             orient="index",
             columns=ratios.columns
         )
@@ -244,11 +263,16 @@ class FactorModel(QAbstractTableModel):
         # noinspection PyUnresolvedReferences
         factor_frame = factors.ldf_.to_frame()
         factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
+        self.factor_frame = factor_frame
+
+        print(self.selected_row)
 
         return pd.concat([
             ratios,
             blank_row,
-            factor_frame
+            factor_frame,
+            blank_row,
+            self.selected_row
         ])
 
 
@@ -297,7 +321,25 @@ class FactorView(QTableView):
 
         self.verticalHeader().setDefaultAlignment(Qt.AlignCenter)
 
-        self.doubleClicked.connect(self.exclude_ratio)
+        self.verticalHeader().sectionDoubleClicked.connect(self.vertical_header_double_click)
+
+        self.doubleClicked.connect(self.process_double_click)
+
+    def vertical_header_double_click(self):
+        selection = self.selectedIndexes()
+
+        for index in selection:
+            print(index.row(), index.column())
+
+    def process_double_click(self):
+        selection = self.selectedIndexes()
+
+        for index in selection:
+            if index.row() < index.model().triangle_spacer_row:
+                index.model().toggle_exclude(index=index)
+                index.model().recalculate_factors(index=index)
+            elif index.row() < index.model().selected_spacer_row:
+                index.model().select_factor(index=index)
 
     def exclude_ratio(self):
         selection = self.selectedIndexes()
