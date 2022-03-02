@@ -159,11 +159,10 @@ class FactorModel(QAbstractTableModel):
                         return EXCL_FACTOR_COLOR
                     else:
                         return MAIN_TRIANGLE_COLOR
-                elif index.row() == self.selected_spacer_row:
+                elif (index.row() == self.selected_spacer_row) | (index.column() > self.n_triangle_columns - 1):
                     return LOWER_DIAG_COLOR
             else:
-                if (index.row() < self.triangle_spacer_row - 1) | \
-                        (index.row() in [self.selected_row_num, self.ldf_row]):
+                if index.row() < self.triangle_spacer_row - 1:
                     return MAIN_TRIANGLE_COLOR
                 else:
                     return LOWER_DIAG_COLOR
@@ -391,15 +390,17 @@ class FactorView(QTableView):
             self.model().clear_selected_ldfs(index=index)
 
     def process_double_click(self):
+
         selection = self.selectedIndexes()
 
         for index in selection:
+
             if index.row() < index.model().triangle_spacer_row and index.column() <= index.model().n_triangle_columns:
                 index.model().toggle_exclude(index=index)
                 index.model().recalculate_factors(index=index)
-            elif index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row:
+            elif (index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row - 1) and (index.column() < index.model().n_triangle_columns):
                 index.model().select_factor(index=index)
-            elif index.row() == index.model().selected_row_num:
+            elif index.row() == index.model().selected_row_num and index.column() < index.model().n_triangle_columns:
                 index.model().clear_selected_ldf(index=index)
 
     def exclude_ratio(self):
