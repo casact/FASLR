@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from chainladder import (
-    Development,
     Triangle
 )
 
@@ -75,6 +74,8 @@ class FactorModel(QAbstractTableModel):
         # Get number of rows in triangle portion of tab.
         self.n_triangle_rows = self.triangle.shape[2] - 1
 
+        self.n_triangle_columns = self.triangle.shape[3] - 1
+
         # Extract data from the triangle that gets displayed in the tab.
         self._data = self.get_display_data()
 
@@ -83,7 +84,7 @@ class FactorModel(QAbstractTableModel):
         # excl_frame is a dataframe that is the same size of the triangle which uses
         # boolean values to indicate which factors in the corresponding triangle should be excluded
         # it is first initialized to be all False, indicating no factors excluded initially
-        self.excl_frame = self._data.copy()
+        self.excl_frame = self.link_frame.copy()
         self.excl_frame.loc[:] = False
 
         # Get the position of a blank row to be inserted between the end of the triangle
@@ -161,13 +162,18 @@ class FactorModel(QAbstractTableModel):
                 elif index.row() == self.selected_spacer_row:
                     return LOWER_DIAG_COLOR
             else:
-                if (index.row() < self.triangle_spacer_row - 1) | (index.row() in [self.selected_row_num, self.ldf_row]):
+                if (index.row() < self.triangle_spacer_row - 1) | \
+                        (index.row() in [self.selected_row_num, self.ldf_row]):
                     return MAIN_TRIANGLE_COLOR
                 else:
                     return LOWER_DIAG_COLOR
 
         # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
-        if (role == Qt.FontRole) and (self.value_type == "ratio") and (index.row() < self.triangle_spacer_row):
+        if (role == Qt.FontRole) and \
+                (self.value_type == "ratio") and \
+                (index.row() < self.triangle_spacer_row - 1) and \
+                (index.column() < self.n_triangle_columns):
+
             font = QFont()
             exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
             if exclude:
@@ -309,6 +315,7 @@ class FactorModel(QAbstractTableModel):
         ).fit_transform(self.triangle)
 
         selected_model = cl.Chainladder().fit(selected_dev)
+        # noinspection PyUnresolvedReferences
         ultimate_frame = selected_model.ultimate_.to_frame()
 
         ratios[""] = np.nan
@@ -387,10 +394,10 @@ class FactorView(QTableView):
         selection = self.selectedIndexes()
 
         for index in selection:
-            if index.row() < index.model().triangle_spacer_row:
+            if index.row() < index.model().triangle_spacer_row and index.column() <= index.model().n_triangle_columns:
                 index.model().toggle_exclude(index=index)
                 index.model().recalculate_factors(index=index)
-            elif index.row() < index.model().selected_spacer_row:
+            elif index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row:
                 index.model().select_factor(index=index)
             elif index.row() == index.model().selected_row_num:
                 index.model().clear_selected_ldf(index=index)
