@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     qApp,
     QLabel,
+    QListView,
     QMenu,
     QStyle,
     QStylePainter,
@@ -463,3 +464,9 @@ class FactorView(QTableView):
             csv.writer(stream, delimiter='\t').writerows(table)
             qApp.clipboard().setText(stream.getvalue())
         return
+
+
+class LDFAverageBox(QListView):
+    def __init__(self):
+        super().__init__()
+
