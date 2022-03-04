@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import (
     QAction,
     QApplication,
     qApp,
+    QDialog,
     QLabel,
     QListView,
     QMenu,
@@ -466,7 +467,14 @@ class FactorView(QTableView):
         return
 
 
-class LDFAverageBox(QListView):
+class LDFAverageView(QListView):
     def __init__(self):
         super().__init__()
 
+
+class LDFAverageBox(QDialog):
+    """
+    Contains the view which houses a list of LDF averages that the user can choose to display in the factor view.
+    """
+    def __init__(self):
+        super().__init__()
