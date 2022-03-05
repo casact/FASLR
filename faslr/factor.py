@@ -13,6 +13,7 @@ from pandas import DataFrame
 from PyQt5.QtCore import (
     QAbstractTableModel,
     QEvent,
+    QModelIndex,
     Qt,
     QSize,
     QVariant
@@ -20,6 +21,7 @@ from PyQt5.QtCore import (
 
 from PyQt5.QtGui import (
     QFont,
+    QKeyEvent,
     QKeySequence
 )
 
@@ -48,6 +50,8 @@ from style.triangle import (
     VALUE_STYLE
 )
 
+from typing import Any
+
 
 class FactorModel(QAbstractTableModel):
 
@@ -65,8 +69,10 @@ class FactorModel(QAbstractTableModel):
         self.link_frame = triangle.link_ratio.to_frame()
         self.factor_frame = None
 
-        selected_data = {"Selected LDF": [np.nan] * len(self.link_frame.columns)}
-        cdf_data = {"CDF to Ultimate": [np.nan] * (len(self.link_frame.columns))}
+        ldf_blanks = [np.nan] * len(self.link_frame.columns)
+
+        selected_data = {"Selected LDF": ldf_blanks}
+        cdf_data = {"CDF to Ultimate": ldf_blanks}
 
         self.selected_row = pd.DataFrame.from_dict(
             selected_data,
@@ -79,6 +85,7 @@ class FactorModel(QAbstractTableModel):
             orient="index",
             columns=self.link_frame.columns
         )
+
         # self.cdf_row["To Ult"] = np.nan
 
         # Get number of rows in triangle portion of tab.
@@ -194,6 +201,12 @@ class FactorModel(QAbstractTableModel):
                 font.setStrikeOut(False)
             return font
 
+    def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+        if index.row() == self.selected_row_num:
+            return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        else:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
     def rowCount(
             self,
             parent=None,
@@ -256,6 +269,10 @@ class FactorModel(QAbstractTableModel):
 
     def clear_selected_ldf(self, index):
 
+        self.selected_row.iloc[[0], [index.column()]] = np.nan
+        self.recalculate_factors(index=index)
+
+    def delete_ldf(self, index):
         self.selected_row.iloc[[0], [index.column()]] = np.nan
         self.recalculate_factors(index=index)
 
@@ -348,6 +365,22 @@ class FactorModel(QAbstractTableModel):
             self.cdf_row
         ])
 
+    def setData(self, index: QModelIndex, value: Any, role=None) -> bool:
+        if value is not None and role == Qt.EditRole:
+            # self._data.iloc[index.row(), index.column()] = float(value)
+            try:
+                value = float(value)
+            except ValueError:
+                value = np.nan
+                # return False
+
+            self.selected_row.iloc[0, index.column()] = value
+            self.recalculate_factors(index=index)
+            self.get_display_data()
+            self.dataChanged.emit(index, index)
+            self.layoutChanged.emit()
+            return True
+
 
 class FactorView(QTableView):
     def __init__(self):
@@ -360,6 +393,10 @@ class FactorView(QTableView):
         self.copy_action.triggered.connect(self.copy_selection)
 
         self.installEventFilter(self)
+
+        # self.delete_action = QAction("&Delete", self)
+        # self.delete_action.setShortcut(QKeySequence("Del"))
+        # self.delete_action.triggered.connect(self.delete_selection)
 
         btn = self.findChild(QAbstractButton)
         btn.installEventFilter(self)
@@ -400,6 +437,10 @@ class FactorView(QTableView):
         # noinspection PyUnresolvedReferences
         self.doubleClicked.connect(self.process_double_click)
 
+    def keyPressEvent(self, e: QKeyEvent) -> None:
+        if e.key() == Qt.Key_Delete:
+            self.delete_selection()
+
     def vertical_header_double_click(self):
         selection = self.selectedIndexes()
 
@@ -417,14 +458,15 @@ class FactorView(QTableView):
 
         for index in selection:
 
-            if index.row() < index.model().triangle_spacer_row and index.column() <= index.model().n_triangle_columns:
+            if index.row() < index.model().triangle_spacer_row - 2 and \
+                    index.column() <= index.model().n_triangle_columns:
                 index.model().toggle_exclude(index=index)
                 index.model().recalculate_factors(index=index)
             elif (index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row - 1) and \
                     (index.column() < index.model().n_triangle_columns):
                 index.model().select_factor(index=index)
-            elif index.row() == index.model().selected_row_num and index.column() < index.model().n_triangle_columns:
-                index.model().clear_selected_ldf(index=index)
+            # elif index.row() == index.model().selected_row_num and index.column() < index.model().n_triangle_columns:
+            #     index.model().clear_selected_ldf(index=index)
 
     def exclude_ratio(self):
         selection = self.selectedIndexes()
@@ -486,6 +528,15 @@ class FactorView(QTableView):
             csv.writer(stream, delimiter='\t').writerows(table)
             qApp.clipboard().setText(stream.getvalue())
         return
+
+    def delete_selection(self):
+        selection = self.selectedIndexes()
+
+        for index in selection:
+            if index.row() == self.model().selected_row_num:
+                self.model().delete_ldf(index=index)
+            else:
+                pass
 
 
 class LDFAverageModel(QAbstractTableModel):
