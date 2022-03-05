@@ -437,9 +437,14 @@ class FactorView(QTableView):
         # noinspection PyUnresolvedReferences
         self.doubleClicked.connect(self.process_double_click)
 
+        self.setTabKeyNavigation(True)
+
     def keyPressEvent(self, e: QKeyEvent) -> None:
+
         if e.key() == Qt.Key_Delete:
             self.delete_selection()
+        else:
+            super().keyPressEvent(e)
 
     def vertical_header_double_click(self):
         selection = self.selectedIndexes()
