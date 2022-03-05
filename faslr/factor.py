@@ -65,7 +65,7 @@ class FactorModel(QAbstractTableModel):
         self.link_frame = triangle.link_ratio.to_frame()
         self.factor_frame = None
 
-        selected_data = {"Selected": [np.nan] * len(self.link_frame.columns)}
+        selected_data = {"Selected LDF": [np.nan] * len(self.link_frame.columns)}
 
         self.selected_row = pd.DataFrame.from_dict(
             selected_data,
@@ -91,7 +91,7 @@ class FactorModel(QAbstractTableModel):
 
         # Get the position of a blank row to be inserted between the end of the triangle
         # and before the development factors
-        self.triangle_spacer_row = self.n_triangle_rows + 1
+        self.triangle_spacer_row = self.n_triangle_rows + 2
         self.ldf_row = self.triangle_spacer_row
 
         self.selected_spacer_row = self.triangle_spacer_row + 1
@@ -110,7 +110,7 @@ class FactorModel(QAbstractTableModel):
             col = self._data.columns[index.column()]
 
             if col == "Ultimate Loss":
-                if index.row() > self.n_triangle_rows - 1:
+                if index.row() > self.n_triangle_rows:
                     display_value = BLANK_TEXT
                 else:
                     display_value = VALUE_STYLE.format(value)
@@ -172,7 +172,7 @@ class FactorModel(QAbstractTableModel):
         # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
         if (role == Qt.FontRole) and \
                 (self.value_type == "ratio") and \
-                (index.row() < self.triangle_spacer_row - 1) and \
+                (index.row() < self.triangle_spacer_row - 2) and \
                 (index.column() < self.n_triangle_columns):
 
             font = QFont()
@@ -271,6 +271,7 @@ class FactorModel(QAbstractTableModel):
 
         self._data = self.get_display_data(drop_list=drop_list)
 
+        # noinspection PyUnresolvedReferences
         self.dataChanged.emit(
             index,
             index
@@ -320,7 +321,9 @@ class FactorModel(QAbstractTableModel):
         ultimate_frame = selected_model.ultimate_.to_frame()
 
         ratios[""] = np.nan
-        ratios["Ultimate Loss"] = ultimate_frame.iloc[:, [0]]
+
+        ratios = pd.concat([ratios, ultimate_frame], axis=1)
+        ratios.columns = [*ratios.columns[:-1], "Ultimate Loss"]
 
         return pd.concat([
             ratios,
@@ -376,8 +379,10 @@ class FactorView(QTableView):
 
         self.verticalHeader().setDefaultAlignment(Qt.AlignCenter)
 
+        # noinspection PyUnresolvedReferences
         self.verticalHeader().sectionDoubleClicked.connect(self.vertical_header_double_click)
 
+        # noinspection PyUnresolvedReferences
         self.doubleClicked.connect(self.process_double_click)
 
     def vertical_header_double_click(self):
@@ -400,7 +405,8 @@ class FactorView(QTableView):
             if index.row() < index.model().triangle_spacer_row and index.column() <= index.model().n_triangle_columns:
                 index.model().toggle_exclude(index=index)
                 index.model().recalculate_factors(index=index)
-            elif (index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row - 1) and (index.column() < index.model().n_triangle_columns):
+            elif (index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row - 1) and \
+                    (index.column() < index.model().n_triangle_columns):
                 index.model().select_factor(index=index)
             elif index.row() == index.model().selected_row_num and index.column() < index.model().n_triangle_columns:
                 index.model().clear_selected_ldf(index=index)
