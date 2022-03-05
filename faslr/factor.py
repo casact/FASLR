@@ -66,12 +66,20 @@ class FactorModel(QAbstractTableModel):
         self.factor_frame = None
 
         selected_data = {"Selected LDF": [np.nan] * len(self.link_frame.columns)}
+        cdf_data = {"CDF to Ultimate": [np.nan] * (len(self.link_frame.columns))}
 
         self.selected_row = pd.DataFrame.from_dict(
             selected_data,
             orient="index",
             columns=self.link_frame.columns
         )
+
+        self.cdf_row = pd.DataFrame.from_dict(
+            cdf_data,
+            orient="index",
+            columns=self.link_frame.columns
+        )
+        # self.cdf_row["To Ult"] = np.nan
 
         # Get number of rows in triangle portion of tab.
         self.n_triangle_rows = self.triangle.shape[2] - 1
@@ -97,6 +105,10 @@ class FactorModel(QAbstractTableModel):
         self.selected_spacer_row = self.triangle_spacer_row + 1
 
         self.selected_row_num = self.selected_spacer_row + 1
+        self.cdf_row_num = self.selected_row_num + 1
+
+        print(self.selected_row)
+        print(self.selected_row.isnull().all())
 
     def data(
             self,
@@ -115,9 +127,11 @@ class FactorModel(QAbstractTableModel):
                 else:
                     display_value = VALUE_STYLE.format(value)
             else:
+                if (index.row() == self.cdf_row_num) and self.selected_row.isnull().all().all():
+                    display_value = BLANK_TEXT
 
                 # Display blank when there are nans in the lower-right hand of the triangle.
-                if str(value) == "nan":
+                elif str(value) == "nan":
 
                     display_value = BLANK_TEXT
                 else:
@@ -320,6 +334,9 @@ class FactorModel(QAbstractTableModel):
         # noinspection PyUnresolvedReferences
         ultimate_frame = selected_model.ultimate_.to_frame()
 
+        self.cdf_row.iloc[[0]] = selected_dev.cdf_.to_frame().iloc[[0]]
+
+        # ratios["To Ult"] = np.nan
         ratios[""] = np.nan
 
         ratios = pd.concat([ratios, ultimate_frame], axis=1)
@@ -330,7 +347,8 @@ class FactorModel(QAbstractTableModel):
             blank_row,
             factor_frame,
             blank_row,
-            self.selected_row
+            self.selected_row,
+            self.cdf_row
         ])
 
 
