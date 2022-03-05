@@ -20,7 +20,8 @@ from PyQt5.QtCore import (
 
 from PyQt5.QtGui import (
     QFont,
-    QKeySequence
+    QKeySequence,
+    QStandardItem
 )
 
 from PyQt5.QtWidgets import (
@@ -28,15 +29,19 @@ from PyQt5.QtWidgets import (
     QAction,
     QApplication,
     qApp,
+    QCheckBox,
     QDialog,
     QLabel,
-    QListView,
     QMenu,
+    QProxyStyle,
     QStyle,
     QStylePainter,
     QStyleOptionHeader,
     QTableView,
-    QVBoxLayout
+    QTableWidgetItem,
+    QHBoxLayout,
+    QVBoxLayout,
+    QWidget
 )
 
 from style.triangle import (
@@ -491,7 +496,78 @@ class FactorView(QTableView):
         return
 
 
-class LDFAverageView(QListView):
+class LDFAverageModel(QAbstractTableModel):
+    def __init__(self, data):
+        super().__init__()
+
+        self._data = data
+
+    def data(
+            self,
+            index,
+            role=None
+    ):
+        value = self._data.iloc[index.row(), index.column()]
+
+        if role == Qt.DisplayRole:
+
+            return value
+
+        if role == Qt.CheckStateRole and index.column() == 0:
+            text_item = QTableWidgetItem(value)
+            checkbox_item = QTableWidgetItem()
+            checkbox_item.setFlags(
+                Qt.ItemIsUserCheckable | Qt.ItemIsEnabled
+            )
+            checkbox_item.setCheckState(Qt.Unchecked)
+            # return 5
+            # return QVariant(Qt.Unchecked)
+            return checkbox_item
+
+        if role == Qt.TextAlignmentRole and index.column() == 0:
+            return Qt.AlignCenter
+
+        # if role == Qt.DecorationRole:
+        #     value = self._data.iloc[index.row(), index.column()]
+
+    def flags(self, index):
+        return super(LDFAverageModel, self).flags(index) | Qt.ItemIsUserCheckable
+
+    def headerData(
+            self,
+            p_int,
+            qt_orientation,
+            role=None
+    ):
+
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if qt_orientation == Qt.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Vertical:
+                return str(self._data.index[p_int])
+
+    def rowCount(
+            self,
+            parent=None,
+            *args,
+            **kwargs
+    ):
+
+        return self._data.shape[0]
+
+    def columnCount(
+            self,
+            parent=None,
+            *args,
+            **kwargs
+    ):
+
+        return self._data.shape[1]
+
+
+class LDFAverageView(QTableView):
     def __init__(self):
         super().__init__()
 
@@ -502,3 +578,28 @@ class LDFAverageBox(QDialog):
     """
     def __init__(self):
         super().__init__()
+
+        data = {"blah 1": [None, "3-year volume-weighted"],
+                "blah 2": [None, "5-year volume-weighted"]}
+
+        # self.data = pd.DataFrame(columns=["Selected", "LDF Average"])
+        self.data = pd.DataFrame.from_dict(
+            data,
+            orient="index",
+            columns=["Selected", "LDF Average"]
+        )
+
+        self.layout = QVBoxLayout()
+        self.model = LDFAverageModel(self.data)
+        self.view = LDFAverageView()
+        self.view.setModel(self.model)
+        self.layout.addWidget(self.view)
+        self.setLayout(self.layout)
+
+
+class CheckBoxStyle(QProxyStyle):
+    def subElementRect(self, element, option, widget=None):
+        r = super().subElementRect(element, option, widget)
+        if element == QStyle.SE_ItemViewItemCheckIndicator:
+            r.moveCenter(option.rect.center())
+        return r
