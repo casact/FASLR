@@ -267,11 +267,6 @@ class FactorModel(QAbstractTableModel):
         self.selected_row.iloc[[0]] = np.nan
         self.recalculate_factors(index=index)
 
-    def clear_selected_ldf(self, index):
-
-        self.selected_row.iloc[[0], [index.column()]] = np.nan
-        self.recalculate_factors(index=index)
-
     def delete_ldf(self, index):
         self.selected_row.iloc[[0], [index.column()]] = np.nan
         self.recalculate_factors(index=index)
@@ -392,6 +387,11 @@ class FactorView(QTableView):
         # noinspection PyUnresolvedReferences
         self.copy_action.triggered.connect(self.copy_selection)
 
+        self.delete_action = QAction("&Delete Selected LDF(s)", self)
+        self.delete_action.setShortcut(QKeySequence("Del"))
+        self.delete_action.setStatusTip("Delete the selected LDF(s).")
+        self.delete_action.triggered.connect(self.delete_selection)
+
         self.installEventFilter(self)
 
         # self.delete_action = QAction("&Delete", self)
@@ -407,6 +407,17 @@ class FactorView(QTableView):
         btn_layout.addWidget(btn_label)
         btn.setLayout(btn_layout)
         opt = QStyleOptionHeader()
+
+        h_headers = self.horizontalHeader()
+        v_headers = self.verticalHeader()
+
+        h_headers.setContextMenuPolicy(Qt.CustomContextMenu)
+        v_headers.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        h_headers.customContextMenuRequested.connect(
+            lambda *args: self.custom_menu_event(*args, header_type="horizontal"))
+        v_headers.customContextMenuRequested.connect(
+            lambda *args: self.custom_menu_event(*args, header_type="vertical"))
 
         # Set the styling for the table corner so that it matches the rest of the headers.
         self.setStyleSheet(
@@ -505,16 +516,43 @@ class FactorView(QTableView):
 
         return True
 
-    def contextMenuEvent(self, event):
+    def custom_menu_event(
+            self,
+            pos,
+            event=None,
+            header_type=None
+    ):
         """
         When right-clicking a cell, activate context menu.
 
         :param: event
         :return:
         """
+
+        rows = [index.row() for index in self.selectedIndexes()]
+
         menu = QMenu()
         menu.addAction(self.copy_action)
-        menu.exec(event.globalPos())
+
+        # only add the delete option if the selection contains the row of selected LDFs
+        if self.model().selected_row_num in rows:
+            menu.addAction(self.delete_action)
+        else:
+            pass
+
+        if event is None:
+            if header_type == "horizontal":
+                position = self.horizontalHeader().mapToGlobal(pos)
+            elif header_type == "vertical":
+                position = self.verticalHeader().mapToGlobal(pos)
+        else:
+            position = event.globalPos()
+
+        menu.exec(position)
+
+    def contextMenuEvent(self, event):
+
+        self.custom_menu_event(pos=None, event=event)
 
     def copy_selection(self):
         """Method to copy selected values to clipboard, so they can be pasted elsewhere, like Excel."""
@@ -538,7 +576,7 @@ class FactorView(QTableView):
         selection = self.selectedIndexes()
 
         for index in selection:
-            if index.row() == self.model().selected_row_num:
+            if index.row() == self.model().selected_row_num and index.column() < self.model().selected_row.shape[1]:
                 self.model().delete_ldf(index=index)
             else:
                 pass
