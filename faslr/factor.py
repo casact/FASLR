@@ -20,7 +20,6 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtGui import (
-    QCloseEvent,
     QFont,
     QKeyEvent,
     QKeySequence
@@ -31,12 +30,15 @@ from PyQt5.QtWidgets import (
     QAction,
     QApplication,
     qApp,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFormLayout,
     QLabel,
+    QLineEdit,
     QMenu,
-    QPushButton,
     QProxyStyle,
+    QSpinBox,
     QStyle,
     QStylePainter,
     QStyleOptionHeader,
@@ -672,6 +674,24 @@ class LDFAverageModel(QAbstractTableModel):
             return True
         return False
 
+    def add_average(self, avg_type: str, years: int, label: str):
+        print("hi")
+        data = {"blah": [None, label, avg_type, str(years)]}
+
+        df = pd.DataFrame.from_dict(
+            data,
+            orient="index",
+            columns=self._data.columns
+        )
+
+        index = QModelIndex()
+
+        self._data = pd.concat([self._data, df])
+        self.dataChanged.emit(index, index)
+        self.layoutChanged.emit()
+
+        print(self._data.head())
+
 
 class LDFAverageView(QTableView):
     def __init__(self):
@@ -684,6 +704,7 @@ class LDFAverageBox(QDialog):
     """
     Contains the view which houses a list of LDF averages that the user can choose to display in the factor view.
     """
+
     def __init__(self):
         super().__init__()
 
@@ -717,25 +738,71 @@ class LDFAverageBox(QDialog):
 
         self.setLayout(self.layout)
 
-        print(self.button_box.width())
+        self.set_dimensions()
 
+    def set_dimensions(self):
         width = self.view.horizontalHeader().length() + \
-            self.view.verticalHeader().width() + \
-            self.layout.getContentsMargins()[0] * 3
+                self.view.verticalHeader().width() + \
+                self.layout.getContentsMargins()[0] * 3
 
         height = self.view.verticalHeader().length() + self.view.horizontalHeader().height() + \
             self.layout.getContentsMargins()[0] * 5
 
         self.resize(width, height)
 
+        return width, height
+
     def add_ldf_average(self, btn):
 
         if btn.text() == "&OK":
             return
         else:
-            print("Hi")
+            ldf_dialog = AddLDFDialog(parent=self)
+            ldf_dialog.exec_()
 
     def accept_changes(self):
+        self.close()
+
+
+class AddLDFDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.layout = QFormLayout()
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(['Geometric', 'Medial', 'Straight', 'Volume'])
+        self.year_spin = QSpinBox()
+        self.year_spin.setMinimum(1)
+        self.year_spin.setValue(1)
+        self.avg_label = QLineEdit()
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        self.layout.addRow("Type: ", self.type_combo)
+        self.layout.addRow("Years: ", self.year_spin)
+        self.layout.addRow("Label: ", self.avg_label)
+        self.layout.addWidget(button_box)
+        self.setLayout(self.layout)
+
+        button_box.rejected.connect(self.cancel_close)
+        button_box.accepted.connect(self.add_average)
+
+    def cancel_close(self):
+        self.close()
+
+    def add_average(self):
+        label = self.avg_label.text()
+        avg_type = self.type_combo.currentText()
+        years = self.year_spin.value()
+
+        self.parent.model.add_average(
+            label=label,
+            avg_type=avg_type,
+            years=years
+        )
+
+        self.parent.set_dimensions()
         self.close()
 
 
@@ -743,6 +810,7 @@ class CheckBoxStyle(QProxyStyle):
     """
     Proxy style is used to center the checkboxes in the LDF Average dialog box.
     """
+
     def subElementRect(self, element, opt, widget=None):
         if element == self.SE_ItemViewItemCheckIndicator and not opt.text:
             rect = super().subElementRect(element, opt, widget)
