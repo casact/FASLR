@@ -20,6 +20,7 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtGui import (
+    QCloseEvent,
     QFont,
     QKeyEvent,
     QKeySequence
@@ -31,8 +32,10 @@ from PyQt5.QtWidgets import (
     QApplication,
     qApp,
     QDialog,
+    QDialogButtonBox,
     QLabel,
     QMenu,
+    QPushButton,
     QProxyStyle,
     QStyle,
     QStylePainter,
@@ -545,6 +548,8 @@ class FactorView(QTableView):
                 position = self.horizontalHeader().mapToGlobal(pos)
             elif header_type == "vertical":
                 position = self.verticalHeader().mapToGlobal(pos)
+            else:
+                raise ValueError("Invalid header type specified.")
         else:
             position = event.globalPos()
 
@@ -682,14 +687,14 @@ class LDFAverageBox(QDialog):
     def __init__(self):
         super().__init__()
 
-        data = {"blah 1": [None, "3-year volume-weighted"],
-                "blah 2": [None, "5-year volume-weighted"]}
+        data = {"blah 1": [None, "3-year volume-weighted", "volume-weighted", "3"],
+                "blah 2": [None, "5-year volume-weighted", "volume-weighted", "5"]}
 
         # self.data = pd.DataFrame(columns=["Selected", "LDF Average"])
         self.data = pd.DataFrame.from_dict(
             data,
             orient="index",
-            columns=["Selected", "LDF Average"]
+            columns=["Selected", "Label", "Type", "Number of Years"]
         )
 
         self.layout = QVBoxLayout()
@@ -697,7 +702,41 @@ class LDFAverageBox(QDialog):
         self.view = LDFAverageView()
         self.view.setModel(self.model)
         self.layout.addWidget(self.view)
+
+        self.view.resizeColumnsToContents()
+
+        self.button_box = QDialogButtonBox()
+
+        self.button_box.addButton("Add Average", QDialogButtonBox.ActionRole)
+        self.button_box.addButton(QDialogButtonBox.Ok)
+
+        self.button_box.clicked.connect(self.add_ldf_average)
+        self.button_box.accepted.connect(self.accept_changes)
+
+        self.layout.addWidget(self.button_box)
+
         self.setLayout(self.layout)
+
+        print(self.button_box.width())
+
+        width = self.view.horizontalHeader().length() + \
+            self.view.verticalHeader().width() + \
+            self.layout.getContentsMargins()[0] * 3
+
+        height = self.view.verticalHeader().length() + self.view.horizontalHeader().height() + \
+            self.layout.getContentsMargins()[0] * 5
+
+        self.resize(width, height)
+
+    def add_ldf_average(self, btn):
+
+        if btn.text() == "&OK":
+            return
+        else:
+            print("Hi")
+
+    def accept_changes(self):
+        self.close()
 
 
 class CheckBoxStyle(QProxyStyle):
