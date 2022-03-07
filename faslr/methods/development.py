@@ -26,7 +26,12 @@ class DevelopmentTab(QWidget):
         self.layout.addWidget(self.factor_view)
         self.setLayout(self.layout)
 
-
-
-
+        self.resize(
+            self.factor_view.horizontalHeader().length() +
+            self.factor_view.verticalHeader().width() +
+            self.layout.getContentsMargins()[0] * 3,
+            self.factor_view.verticalHeader().length() +
+            self.factor_view.horizontalHeader().height() +
+            self.layout.getContentsMargins()[0] * 3
+        )
 
