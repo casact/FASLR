@@ -367,7 +367,7 @@ class FactorModel(QAbstractTableModel):
 
     def setData(self, index: QModelIndex, value: Any, role=None) -> bool:
         if value is not None and role == Qt.EditRole:
-            # self._data.iloc[index.row(), index.column()] = float(value)
+
             try:
                 value = float(value)
             except ValueError:
@@ -378,6 +378,7 @@ class FactorModel(QAbstractTableModel):
             self.recalculate_factors(index=index)
             self.get_display_data()
             self.dataChanged.emit(index, index)
+            # noinspection PyUnresolvedReferences
             self.layoutChanged.emit()
             return True
 
@@ -474,15 +475,20 @@ class FactorView(QTableView):
             self.model().clear_selected_ldfs(index=index)
 
     def process_double_click(self):
+        """
+        Respond to when the user double-clicks on the table. Route methods depends on where in the table the user
+        clicks.
+        """
 
         selection = self.selectedIndexes()
 
         for index in selection:
-
+            # Case when user double-clicks on the link ratios in the triangle, toggle exclude
             if index.row() < index.model().triangle_spacer_row - 2 and \
                     index.column() <= index.model().n_triangle_columns:
                 index.model().toggle_exclude(index=index)
                 index.model().recalculate_factors(index=index)
+            # Case when the user clicks on an LDF average, select it.
             elif (index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row - 1) and \
                     (index.column() < index.model().n_triangle_columns):
                 index.model().select_factor(index=index)
@@ -675,8 +681,11 @@ class LDFAverageModel(QAbstractTableModel):
         return False
 
     def add_average(self, avg_type: str, years: int, label: str):
-        print("hi")
-        data = {"blah": [None, label, avg_type, str(years)]}
+        """
+        Adds a custom LDF average type to the list of current averages.
+        """
+
+        data = {"": [None, label, avg_type, str(years)]}
 
         df = pd.DataFrame.from_dict(
             data,
@@ -688,6 +697,7 @@ class LDFAverageModel(QAbstractTableModel):
 
         self._data = pd.concat([self._data, df])
         self.dataChanged.emit(index, index)
+        # noinspection PyUnresolvedReferences
         self.layoutChanged.emit()
 
         print(self._data.head())
@@ -709,9 +719,10 @@ class LDFAverageBox(QDialog):
         super().__init__()
 
         data = {"blah 1": [None, "3-year volume-weighted", "volume-weighted", "3"],
-                "blah 2": [None, "5-year volume-weighted", "volume-weighted", "5"]}
+                "blah 2": [None, "5-year volume-weighted", "volume-weighted", "5"],
+                "blah 3": [None, "5-year volume-weighted", "volume-weighted", "5"]
+        }
 
-        # self.data = pd.DataFrame(columns=["Selected", "LDF Average"])
         self.data = pd.DataFrame.from_dict(
             data,
             orient="index",
@@ -741,15 +752,21 @@ class LDFAverageBox(QDialog):
         self.set_dimensions()
 
     def set_dimensions(self):
+        """
+        Automatically size the dialog box.
+        """
+
         width = self.view.horizontalHeader().length() + \
-                self.view.verticalHeader().width() + \
-                self.layout.getContentsMargins()[0] * 3
+            self.view.verticalHeader().width() + \
+            self.layout.getContentsMargins()[0] * 3
 
         height = self.view.verticalHeader().length() + self.view.horizontalHeader().height() + \
             self.layout.getContentsMargins()[0] * 5
 
-        self.resize(width, height)
+        print(self.layout.sizeHint())
 
+        self.resize(width, height)
+        # self.resize(self.layout.sizeHint())
         return width, height
 
     def add_ldf_average(self, btn):
@@ -765,6 +782,10 @@ class LDFAverageBox(QDialog):
 
 
 class AddLDFDialog(QDialog):
+    """
+    Dialog box that pops up to allow the user to enter a custom LDF average type. Can select type of average,
+    number of most recent years calculated, and a label to identify it.
+    """
     def __init__(self, parent=None):
         super().__init__()
 
