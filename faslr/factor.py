@@ -685,11 +685,8 @@ class LDFAverageModel(QAbstractTableModel):
         Adds a custom LDF average type to the list of current averages.
         """
 
-        data = {"": [None, label, avg_type, str(years)]}
-
-        df = pd.DataFrame.from_dict(
-            data,
-            orient="index",
+        df = pd.DataFrame(
+            data=[[[None, label, avg_type, str(years)]]],
             columns=self._data.columns
         )
 
@@ -718,14 +715,12 @@ class LDFAverageBox(QDialog):
     def __init__(self):
         super().__init__()
 
-        data = {"blah 1": [None, "3-year volume-weighted", "volume-weighted", "3"],
-                "blah 2": [None, "5-year volume-weighted", "volume-weighted", "5"],
-                "blah 3": [None, "5-year volume-weighted", "volume-weighted", "5"]
-        }
-
-        self.data = pd.DataFrame.from_dict(
-            data,
-            orient="index",
+        self.data = pd.DataFrame(
+            data=[
+                [None, "3-year volume-weighted", "volume-weighted", "3"],
+                [None, "5-year volume-weighted", "volume-weighted", "5"],
+                [None, "All-year volume-weighted", "volume-weighted", "All"]
+            ],
             columns=["Selected", "Label", "Type", "Number of Years"]
         )
 
