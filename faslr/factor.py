@@ -8,6 +8,11 @@ from chainladder import (
     Triangle
 )
 
+from faslr.constants import (
+    LDF_AVERAGES,
+    TEMP_LDF_LIST
+)
+
 from pandas import DataFrame
 
 from PyQt5.QtCore import (
@@ -46,7 +51,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 
-from style.triangle import (
+from faslr.style.triangle import (
     BLANK_TEXT,
     EXCL_FACTOR_COLOR,
     LOWER_DIAG_COLOR,
@@ -74,6 +79,9 @@ class FactorModel(QAbstractTableModel):
         self.link_frame = triangle.link_ratio.to_frame()
         self.factor_frame = None
 
+        self.ldf_types = TEMP_LDF_LIST
+        self.num_ldf_types = self.ldf_types[self.ldf_types["Selected"] == True].shape[0]
+
         ldf_blanks = [np.nan] * len(self.link_frame.columns)
 
         selected_data = {"Selected LDF": ldf_blanks}
@@ -95,6 +103,7 @@ class FactorModel(QAbstractTableModel):
 
         # Get number of rows in triangle portion of tab.
         self.n_triangle_rows = self.triangle.shape[2] - 1
+        self.triangle_spacer_row = self.n_triangle_rows + 2
 
         self.n_triangle_columns = self.triangle.shape[3] - 1
 
@@ -111,7 +120,7 @@ class FactorModel(QAbstractTableModel):
 
         # Get the position of a blank row to be inserted between the end of the triangle
         # and before the development factors
-        self.triangle_spacer_row = self.n_triangle_rows + 2
+
         self.ldf_row = self.triangle_spacer_row
 
         self.selected_spacer_row = self.triangle_spacer_row + 1
@@ -258,7 +267,7 @@ class FactorModel(QAbstractTableModel):
 
     def select_factor(self, index):
 
-        self.selected_row.iloc[[0], [index.column()]] = self.factor_frame.iloc[[0], [index.column()]].copy()
+        self.selected_row.iloc[[0], [index.column()]] = self._data.iloc[[index.row()], [index.column()]].copy()
 
         self.recalculate_factors(index=index)
 
@@ -299,14 +308,6 @@ class FactorModel(QAbstractTableModel):
 
         self._data = self.get_display_data(drop_list=drop_list)
 
-        # noinspection PyUnresolvedReferences
-        self.dataChanged.emit(
-            index,
-            index
-        )
-        # noinspection PyUnresolvedReferences
-        self.layoutChanged.emit()
-
     def get_display_data(
             self,
             drop_list=None
@@ -316,9 +317,34 @@ class FactorModel(QAbstractTableModel):
         """
         ratios = self.link_frame.copy()
 
-        development = cl.Development(drop=drop_list, average="volume")
+        df_ldfs_to_calc = self.ldf_types[self.ldf_types["Selected"] == True]  # noqa e712
+        self.num_ldf_types = df_ldfs_to_calc.shape[0]
 
-        factors = development.fit(self.triangle)
+        factor_frame = pd.DataFrame()
+
+        for i in range(self.num_ldf_types):
+            ldf_name = df_ldfs_to_calc["Label"].iloc[i]
+            ldf_years = int(df_ldfs_to_calc["Number of Years"].iloc[i])
+            average = df_ldfs_to_calc['Type'].iloc[i]
+
+            development = cl.Development(
+                drop=drop_list,
+                n_periods=[ldf_years] * ratios.shape[1],
+                average=LDF_AVERAGES[average]
+            )
+
+            factors = development.fit(X=self.triangle)
+
+            # noinspection PyUnresolvedReferences
+            factor_row = factors.ldf_.to_frame()
+            factor_row = factor_row.rename(index={'(All)': ldf_name})
+
+            if i == 0:
+                factor_frame = factor_row
+            else:
+                factor_frame = pd.concat([factor_frame, factor_row])
+
+        self.factor_frame = factor_frame
 
         blank_data = {"": [np.nan] * len(ratios.columns)}
 
@@ -327,11 +353,6 @@ class FactorModel(QAbstractTableModel):
             orient="index",
             columns=ratios.columns
         )
-
-        # noinspection PyUnresolvedReferences
-        factor_frame = factors.ldf_.to_frame()
-        factor_frame = factor_frame.rename(index={'(All)': 'Volume-Weighted LDF'})
-        self.factor_frame = factor_frame
 
         # fit factors
         patterns = {}
@@ -356,7 +377,12 @@ class FactorModel(QAbstractTableModel):
         ratios = pd.concat([ratios, ultimate_frame], axis=1)
         ratios.columns = [*ratios.columns[:-1], "Ultimate Loss"]
 
-        return pd.concat([
+        self.selected_spacer_row = self.triangle_spacer_row + self.num_ldf_types
+        self.selected_row_num = self.selected_spacer_row + 1
+
+        index = QModelIndex()
+
+        res = pd.concat([
             ratios,
             blank_row,
             factor_frame,
@@ -365,7 +391,17 @@ class FactorModel(QAbstractTableModel):
             self.cdf_row
         ])
 
-    def setData(self, index: QModelIndex, value: Any, role=None) -> bool:
+        # noinspection PyUnresolvedReferences
+        self.dataChanged.emit(
+            index,
+            index
+        )
+        # noinspection PyUnresolvedReferences
+        self.layoutChanged.emit()
+
+        return res
+
+    def setData(self, index: QModelIndex, value: Any, role=None, refresh=False) -> bool:
         if value is not None and role == Qt.EditRole:
 
             try:
@@ -381,6 +417,12 @@ class FactorModel(QAbstractTableModel):
             # noinspection PyUnresolvedReferences
             self.layoutChanged.emit()
             return True
+        elif refresh:
+            self.recalculate_factors(index=index)
+            self.get_display_data()
+            self.dataChanged.emit(index, index)
+            #noinspection PyUnresolvedReferences
+            self.layoutChanged.emit()
 
 
 class FactorView(QTableView):
@@ -596,8 +638,10 @@ class FactorView(QTableView):
 
 
 class LDFAverageModel(QAbstractTableModel):
-    def __init__(self, data, checkable_columns=None):
+    def __init__(self, data, parent: FactorModel, checkable_columns=None):
         super(LDFAverageModel, self).__init__()
+
+        self.parent = parent
 
         self._data = data
         if checkable_columns is None:
@@ -686,18 +730,20 @@ class LDFAverageModel(QAbstractTableModel):
         """
 
         df = pd.DataFrame(
-            data=[[[None, label, avg_type, str(years)]]],
+            data=[[None, label, avg_type, str(years)]],
             columns=self._data.columns
         )
 
         index = QModelIndex()
 
         self._data = pd.concat([self._data, df])
+        self.parent.ldf_types = self._data
+
         self.dataChanged.emit(index, index)
         # noinspection PyUnresolvedReferences
         self.layoutChanged.emit()
-
-        print(self._data.head())
+        self.parent.dataChanged.emit(index, index)
+        self.parent.layoutChanged.emit()
 
 
 class LDFAverageView(QTableView):
@@ -712,20 +758,18 @@ class LDFAverageBox(QDialog):
     Contains the view which houses a list of LDF averages that the user can choose to display in the factor view.
     """
 
-    def __init__(self):
+    def __init__(self, parent: FactorModel, view):
         super().__init__()
 
-        self.data = pd.DataFrame(
-            data=[
-                [None, "3-year volume-weighted", "volume-weighted", "3"],
-                [None, "5-year volume-weighted", "volume-weighted", "5"],
-                [None, "All-year volume-weighted", "volume-weighted", "All"]
-            ],
-            columns=["Selected", "Label", "Type", "Number of Years"]
-        )
+        self.parent=parent
+        self.view=view
+
+        self.data = parent.ldf_types
+
+        self.setWindowTitle("LDF Averages")
 
         self.layout = QVBoxLayout()
-        self.model = LDFAverageModel(self.data, checkable_columns=0)
+        self.model = LDFAverageModel(self.data, checkable_columns=0, parent=parent)
         self.view = LDFAverageView()
         self.view.setModel(self.model)
         self.layout.addWidget(self.view)
@@ -758,8 +802,6 @@ class LDFAverageBox(QDialog):
         height = self.view.verticalHeader().length() + self.view.horizontalHeader().height() + \
             self.layout.getContentsMargins()[0] * 5
 
-        print(self.layout.sizeHint())
-
         self.resize(width, height)
         # self.resize(self.layout.sizeHint())
         return width, height
@@ -773,6 +815,9 @@ class LDFAverageBox(QDialog):
             ldf_dialog.exec_()
 
     def accept_changes(self):
+        self.parent.get_display_data()
+        index = QModelIndex()
+        self.parent.setData(index=index, value=None, refresh=True)
         self.close()
 
 
@@ -786,9 +831,11 @@ class AddLDFDialog(QDialog):
 
         self.parent = parent
 
+        self.setWindowTitle("Add LDF Average")
+
         self.layout = QFormLayout()
         self.type_combo = QComboBox()
-        self.type_combo.addItems(['Geometric', 'Medial', 'Straight', 'Volume'])
+        self.type_combo.addItems(LDF_AVERAGES.keys())
         self.year_spin = QSpinBox()
         self.year_spin.setMinimum(1)
         self.year_spin.setValue(1)
