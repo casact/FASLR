@@ -1,8 +1,17 @@
 from chainladder import Triangle
 
-from factor import FactorModel, FactorView
+from faslr.factor import (
+    LDFAverageBox,
+    FactorModel,
+    FactorView
+)
+
+from PyQt5.QtCore import Qt
 
 from PyQt5.QtWidgets import (
+    QCheckBox,
+    QHBoxLayout,
+    QPushButton,
     QWidget,
     QVBoxLayout
 )
@@ -17,14 +26,28 @@ class DevelopmentTab(QWidget):
         super().__init__()
 
         self.triangle = triangle[column]
+        self.tool_layout = QHBoxLayout()
         self.layout = QVBoxLayout()
+        self.check_heatmap = QCheckBox(text="Heatmap")
+        self.add_ldf_btn = QPushButton("Available Averages")
+        self.add_ldf_btn.setFixedWidth(self.add_ldf_btn.sizeHint().width())
+        self.add_ldf_btn.setContentsMargins(2, 2, 2, 2)
+        self.add_ldf_btn.clicked.connect(self.open_ldf_average_box)
 
         self.factor_model = FactorModel(self.triangle)
         self.factor_view = FactorView()
         self.factor_view.setModel(self.factor_model)
 
+        self.tool_container = QWidget()
+        self.tool_container.setLayout(self.tool_layout)
+        self.tool_layout.setContentsMargins(0, 0, 0 , 0)
+        self.tool_layout.addWidget(self.check_heatmap)
+        self.tool_layout.addWidget(self.add_ldf_btn)
+        self.layout.addWidget(self.tool_container, alignment=Qt.AlignRight)
         self.layout.addWidget(self.factor_view)
         self.setLayout(self.layout)
+
+        self.ldf_average_box = LDFAverageBox(parent=self.factor_model, view=self.factor_view)
 
         self.resize(
             self.factor_view.horizontalHeader().length() +
@@ -35,3 +58,6 @@ class DevelopmentTab(QWidget):
             self.layout.getContentsMargins()[0] * 3
         )
 
+    def open_ldf_average_box(self):
+
+        self.ldf_average_box.show()
