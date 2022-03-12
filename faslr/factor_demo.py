@@ -1,8 +1,8 @@
 import sys
 
-from methods.development import DevelopmentTab
+from faslr.methods.development import DevelopmentTab
 from PyQt5.QtWidgets import QApplication
-from utilities.sample import load_sample
+from faslr.utilities.sample import load_sample
 
 test = load_sample("us_industry_auto")
 
