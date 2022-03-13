@@ -1,13 +1,13 @@
-from connection import connect_db
+from faslr.connection import connect_db
 
-from schema import (
+from faslr.schema import (
     CountryTable,
     LOBTable,
     ProjectTable,
     StateTable
 )
 
-from project_item import ProjectItem
+from faslr.project_item import ProjectItem
 
 from PyQt5.QtCore import Qt
 
@@ -175,10 +175,9 @@ class ProjectTreeView(QTreeView):
         self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
         self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
 
-
     def contextMenuEvent(self, event):
         """
-        When right clicking a cell, activate context menu.
+        When right-clicking a cell, activate context menu.
         :param event:
         :return:
         """

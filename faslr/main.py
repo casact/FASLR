@@ -3,24 +3,24 @@ import os
 import platform
 import sys
 
-from analysis import AnalysisTab
+from faslr.analysis import AnalysisTab
 
-from connection import (
+from faslr.connection import (
     get_startup_db_path,
     populate_project_tree
 )
 
-from constants import (
+from faslr.constants import (
     CONFIG_PATH,
     ROOT_PATH,
     TEMPLATES_PATH
 )
 
-from menu import (
+from faslr.menu import (
     MainMenuBar
 )
 
-from project import (
+from faslr.project import (
     ProjectTreeView
 )
 
@@ -47,7 +47,7 @@ from PyQt5.QtWidgets import (
 
 from shutil import copyfile
 
-from utilities.sample import load_sample
+from faslr.utilities.sample import load_sample
 
 # Get OS information from the user.
 os_name = platform.platform()
