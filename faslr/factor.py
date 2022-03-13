@@ -1,11 +1,14 @@
 import chainladder as cl
-import csv
-import io
 import numpy as np
 import pandas as pd
 
 from chainladder import (
     Triangle
+)
+
+from faslr.base_table import (
+    FAbstractTableModel,
+    FTableView
 )
 
 from faslr.constants import (
@@ -17,7 +20,6 @@ from pandas import DataFrame
 
 from PyQt5.QtCore import (
     QAbstractTableModel,
-    QEvent,
     QModelIndex,
     Qt,
     QSize,
@@ -34,7 +36,6 @@ from PyQt5.QtWidgets import (
     QAbstractButton,
     QAction,
     QApplication,
-    qApp,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -45,7 +46,6 @@ from PyQt5.QtWidgets import (
     QProxyStyle,
     QSpinBox,
     QStyle,
-    QStylePainter,
     QStyleOptionHeader,
     QTableView,
     QVBoxLayout,
@@ -63,7 +63,7 @@ from faslr.style.triangle import (
 from typing import Any
 
 
-class FactorModel(QAbstractTableModel):
+class FactorModel(FAbstractTableModel):
 
     def __init__(
             self,
@@ -80,7 +80,7 @@ class FactorModel(QAbstractTableModel):
         self.factor_frame = None
 
         self.ldf_types = TEMP_LDF_LIST
-        self.num_ldf_types = self.ldf_types[self.ldf_types["Selected"] == True].shape[0]
+        self.num_ldf_types = self.ldf_types[self.ldf_types["Selected"]].shape[0]
 
         ldf_blanks = [np.nan] * len(self.link_frame.columns)
 
@@ -269,23 +269,23 @@ class FactorModel(QAbstractTableModel):
 
         self.selected_row.iloc[[0], [index.column()]] = self._data.iloc[[index.row()], [index.column()]].copy()
 
-        self.recalculate_factors(index=index)
+        self.recalculate_factors()
 
     def select_ldf_row(self, index):
 
-        self.selected_row.iloc[[0]] = self.factor_frame.iloc[[0]]
-        self.recalculate_factors(index=index)
+        self.selected_row.iloc[[0]] = self._data.iloc[[index.row()], 0:self.link_frame.shape[1]]
+        self.recalculate_factors()
 
-    def clear_selected_ldfs(self, index):
+    def clear_selected_ldfs(self):
 
         self.selected_row.iloc[[0]] = np.nan
-        self.recalculate_factors(index=index)
+        self.recalculate_factors()
 
     def delete_ldf(self, index):
         self.selected_row.iloc[[0], [index.column()]] = np.nan
-        self.recalculate_factors(index=index)
+        self.recalculate_factors()
 
-    def recalculate_factors(self, index):
+    def recalculate_factors(self):
         """
         Method to update the view and LDFs as the user strikes out link ratios.
         """
@@ -379,6 +379,7 @@ class FactorModel(QAbstractTableModel):
 
         self.selected_spacer_row = self.triangle_spacer_row + self.num_ldf_types
         self.selected_row_num = self.selected_spacer_row + 1
+        self.cdf_row_num = self.selected_row_num + 1
 
         index = QModelIndex()
 
@@ -411,21 +412,21 @@ class FactorModel(QAbstractTableModel):
                 # return False
 
             self.selected_row.iloc[0, index.column()] = value
-            self.recalculate_factors(index=index)
+            self.recalculate_factors()
             self.get_display_data()
             self.dataChanged.emit(index, index)
             # noinspection PyUnresolvedReferences
             self.layoutChanged.emit()
             return True
         elif refresh:
-            self.recalculate_factors(index=index)
+            self.recalculate_factors()
             self.get_display_data()
             self.dataChanged.emit(index, index)
-            #noinspection PyUnresolvedReferences
+            # noinspection PyUnresolvedReferences
             self.layoutChanged.emit()
 
 
-class FactorView(QTableView):
+class FactorView(FTableView):
     def __init__(self):
         super().__init__()
 
@@ -511,10 +512,10 @@ class FactorView(QTableView):
         index = selection[0]
         row_num = index.row()
 
-        if row_num == self.model().triangle_spacer_row:
+        if (self.model().triangle_spacer_row + self.model().num_ldf_types - 1) >= row_num >= self.model().triangle_spacer_row:
             self.model().select_ldf_row(index=index)
         elif row_num == self.model().selected_row_num:
-            self.model().clear_selected_ldfs(index=index)
+            self.model().clear_selected_ldfs()
 
     def process_double_click(self):
         """
@@ -529,7 +530,7 @@ class FactorView(QTableView):
             if index.row() < index.model().triangle_spacer_row - 2 and \
                     index.column() <= index.model().n_triangle_columns:
                 index.model().toggle_exclude(index=index)
-                index.model().recalculate_factors(index=index)
+                index.model().recalculate_factors()
             # Case when the user clicks on an LDF average, select it.
             elif (index.model().selected_spacer_row > index.row() > index.model().triangle_spacer_row - 1) and \
                     (index.column() < index.model().n_triangle_columns):
@@ -543,31 +544,6 @@ class FactorView(QTableView):
         for index in selection:
             index.model().toggle_exclude(index=index)
             index.model().recalculate_factors(index=index)
-
-    def eventFilter(self, obj, event):
-        if event.type() != QEvent.Paint or not isinstance(
-                obj, QAbstractButton):
-            return False
-
-        # Paint by hand (borrowed from QTableCornerButton)
-        opt = QStyleOptionHeader()
-        opt.initFrom(obj)
-        style_state = QStyle.State_None
-        if obj.isEnabled():
-            style_state |= QStyle.State_Enabled
-        if obj.isActiveWindow():
-            style_state |= QStyle.State_Active
-        if obj.isDown():
-            style_state |= QStyle.State_Sunken
-        opt.state = style_state
-        opt.rect = obj.rect()
-        # This line is the only difference to QTableCornerButton
-        opt.text = obj.text()
-        opt.position = QStyleOptionHeader.OnlyOneSection
-        painter = QStylePainter(obj)
-        painter.drawControl(QStyle.CE_Header, opt)
-
-        return True
 
     def custom_menu_event(
             self,
@@ -608,24 +584,6 @@ class FactorView(QTableView):
     def contextMenuEvent(self, event):
 
         self.custom_menu_event(pos=None, event=event)
-
-    def copy_selection(self):
-        """Method to copy selected values to clipboard, so they can be pasted elsewhere, like Excel."""
-        selection = self.selectedIndexes()
-        if selection:
-            rows = sorted(index.row() for index in selection)
-            columns = sorted(index.column() for index in selection)
-            rowcount = rows[-1] - rows[0] + 1
-            colcount = columns[-1] - columns[0] + 1
-            table = [[''] * colcount for _ in range(rowcount)]
-            for index in selection:
-                row = index.row() - rows[0]
-                column = index.column() - columns[0]
-                table[row][column] = index.data()
-            stream = io.StringIO()
-            csv.writer(stream, delimiter='\t').writerows(table)
-            qApp.clipboard().setText(stream.getvalue())
-        return
 
     def delete_selection(self):
         selection = self.selectedIndexes()
@@ -743,6 +701,7 @@ class LDFAverageModel(QAbstractTableModel):
         # noinspection PyUnresolvedReferences
         self.layoutChanged.emit()
         self.parent.dataChanged.emit(index, index)
+        # noinspection PyUnresolvedReferences
         self.parent.layoutChanged.emit()
 
 
@@ -761,8 +720,8 @@ class LDFAverageBox(QDialog):
     def __init__(self, parent: FactorModel, view):
         super().__init__()
 
-        self.parent=parent
-        self.view=view
+        self.parent = parent
+        self.view = view
 
         self.data = parent.ldf_types
 
