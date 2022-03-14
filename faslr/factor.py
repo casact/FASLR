@@ -27,6 +27,7 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtGui import (
+    QColor,
     QFont,
     QKeyEvent,
     QKeySequence
@@ -78,6 +79,10 @@ class FactorModel(FAbstractTableModel):
         self.triangle = triangle
         self.link_frame = triangle.link_ratio.to_frame()
         self.factor_frame = None
+        self.heatmap_checked = False
+
+        self.heatmap_frame = self.triangle.to_frame().astype(str)
+        self.heatmap_frame.loc[:] = LOWER_DIAG_COLOR.name()
 
         self.ldf_types = TEMP_LDF_LIST
         self.num_ldf_types = self.ldf_types[self.ldf_types["Selected"]].shape[0]
@@ -187,12 +192,15 @@ class FactorModel(FAbstractTableModel):
                     return LOWER_DIAG_COLOR
                 # Case when the index is on the triangle
                 elif index.row() < self.triangle_spacer_row:
-                    exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
-                    # Change color if factor is excluded
-                    if exclude:
-                        return EXCL_FACTOR_COLOR
+                    if self.heatmap_checked:
+                        return QColor(self.heatmap_frame.iloc[[index.row()], [index.column()]].squeeze())
                     else:
-                        return MAIN_TRIANGLE_COLOR
+                        exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
+                        # Change color if factor is excluded
+                        if exclude:
+                            return EXCL_FACTOR_COLOR
+                        else:
+                            return MAIN_TRIANGLE_COLOR
                 elif (index.row() == self.selected_spacer_row) | (index.column() > self.n_triangle_columns - 1):
                     return LOWER_DIAG_COLOR
             else:

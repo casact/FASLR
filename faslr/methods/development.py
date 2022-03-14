@@ -6,6 +6,8 @@ from faslr.factor import (
     FactorView
 )
 
+from faslr.utilities.style_parser import parse_styler
+
 from PyQt5.QtCore import Qt
 
 from PyQt5.QtWidgets import (
@@ -49,6 +51,8 @@ class DevelopmentTab(QWidget):
 
         self.ldf_average_box = LDFAverageBox(parent=self.factor_model, view=self.factor_view)
 
+        self.check_heatmap.stateChanged.connect(self.toggle_heatmap)
+
         self.resize(
             self.factor_view.horizontalHeader().length() +
             self.factor_view.verticalHeader().width() +
@@ -61,3 +65,12 @@ class DevelopmentTab(QWidget):
     def open_ldf_average_box(self):
 
         self.ldf_average_box.show()
+
+    def toggle_heatmap(self):
+        if self.check_heatmap.isChecked():
+            self.factor_model.heatmap_checked = True
+            self.factor_model.heatmap_frame = parse_styler(self.factor_model.triangle, cmap="coolwarm")
+            self.factor_model.layoutChanged.emit()
+        else:
+            self.factor_model.heatmap_checked = False
+            self.factor_model.layoutChanged.emit()
