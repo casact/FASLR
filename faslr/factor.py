@@ -70,7 +70,7 @@ class FactorModel(FAbstractTableModel):
             self,
             triangle: Triangle,
             value_type: str = "ratio"
-    ):
+    ) -> None:
         super(
             FactorModel,
             self
@@ -135,9 +135,9 @@ class FactorModel(FAbstractTableModel):
 
     def data(
             self,
-            index,
-            role=None
-    ):
+            index: QModelIndex,
+            role: int = None
+    ) -> Any:
 
         if role == Qt.DisplayRole:
 
@@ -223,36 +223,22 @@ class FactorModel(FAbstractTableModel):
                 font.setStrikeOut(False)
             return font
 
-    def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+    def flags(
+            self,
+            index: QModelIndex
+    ) -> Qt.ItemFlags:
+
         if index.row() == self.selected_row_num:
             return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
-    def rowCount(
-            self,
-            parent=None,
-            *args,
-            **kwargs
-    ):
-
-        return self._data.shape[0]
-
-    def columnCount(
-            self,
-            parent=None,
-            *args,
-            **kwargs
-    ):
-
-        return self._data.shape[1]
-
     def headerData(
             self,
-            p_int,
-            qt_orientation,
-            role=None
-    ):
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> Any:
 
         # section is the index of the column/row.
         if role == Qt.DisplayRole:
@@ -262,7 +248,10 @@ class FactorModel(FAbstractTableModel):
             if qt_orientation == Qt.Vertical:
                 return str(self._data.index[p_int])
 
-    def toggle_exclude(self, index):
+    def toggle_exclude(
+            self,
+            index: QModelIndex
+    ) -> None:
         """
         Sets values of the exclusion frame to True or False to indicate whether a link ratio should be excluded.
         """
@@ -273,27 +262,36 @@ class FactorModel(FAbstractTableModel):
         else:
             self.excl_frame.iloc[[index.row()], [index.column()]] = True
 
-    def select_factor(self, index):
+    def select_factor(
+            self,
+            index: QModelIndex
+    ) -> None:
 
         self.selected_row.iloc[[0], [index.column()]] = self._data.iloc[[index.row()], [index.column()]].copy()
 
         self.recalculate_factors()
 
-    def select_ldf_row(self, index):
+    def select_ldf_row(
+            self,
+            index: QModelIndex
+    ) -> None:
 
         self.selected_row.iloc[[0]] = self._data.iloc[[index.row()], 0:self.link_frame.shape[1]]
         self.recalculate_factors()
 
-    def clear_selected_ldfs(self):
+    def clear_selected_ldfs(self) -> None:
 
         self.selected_row.iloc[[0]] = np.nan
         self.recalculate_factors()
 
-    def delete_ldf(self, index):
+    def delete_ldf(
+            self,
+            index: QModelIndex
+    ) -> None:
         self.selected_row.iloc[[0], [index.column()]] = np.nan
         self.recalculate_factors()
 
-    def recalculate_factors(self):
+    def recalculate_factors(self) -> None:
         """
         Method to update the view and LDFs as the user strikes out link ratios.
         """
@@ -318,7 +316,7 @@ class FactorModel(FAbstractTableModel):
 
     def get_display_data(
             self,
-            drop_list=None
+            drop_list: list = None
     ) -> DataFrame:
         """
         Concatenates the link ratio triangle and LDFs below it to be displayed in the GUI.
@@ -410,7 +408,13 @@ class FactorModel(FAbstractTableModel):
 
         return res
 
-    def setData(self, index: QModelIndex, value: Any, role=None, refresh=False) -> bool:
+    def setData(
+            self,
+            index: QModelIndex,
+            value: Any,
+            role: int = None,
+            refresh: bool = False
+    ) -> bool:
         if value is not None and role == Qt.EditRole:
 
             try:
