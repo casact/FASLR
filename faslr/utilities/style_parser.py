@@ -30,7 +30,7 @@ def parse_styler(
     buf = io.StringIO(str(css))
 
     # Initialize dataframe containing FASLR table background color
-    color_triangle = triangle.link_ratio.to_frame()
+    color_triangle = triangle.link_ratio.to_frame(origin_as_datetime=False)
     color_triangle = color_triangle.astype(str)
     color_triangle.loc[:] = LOWER_DIAG_COLOR.name()
 

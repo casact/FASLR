@@ -77,11 +77,11 @@ class FactorModel(FAbstractTableModel):
         ).__init__()
 
         self.triangle = triangle
-        self.link_frame = triangle.link_ratio.to_frame()
+        self.link_frame = triangle.link_ratio.to_frame(origin_as_datetime=False)
         self.factor_frame = None
         self.heatmap_checked = False
 
-        self.heatmap_frame = self.triangle.to_frame().astype(str)
+        self.heatmap_frame = self.triangle.to_frame(origin_as_datetime=False).astype(str)
         self.heatmap_frame.loc[:] = LOWER_DIAG_COLOR.name()
 
         self.ldf_types = TEMP_LDF_LIST
@@ -342,7 +342,7 @@ class FactorModel(FAbstractTableModel):
             factors = development.fit(X=self.triangle)
 
             # noinspection PyUnresolvedReferences
-            factor_row = factors.ldf_.to_frame()
+            factor_row = factors.ldf_.to_frame(origin_as_datetime=False)
             factor_row = factor_row.rename(index={'(All)': ldf_name})
 
             if i == 0:
@@ -373,9 +373,9 @@ class FactorModel(FAbstractTableModel):
 
         selected_model = cl.Chainladder().fit(selected_dev)
         # noinspection PyUnresolvedReferences
-        ultimate_frame = selected_model.ultimate_.to_frame()
+        ultimate_frame = selected_model.ultimate_.to_frame(origin_as_datetime=False)
 
-        self.cdf_row.iloc[[0]] = selected_dev.cdf_.to_frame().iloc[[0]]
+        self.cdf_row.iloc[[0]] = selected_dev.cdf_.to_frame(origin_as_datetime=False).iloc[[0]]
 
         # ratios["To Ult"] = np.nan
         ratios[""] = np.nan
@@ -737,7 +737,7 @@ class LDFAverageBox(QDialog):
 
         self.data = parent.ldf_types
 
-        self.setWindowTitle("LDF Averages")
+        self.setWindowTitle("Link Ratio Averages")
 
         self.layout = QVBoxLayout()
         self.model = LDFAverageModel(self.data, checkable_columns=0, parent=parent)
