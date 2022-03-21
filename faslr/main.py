@@ -183,6 +183,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.main_container)
 
+        # if a startup db is indicated, connect to it and populate the project tree with its contents
         if startup_db != "None":
             populate_project_tree(db_filename=startup_db, main_window=self)
 

@@ -219,6 +219,7 @@ def populate_project_tree(db_filename, main_window):
     connection.close()
 
     main_window.connection_established = True
+    main_window.db = db_filename
     main_window.menu_bar.toggle_project_actions()
 
 

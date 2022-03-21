@@ -49,7 +49,7 @@ class TriangleModel(FAbstractTableModel):
 
         self.triangle = triangle
 
-        self._data = triangle.to_frame()
+        self._data = triangle.to_frame(origin_as_datetime=False)
         self.value_type = value_type
         self.n_rows = self.rowCount()
         self.n_columns = self.columnCount()
