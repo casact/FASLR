@@ -53,6 +53,8 @@ class DevelopmentTab(QWidget):
 
         self.check_heatmap.stateChanged.connect(self.toggle_heatmap)
 
+        self.setWindowTitle("Method: Chain Ladder")
+
         self.resize(
             self.factor_view.horizontalHeader().length() +
             self.factor_view.verticalHeader().width() +
