@@ -62,7 +62,6 @@ class ProjectDialog(QDialog):
     def make_project(self, main_window):
 
         # connect to the database
-        print(main_window.db)
         session, connection = connect_db(db_path=main_window.db)
 
         country_text = self.country_edit.text()
@@ -175,6 +174,9 @@ class ProjectTreeView(QTreeView):
         self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
         self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
 
+        self.delete_project_action = QAction("&Delete Project", self)
+        self.delete_project_action.setStatusTip("Delete the project.")
+
     def contextMenuEvent(self, event):
         """
         When right-clicking a cell, activate context menu.
@@ -183,4 +185,5 @@ class ProjectTreeView(QTreeView):
         """
         menu = QMenu()
         menu.addAction(self.new_analysis_action)
+        menu.addAction(self.delete_project_action)
         menu.exec(event.globalPos())

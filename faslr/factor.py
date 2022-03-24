@@ -511,7 +511,10 @@ class FactorView(FTableView):
 
         self.setTabKeyNavigation(True)
 
-    def keyPressEvent(self, e: QKeyEvent) -> None:
+    def keyPressEvent(
+            self,
+            e: QKeyEvent
+    ) -> None:
 
         if e.key() == Qt.Key_Delete:
             self.delete_selection()
@@ -524,7 +527,8 @@ class FactorView(FTableView):
         index = selection[0]
         row_num = index.row()
 
-        if (self.model().triangle_spacer_row + self.model().num_ldf_types - 1) >= row_num >= self.model().triangle_spacer_row:
+        if (self.model().triangle_spacer_row + self.model().num_ldf_types - 1) >= \
+                row_num >= self.model().triangle_spacer_row:
             self.model().select_ldf_row(index=index)
         elif row_num == self.model().selected_row_num:
             self.model().clear_selected_ldfs()
@@ -740,7 +744,11 @@ class LDFAverageBox(QDialog):
         self.setWindowTitle("Link Ratio Averages")
 
         self.layout = QVBoxLayout()
-        self.model = LDFAverageModel(self.data, checkable_columns=0, parent=parent)
+        self.model = LDFAverageModel(
+            self.data,
+            checkable_columns=0,
+            parent=parent
+        )
         self.view = LDFAverageView()
         self.view.setModel(self.model)
         self.layout.addWidget(self.view)

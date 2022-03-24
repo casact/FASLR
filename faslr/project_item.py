@@ -6,6 +6,9 @@ from PyQt5.QtGui import (
 
 
 class ProjectItem(QStandardItem):
+    """
+    Represents a row in the project tree. Can be nested within other project items.
+    """
     def __init__(
             self,
             text='',
@@ -15,7 +18,7 @@ class ProjectItem(QStandardItem):
     ):
         super().__init__()
 
-        project_font = QFont('Open Sans', font_size)
+        project_font = QFont('Ubuntu Mono', font_size)
         project_font.setBold(set_bold)
 
         self.setForeground(text_color)
