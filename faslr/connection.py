@@ -156,18 +156,23 @@ def populate_project_tree(db_filename, main_window):
     main window based on what projects have been saved to the database.
     """
 
+    # Open up the connection to the database
     session, connection = connect_db(db_path=db_filename)
 
+    # Query all the countries
     countries = session.query(
         CountryTable.country_id,
         CountryTable.country_name,
         CountryTable.project_tree_uuid
     ).all()
 
+    # Append each row one at a time, brute force method. For each country, add state rows, and
+    # for each state, add LOB rows.
+
     for country_id, country, country_uuid in countries:
 
         country_item = ProjectItem(
-            country,
+            text=country,
             set_bold=True
         )
 
@@ -203,7 +208,7 @@ def populate_project_tree(db_filename, main_window):
             for lob, lob_uuid in lobs:
                 lob_item = ProjectItem(
                     lob,
-                    text_color=QColor(155, 0, 0)
+                    text_color=QColor(0, 77, 122)
                 )
 
                 lob_row = [lob_item, QStandardItem(lob_uuid)]
