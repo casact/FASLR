@@ -185,17 +185,20 @@ class MainWindow(QMainWindow):
 
         # if a startup db is indicated, connect to it and populate the project tree with its contents
         if startup_db != "None":
-            populate_project_tree(db_filename=startup_db, main_window=self)
+            populate_project_tree(
+                db_filename=startup_db,
+                main_window=self
+            )
 
     def get_value(self, val: QModelIndex):
         # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
-        print(val)
-        print(self)
-        # print(val.data())
+        # print(val)
+        # print(self)
+        print(val.data())
         # print(val.row())
         # print(val.column())
-        # ix_col_0 = self.project_model.sibling(val.row(), 1, val)
-        # print(ix_col_0.data())
+        ix_col_0 = self.project_model.sibling(val.row(), 1, val)
+        print(ix_col_0.data())
         # print(self.table.selectedIndexes())
 
     def remove_tab(self, index: int):
