@@ -69,7 +69,9 @@ class CountryTable(Base):
     )
 
     state = relationship(
-        "StateTable", back_populates="country"
+        "StateTable",
+        back_populates="country",
+        cascade="all, delete-orphan"
     )
 
     lob = relationship(
@@ -103,9 +105,16 @@ class StateTable(Base):
 
     project_tree_uuid = Column(String)
 
-    country = relationship("CountryTable", back_populates="state")
+    country = relationship(
+        "CountryTable",
+        back_populates="state"
+    )
 
-    lob = relationship("LOBTable", back_populates="state")
+    lob = relationship(
+        "LOBTable",
+        back_populates="state",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return "StateTable(" \
