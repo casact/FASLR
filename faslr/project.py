@@ -9,7 +9,10 @@ from faslr.schema import (
 
 from faslr.project_item import ProjectItem
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    Qt,
+    QModelIndex
+)
 
 from PyQt5.QtGui import (
     QColor,
@@ -177,6 +180,8 @@ class ProjectTreeView(QTreeView):
         self.delete_project_action = QAction("&Delete Project", self)
         self.delete_project_action.setStatusTip("Delete the project.")
 
+        self.doubleClicked.connect(self.get_value)
+
     def contextMenuEvent(self, event):
         """
         When right-clicking a cell, activate context menu.
@@ -187,3 +192,14 @@ class ProjectTreeView(QTreeView):
         menu.addAction(self.new_analysis_action)
         menu.addAction(self.delete_project_action)
         menu.exec(event.globalPos())
+
+    def get_value(self, val: QModelIndex):
+        # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
+        # print(val)
+        # print(self)
+        print(val.data())
+        # print(val.row())
+        # print(val.column())
+        ix_col_0 = self.model().sibling(val.row(), 1, val)
+        print(ix_col_0.data())
+        # print(self.table.selectedIndexes())

@@ -29,7 +29,6 @@ from PyQt5.Qt import (
 )
 
 from PyQt5.QtCore import (
-    QModelIndex,
     Qt,
     QThreadPool
 )
@@ -105,9 +104,6 @@ class MainWindow(QMainWindow):
 
         self.project_pane = ProjectTreeView()
         self.project_pane.setHeaderHidden(False)
-
-        # noinspection PyUnresolvedReferences
-        self.project_pane.doubleClicked.connect(self.get_value)
 
         self.project_model = QStandardItemModel()
         self.project_model.setHorizontalHeaderLabels(["Project", "Project_UUID"])
@@ -189,17 +185,6 @@ class MainWindow(QMainWindow):
                 db_filename=startup_db,
                 main_window=self
             )
-
-    def get_value(self, val: QModelIndex):
-        # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
-        # print(val)
-        # print(self)
-        print(val.data())
-        # print(val.row())
-        # print(val.column())
-        ix_col_0 = self.project_model.sibling(val.row(), 1, val)
-        print(ix_col_0.data())
-        # print(self.table.selectedIndexes())
 
     def remove_tab(self, index: int):
         """
