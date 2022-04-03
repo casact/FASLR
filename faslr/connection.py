@@ -1,21 +1,21 @@
 import configparser
 import logging
 import os
-import faslr.schema as schema
+import schema as schema
 import sqlalchemy as sa
 
-from faslr.constants import (
+from constants import (
     CONFIG_PATH,
     QT_FILEPATH_OPTION
 )
 
-from faslr.schema import (
+from schema import (
     CountryTable,
     LOBTable,
     StateTable,
 )
 
-from faslr.project_item import ProjectItem
+from project_item import ProjectItem
 
 from PyQt5.Qt import (
     QColor,

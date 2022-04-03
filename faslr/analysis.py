@@ -1,4 +1,4 @@
-from faslr.utilities.accessors import get_column
+from utilities.accessors import get_column
 
 from chainladder import Triangle
 
@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QWidget
 )
 
-from faslr.triangle_model import (
+from triangle_model import (
     TriangleModel,
     TriangleView
 )

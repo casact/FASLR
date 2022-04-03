@@ -1,15 +1,15 @@
 """
 Contains the menu bar of the main window i.e., the horizontal bar that has stuff like File, Edit, Tools, About, etc.
 """
-from faslr.about import AboutDialog
+from about import AboutDialog
 
-from faslr.connection import ConnectionDialog
+from connection import ConnectionDialog
 
-from faslr.constants import CONFIG_PATH
+from constants import CONFIG_PATH
 
-from faslr.project import ProjectDialog
+from project import ProjectDialog
 
-from faslr.settings import SettingsDialog
+from settings import SettingsDialog
 
 from PyQt5.QtGui import (
     QKeySequence

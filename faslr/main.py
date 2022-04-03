@@ -2,25 +2,24 @@ import logging
 import os
 import platform
 import sys
+from analysis import AnalysisTab
 
-from faslr.analysis import AnalysisTab
-
-from faslr.connection import (
+from connection import (
     get_startup_db_path,
     populate_project_tree
 )
 
-from faslr.constants import (
+from constants import (
     CONFIG_PATH,
     ROOT_PATH,
     TEMPLATES_PATH
 )
 
-from faslr.menu import (
+from menu import (
     MainMenuBar
 )
 
-from faslr.project import (
+from project import (
     ProjectTreeView
 )
 
@@ -46,7 +45,7 @@ from PyQt5.QtWidgets import (
 
 from shutil import copyfile
 
-from faslr.utilities.sample import load_sample
+from utilities.sample import load_sample
 
 # Get OS information from the user.
 os_name = platform.platform()
@@ -56,7 +55,7 @@ max_threads = QThreadPool().maxThreadCount()
 
 # Initialize logging
 logging.basicConfig(
-    filename=os.path.join(ROOT_PATH, 'faslr.log'),
+    filename=os.path.join(ROOT_PATH, 'log'),
     filemode='w',
     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
     datefmt='%H:%M:%S',
@@ -102,7 +101,7 @@ class MainWindow(QMainWindow):
 
         # navigation pane for project hierarchy
 
-        self.project_pane = ProjectTreeView()
+        self.project_pane = ProjectTreeView(parent=self)
         self.project_pane.setHeaderHidden(False)
 
         self.project_model = QStandardItemModel()

@@ -1,4 +1,4 @@
-from faslr.constants import BUILD_VERSION
+from constants import BUILD_VERSION
 
 from PyQt5.QtWidgets import (
     QMessageBox,

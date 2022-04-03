@@ -6,7 +6,7 @@ import configparser
 import logging
 import os
 
-from faslr.constants import (
+from constants import (
     CONFIG_PATH,
     QT_FILEPATH_OPTION,
     SETTINGS_LIST
