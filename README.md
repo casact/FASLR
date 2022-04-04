@@ -31,7 +31,20 @@ FASLR will support departments with multiple users, who will have the ability to
 
 Please refer to the document [CONTRIBUTING.md](https://github.com/casact/FASLR/blob/main/CONTRIBUTING.md) for the contributing guidelines.
 
-You can evaluate the working version of FASLR by executing the [main.py](https://github.com/casact/FASLR/blob/main/faslr/main.py) program in the [faslr](https://github.com/casact/FASLR/tree/main/faslr) directory.
+You can evaluate the working version of FASLR by executing the [main.py](https://github.com/casact/FASLR/blob/main/faslr/main.py) program in the [faslr](https://github.com/casact/FASLR/tree/main/faslr) directory:
+
+```shell
+cd FASLR
+python -m faslr.main
+```
+
+Alternatively, if you have a virtual environment set up:
+
+```shell
+cd FASLR
+source venv/bin/activate
+python -m faslr.main
+```
 
 To learn more about the current structure of the repository, read [ARCHITECTURE.md](https://github.com/casact/FASLR/blob/main/ARCHITECTURE.md).
 

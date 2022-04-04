@@ -4,3 +4,7 @@ from faslr.factor import (
     FactorModel,
     FactorView
 )
+
+from faslr.analysis import (
+    AnalysisTab
+)
