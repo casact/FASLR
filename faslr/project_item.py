@@ -1,3 +1,5 @@
+from faslr.style.project import DEFAULT_PROJECT_FONT
+
 from PyQt5.QtGui import (
     QColor,
     QFont,
@@ -18,7 +20,10 @@ class ProjectItem(QStandardItem):
     ):
         super().__init__()
 
-        project_font = QFont('Ubuntu Mono', font_size)
+        project_font = QFont(
+            DEFAULT_PROJECT_FONT,
+            font_size
+        )
         project_font.setBold(set_bold)
 
         self.setForeground(text_color)
