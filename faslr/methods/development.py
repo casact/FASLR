@@ -42,7 +42,7 @@ class DevelopmentTab(QWidget):
 
         self.tool_container = QWidget()
         self.tool_container.setLayout(self.tool_layout)
-        self.tool_layout.setContentsMargins(0, 0, 0 , 0)
+        self.tool_layout.setContentsMargins(0, 0, 0, 0)
         self.tool_layout.addWidget(self.check_heatmap)
         self.tool_layout.addWidget(self.add_ldf_btn)
         self.layout.addWidget(self.tool_container, alignment=Qt.AlignRight)
@@ -72,7 +72,7 @@ class DevelopmentTab(QWidget):
         if self.check_heatmap.isChecked():
             self.factor_model.heatmap_checked = True
             self.factor_model.heatmap_frame = parse_styler(self.factor_model.triangle, cmap="coolwarm")
-            self.factor_model.layoutChanged.emit()
+            self.factor_model.layoutChanged.emit() # noqa
         else:
             self.factor_model.heatmap_checked = False
-            self.factor_model.layoutChanged.emit()
+            self.factor_model.layoutChanged.emit() # noqa
