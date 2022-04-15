@@ -1,13 +1,13 @@
-from connection import connect_db
+from faslr.connection import connect_db
 
-from schema import (
+from faslr.schema import (
     CountryTable,
     LOBTable,
     ProjectTable,
     StateTable
 )
 
-from project_item import ProjectItem
+from faslr.project_item import ProjectItem
 
 from PyQt5.QtCore import (
     Qt,
