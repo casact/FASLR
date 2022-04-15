@@ -1,4 +1,4 @@
-from base_table import (
+from faslr.base_table import (
     FAbstractTableModel,
     FTableView
 )
@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout
 )
 
-from style.triangle import (
+from faslr.style.triangle import (
     BLANK_TEXT,
     LOWER_DIAG_COLOR,
     RATIO_STYLE,

@@ -1,7 +1,6 @@
 from chainladder import Triangle
-import sys
-sys.path.append('../faslr')
-from faslr.factor import(
+
+from faslr.factor import (
     LDFAverageBox,
     FactorModel,
     FactorView

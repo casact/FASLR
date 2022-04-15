@@ -1,8 +1,7 @@
 import chainladder as cl
 import numpy as np
 import pandas as pd
-import sys
-sys.path.append('../faslr')
+
 from chainladder import (
     Triangle
 )
