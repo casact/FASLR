@@ -170,17 +170,19 @@ class ProjectDialog(QDialog):
 
 
 class ProjectTreeView(QTreeView):
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
-
+        self.parent = parent
+        print(parent)
         self.new_analysis_action = QAction("&New Analysis", self)
         self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
         self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
 
         self.delete_project_action = QAction("&Delete Project", self)
         self.delete_project_action.setStatusTip("Delete the project.")
+        self.delete_project_action.triggered.connect(self.delete_project)
 
-        self.doubleClicked.connect(self.get_value)
+        self.doubleClicked.connect(self.get_value) # noqa
 
     def contextMenuEvent(self, event):
         """
@@ -202,4 +204,112 @@ class ProjectTreeView(QTreeView):
         # print(val.column())
         ix_col_0 = self.model().sibling(val.row(), 1, val)
         print(ix_col_0.data())
+        print(self.parent.db)
         # print(self.table.selectedIndexes())
+
+    def delete_project(self, mainwindow):
+
+        """print uuid of current selected index"""
+        uuid = self.currentIndex().siblingAtColumn(1).data()
+        current_item = self.model().itemFromIndex(self.currentIndex())
+        # connect to the database
+        session, connection = connect_db(db_path=self.parent.db)
+        
+        # delete the item from the database with uuid
+
+        if current_item.parent():
+            parent = current_item.parent()
+            # case when selection is an LOB
+            if parent.parent():
+                lob = session.query(LOBTable).filter(LOBTable.project_tree_uuid == uuid)
+                lob.delete()
+
+            # Case when selection is a state
+            else:
+                state = session.query(StateTable).filter(StateTable.project_tree_uuid == uuid)
+                state_first = state.first()
+                session.query(LOBTable).filter(LOBTable.state_id == state_first.state_id).delete()
+                state.delete()
+
+        # Case when selection is a country
+        else:
+            country = session.query(CountryTable).filter(CountryTable.project_tree_uuid == uuid)
+            country.delete()
+
+        session.commit()
+        
+        "remove all rows from qtreeview and refresh"
+        self.model().removeRows(0, self.model().rowCount())
+        """
+    Upon connection to an existing database, populates the project tree in the left-hand pane of the
+    main window based on what projects have been saved to the database.
+    """
+
+    # Open up the connection to the database
+        
+        # Query all the countries
+        countries = session.query(
+            CountryTable.country_id,
+            CountryTable.country_name,
+            CountryTable.project_tree_uuid
+        ).all()
+
+        # Append each row one at a time, brute force method. For each country, add state rows, and
+        # for each state, add LOB rows.
+
+        for country_id, country, country_uuid in countries:
+
+            country_item = ProjectItem(
+                text=country,
+                set_bold=True
+            )
+
+            country_row = [
+                country_item,
+                QStandardItem(country_uuid)
+            ]
+
+            states = session.query(
+                StateTable.state_id,
+                StateTable.state_name,
+                StateTable.project_tree_uuid
+            ).filter(
+                StateTable.country_id == country_id
+            )
+
+            for state_id, state, state_uuid in states:
+
+                state_item = ProjectItem(
+                    state,
+                )
+
+                state_row = [state_item, QStandardItem(state_uuid)]
+
+                lobs = session.query(
+                    LOBTable.lob_type, LOBTable.project_tree_uuid
+                ).filter(
+                    LOBTable.country_id == country_id
+                ).filter(
+                    LOBTable.state_id == state_id
+                )
+
+                for lob, lob_uuid in lobs:
+                    lob_item = ProjectItem(
+                        lob,
+                        text_color=QColor(0, 77, 122)
+                    )
+
+                    lob_row = [lob_item, QStandardItem(lob_uuid)]
+
+                    state_item.appendRow(lob_row)
+
+                country_item.appendRow(state_row)
+
+            self.parent.project_root.appendRow(country_row)
+
+        self.parent.project_pane.expandAll()
+
+        connection.close()
+
+
+            

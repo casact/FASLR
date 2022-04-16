@@ -102,7 +102,7 @@ class MainWindow(QMainWindow):
 
         # navigation pane for project hierarchy
 
-        self.project_pane = ProjectTreeView()
+        self.project_pane = ProjectTreeView(parent=self)
         self.project_pane.setHeaderHidden(False)
 
         self.project_model = QStandardItemModel()
