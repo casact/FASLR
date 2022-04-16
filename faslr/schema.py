@@ -21,16 +21,6 @@ class ProjectTable(Base):
         primary_key=True
     )
 
-    country_id = Column(
-        Integer,
-        ForeignKey("country.country_id")
-    )
-
-    state_id = Column(
-        Integer,
-        ForeignKey("state.state_id")
-    )
-
     lob_id = Column(
         Integer,
         ForeignKey("lob.lob_id")
@@ -46,24 +36,12 @@ class ProjectTable(Base):
         default=datetime.now
     )
 
-    country = relationship(
-        "CountryTable",
-        back_populates="project"
-    )
-
-    state = relationship(
-        "StateTable",
-        back_populates="project"
-    )
-
     lob = relationship(
-        "LOBTable",
-        back_populates="project"
+        "LOBTable", back_populates="project"
     )
 
     user = relationship(
-        "UserTable",
-        back_populates="project"
+        "UserTable", back_populates="project"
     )
 
     def __repr__(self):
@@ -87,24 +65,15 @@ class CountryTable(Base):
     country_name = Column(String)
 
     project_tree_uuid = Column(
-        String,
-        ForeignKey("project.project_id")
+        String
     )
 
     state = relationship(
-        "StateTable",
-        back_populates="country",
-        cascade="all, delete-orphan"
+        "StateTable", back_populates="country"
     )
 
     lob = relationship(
-        "LOBTable",
-        back_populates="country"
-    )
-
-    project = relationship(
-        "ProjectTable",
-        back_populates="country"
+        "LOBTable", back_populates="country"
     )
 
     def __repr__(self):
@@ -132,26 +101,11 @@ class StateTable(Base):
 
     state_name = Column(String)
 
-    project_tree_uuid = Column(
-        String,
-        ForeignKey("project.project_id")
-    )
+    project_tree_uuid = Column(String)
 
-    country = relationship(
-        "CountryTable",
-        back_populates="state"
-    )
+    country = relationship("CountryTable", back_populates="state")
 
-    lob = relationship(
-        "LOBTable",
-        back_populates="state",
-        cascade="all, delete-orphan"
-    )
-
-    project = relationship(
-        "ProjectTable",
-        back_populates="state"
-    )
+    lob = relationship("LOBTable", back_populates="state")
 
     def __repr__(self):
         return "StateTable(" \
@@ -182,25 +136,21 @@ class LOBTable(Base):
     )
 
     project_tree_uuid = Column(
-        String,
-        ForeignKey("project.project_id")
+        String
     )
 
     lob_type = Column(String)
 
     country = relationship(
-        "CountryTable",
-        back_populates="lob"
+        "CountryTable", back_populates="lob"
     )
 
     state = relationship(
-        "StateTable",
-        back_populates="lob"
+        "StateTable", back_populates="lob"
     )
 
     project = relationship(
-        "ProjectTable",
-        back_populates="lob"
+        "ProjectTable", back_populates="lob"
     )
 
     def __repr__(self):

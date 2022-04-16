@@ -171,8 +171,9 @@ class ProjectDialog(QDialog):
 
 class ProjectTreeView(QTreeView):
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__()
         self.parent = parent
+        print(parent)
         self.new_analysis_action = QAction("&New Analysis", self)
         self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
         self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
@@ -181,7 +182,7 @@ class ProjectTreeView(QTreeView):
         self.delete_project_action.setStatusTip("Delete the project.")
         self.delete_project_action.triggered.connect(self.delete_project)
 
-        self.doubleClicked.connect(self.get_value)
+        self.doubleClicked.connect(self.get_value) # noqa
 
     def contextMenuEvent(self, event):
         """
@@ -206,7 +207,7 @@ class ProjectTreeView(QTreeView):
         print(self.parent.db)
         # print(self.table.selectedIndexes())
 
-    def delete_project(self,mainwindow):
+    def delete_project(self, mainwindow):
 
         """print uuid of current selected index"""
         uuid = self.currentIndex().siblingAtColumn(1).data()
@@ -214,37 +215,27 @@ class ProjectTreeView(QTreeView):
         # connect to the database
         session, connection = connect_db(db_path=self.parent.db)
         
-        #delete the item from the database with uuid  
-        
-        if(current_item.parent()):
-            parent = current_item.parent()
-            if(parent.parent()):
-                objects = session.query(LOBTable).filter(LOBTable.project_tree_uuid == uuid)
-                object = objects.first()
-                if(session.query(LOBTable).filter(LOBTable.state_id == object.state_id).count()==1):
-                    session.query(StateTable).filter(StateTable.state_id == object.state_id).delete()
-                if(session.query(LOBTable).filter(LOBTable.country_id == object.country_id).count()==1):
-                    session.query(CountryTable).filter(CountryTable.country_id == object.country_id).delete()
-                objects.delete()
+        # delete the item from the database with uuid
 
+        if current_item.parent():
+            parent = current_item.parent()
+            # case when selection is an LOB
+            if parent.parent():
+                lob = session.query(LOBTable).filter(LOBTable.project_tree_uuid == uuid)
+                lob.delete()
+
+            # Case when selection is a state
             else:
-                objects = session.query(StateTable).filter(StateTable.project_tree_uuid == uuid)
-                object = objects.first()
-                if(session.query(StateTable).filter(StateTable.country_id == object.country_id).count()==1):
-                    session.query(CountryTable).filter(CountryTable.country_id == object.country_id).delete()
-                session.query(LOBTable).filter(LOBTable.state_id == object.state_id).delete()
-                objects.delete()
-        
+                state = session.query(StateTable).filter(StateTable.project_tree_uuid == uuid)
+                state_first = state.first()
+                session.query(LOBTable).filter(LOBTable.state_id == state_first.state_id).delete()
+                state.delete()
+
+        # Case when selection is a country
         else:
-            objects = session.query(CountryTable).filter(CountryTable.project_tree_uuid == uuid)
-            object = objects.first()
-            session.query(LOBTable).filter(LOBTable.country_id == object.country_id).delete()
-            session.query(StateTable).filter(StateTable.country_id == object.country_id).delete()
-            objects.delete()
-            #project_uuid = self.model().itemFromIndex(self.currentIndex()).index().data()
-            #project_query = session.query(ProjectTable).filter(ProjectTable.project_tree_uuid == project_uuid)
-            #project_query.delete()
-    
+            country = session.query(CountryTable).filter(CountryTable.project_tree_uuid == uuid)
+            country.delete()
+
         session.commit()
         
         "remove all rows from qtreeview and refresh"
