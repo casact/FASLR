@@ -228,6 +228,18 @@ def populate_project_tree(db_filename, main_window):
     main_window.menu_bar.toggle_project_actions()
 
 
+class FaslrConnection:
+    def __init__(self, db_path):
+
+        self.engine = sa.create_engine(
+            'sqlite:///' + db_path,
+            echo=True
+        )
+
+        self.session = sessionmaker(bind=self.engine)()
+        self.connection = self.engine.connect()
+
+
 def connect_db(db_path: str):
     """
     Connects the db. Shortens amount of code required to do so.
