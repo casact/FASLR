@@ -1,6 +1,6 @@
 import sys
 
-from factor import LDFAverageBox, CheckBoxStyle
+from faslr.factor import LDFAverageBox, CheckBoxStyle
 from PyQt5.QtWidgets import QApplication
 
 app = QApplication(sys.argv)
