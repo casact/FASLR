@@ -1,6 +1,6 @@
-from faslr.utilities.accessors import get_column
-
 from chainladder import Triangle
+
+from faslr.utilities.accessors import get_column
 
 from PyQt5.QtCore import Qt
 
@@ -40,6 +40,7 @@ class AnalysisTab(QWidget):
 
         self.layout = QVBoxLayout()
 
+        # The combo box is used to switch between values (losses/premiums) and link ratios.
         self.value_box = QComboBox()
         self.value_box.setFixedWidth(200)
         self.value_box.addItems(value_types)
@@ -49,11 +50,13 @@ class AnalysisTab(QWidget):
 
         self.column_list = list(self.triangle.columns)
 
+        # These dictionaries allow us to keep track of and manipulate the views later.
+        # Each view is identified by the column name.
         self.triangle_views = {}
         self.analysis_containers = {}
 
+        # For each chainladder column, we create a horizontal tab to the left.
         for i in self.column_list:
-            print(i)
 
             triangle_column = get_column(
                 triangle=self.triangle,
@@ -62,9 +65,11 @@ class AnalysisTab(QWidget):
             )
 
             self.triangle_views[i] = TriangleView()
+            # We use QStackedWidget to switch between tabular and diagnostic views.
             self.analysis_containers[i] = QStackedWidget()
             self.analysis_containers[i].addWidget(self.triangle_views[i])
 
+            # Calculate the Mack correlation tests.
             valuation_correlation = triangle_column.valuation_correlation(
                 p_critical=0.1,
                 total=True
@@ -139,7 +144,10 @@ class AnalysisTab(QWidget):
         self.setAutoFillBackground(True)
         palette = self.palette()
 
-        palette.setColor(self.backgroundRole(), QColor.fromRgb(240, 240, 240))
+        palette.setColor(
+            self.backgroundRole(),
+            QColor.fromRgb(240, 240, 240)
+        )
 
         self.setPalette(palette)
 
