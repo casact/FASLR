@@ -24,6 +24,12 @@ from faslr.project import (
     ProjectTreeView
 )
 
+from faslr.style.main import (
+    MAIN_WINDOW_HEIGHT,
+    MAIN_WINDOW_WIDTH,
+    MAIN_WINDOW_TITLE
+)
+
 from PyQt5.Qt import (
     QStandardItemModel
 )
@@ -86,9 +92,12 @@ class MainWindow(QMainWindow):
         self.connection_established = False
         self.db = None
 
-        self.resize(2500, 900)
+        self.resize(
+            MAIN_WINDOW_WIDTH,
+            MAIN_WINDOW_HEIGHT
+        )
 
-        self.setWindowTitle("FASLR - Free Actuarial System for Loss Reserving")
+        self.setWindowTitle(MAIN_WINDOW_TITLE)
 
         self.layout = QVBoxLayout()
 
