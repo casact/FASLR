@@ -8,7 +8,11 @@ from PyQt5.QtGui import QColor
 
 from PyQt5.QtWidgets import (
     QComboBox,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
     QLabel,
+    QDoubleSpinBox,
     QStackedWidget,
     QTabWidget,
     QVBoxLayout,
@@ -89,13 +93,33 @@ class AnalysisTab(QWidget):
             else:
                 development_pass = "Pass"
 
-            layout = QVBoxLayout()
-            layout.addWidget(QLabel("Mack Valuation Correlation Test: " + valuation_pass))
-            layout.addWidget(QLabel("Mack Development Correlation Test: " + development_pass))
+            mack_valuation_groupbox = QGroupBox("Mack Valuation Correlation Test")
+            diagnostic_container = QGridLayout()
+            layout = QHBoxLayout()
+            diagnostic_container.addWidget(mack_valuation_groupbox)
+            mack_valuation_groupbox.setLayout(layout)
+            mack_valuation_critical_container = QWidget()
+            mack_valuation_critical_layout = QHBoxLayout()
+            mack_valuation_critical_layout.addWidget(QLabel("Critical Value: "))
+            mack_valuation_spin = QDoubleSpinBox()
+            mack_valuation_spin.setValue(0.10)
+            mack_valuation_spin.setSingleStep(.01)
+            # mack_valuation_critical_layout.setAlignment(Qt.AlignLeft)
+            mack_valuation_critical_layout.addWidget(mack_valuation_spin)
+            mack_valuation_critical_container.setLayout(mack_valuation_critical_layout)
+            layout.addWidget(mack_valuation_critical_container)
+            layout.addWidget(QLabel("Status: " + valuation_pass))
             layout.setAlignment(Qt.AlignTop)
+
+            mack_development_groupbox = QGroupBox("Mack Development Correlation Test")
+            mack_development_layout = QHBoxLayout()
+            diagnostic_container.addWidget(mack_development_groupbox)
+            mack_development_groupbox.setLayout(mack_development_layout)
+            mack_development_layout.addWidget(QLabel("Status: " + development_pass))
+
             dw = DiagnosticWidget()
 
-            dw.setLayout(layout)
+            dw.setLayout(diagnostic_container)
             self.analysis_containers[i].addWidget(dw)
 
             triangle_model = TriangleModel(triangle_column, 'value')
