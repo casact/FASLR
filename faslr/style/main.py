@@ -1,0 +1,4 @@
+MAIN_WINDOW_WIDTH = 2500
+MAIN_WINDOW_HEIGHT = 900
+
+MAIN_WINDOW_TITLE = "FASLR - Free Actuarial System for Loss Reserving"
