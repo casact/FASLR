@@ -8,7 +8,7 @@ from PyQt5.QtGui import QColor
 
 from PyQt5.QtWidgets import (
     QComboBox,
-    QGridLayout,
+    QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -94,21 +94,22 @@ class AnalysisTab(QWidget):
                 development_pass = "Pass"
 
             mack_valuation_groupbox = QGroupBox("Mack Valuation Correlation Test")
-            diagnostic_container = QGridLayout()
+            diagnostic_container = QVBoxLayout()
             layout = QHBoxLayout()
             diagnostic_container.addWidget(mack_valuation_groupbox)
             mack_valuation_groupbox.setLayout(layout)
             mack_valuation_critical_container = QWidget()
-            mack_valuation_critical_layout = QHBoxLayout()
-            mack_valuation_critical_layout.addWidget(QLabel("Critical Value: "))
+            mack_valuation_critical_layout = QFormLayout()
             mack_valuation_spin = QDoubleSpinBox()
             mack_valuation_spin.setValue(0.10)
             mack_valuation_spin.setSingleStep(.01)
+            mack_valuation_spin.setFixedWidth(100)
             # mack_valuation_critical_layout.setAlignment(Qt.AlignLeft)
-            mack_valuation_critical_layout.addWidget(mack_valuation_spin)
+            mack_valuation_critical_layout.addRow("Critical Value: ", mack_valuation_spin)
             mack_valuation_critical_container.setLayout(mack_valuation_critical_layout)
-            layout.addWidget(mack_valuation_critical_container)
-            layout.addWidget(QLabel("Status: " + valuation_pass))
+            layout.addWidget(mack_valuation_critical_container, stretch=0)
+            layout.addWidget(QLabel("Status: " + valuation_pass), stretch=0)
+            layout.addWidget(QWidget(), stretch=2)
             layout.setAlignment(Qt.AlignTop)
 
             mack_development_groupbox = QGroupBox("Mack Development Correlation Test")
