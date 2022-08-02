@@ -1,3 +1,8 @@
+from faslr.base_table import (
+    FAbstractTableModel,
+    FTableView
+)
+
 from chainladder import Triangle
 
 from faslr.utilities.accessors import get_column
@@ -95,9 +100,13 @@ class AnalysisTab(QWidget):
 
             mack_valuation_groupbox = QGroupBox("Mack Valuation Correlation Test")
             diagnostic_container = QVBoxLayout()
-            layout = QHBoxLayout()
+            mv_layout = QVBoxLayout()
+            mv_total_container = QWidget()
+            mv_total_layout = QHBoxLayout()
+            mv_total_container.setLayout(mv_total_layout)
             diagnostic_container.addWidget(mack_valuation_groupbox)
-            mack_valuation_groupbox.setLayout(layout)
+            mack_valuation_groupbox.setLayout(mv_layout)
+            mv_layout.addWidget(mv_total_container)
             mack_valuation_critical_container = QWidget()
             mack_valuation_critical_layout = QFormLayout()
             mack_valuation_spin = QDoubleSpinBox()
@@ -107,16 +116,25 @@ class AnalysisTab(QWidget):
             # mack_valuation_critical_layout.setAlignment(Qt.AlignLeft)
             mack_valuation_critical_layout.addRow("Critical Value: ", mack_valuation_spin)
             mack_valuation_critical_container.setLayout(mack_valuation_critical_layout)
-            layout.addWidget(mack_valuation_critical_container, stretch=0)
-            layout.addWidget(QLabel("Status: " + valuation_pass), stretch=0)
-            layout.addWidget(QWidget(), stretch=2)
-            layout.setAlignment(Qt.AlignTop)
+            mv_total_layout.addWidget(mack_valuation_critical_container, stretch=0)
+            mv_total_layout.addWidget(QLabel("Status: " + valuation_pass), stretch=0)
+            mv_total_layout.addWidget(QWidget(), stretch=2)
+            mv_total_layout.setAlignment(Qt.AlignTop)
+
+            mv_individual_model = MackValuationModel(triangle=triangle_column)
+            mv_individual_view = MackValuationView()
+            mv_individual_view.setModel(mv_individual_model)
+
+            mv_layout.addWidget(mv_individual_view)
+
 
             mack_development_groupbox = QGroupBox("Mack Development Correlation Test")
             mack_development_layout = QHBoxLayout()
             diagnostic_container.addWidget(mack_development_groupbox)
             mack_development_groupbox.setLayout(mack_development_layout)
             mack_development_layout.addWidget(QLabel("Status: " + development_pass))
+
+            self.mack_development_view = MackValuationView
 
             dw = DiagnosticWidget()
 
@@ -204,6 +222,60 @@ class AnalysisTab(QWidget):
                 self.analysis_containers[tab_name].setCurrentIndex(0)
             else:
                 self.analysis_containers[tab_name].setCurrentIndex(1)
+
+
+class MackValuationModel(FAbstractTableModel):
+    def __init__(
+        self,
+        triangle: Triangle
+    ):
+        super(
+            MackValuationModel,
+            self
+        ).__init__()
+
+        self.triangle = triangle
+        corr = self.triangle.valuation_correlation(
+            p_critical=0.1,
+            total=False
+        ).z_critical
+
+        print(corr)
+
+        self._data = corr.to_frame(origin_as_datetime=False)
+
+    def data(
+        self,
+        index,
+        role=None
+    ):
+
+        if role == Qt.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+
+            value = str(value)
+
+            return value
+
+    def headerData(
+        self,
+        p_int,
+        qt_orientation,
+        role=None
+    ):
+
+        if role == Qt.DisplayRole:
+            if qt_orientation == Qt.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Vertical:
+                return str(self._data.index[p_int])
+
+
+class MackValuationView(FTableView):
+    def __init__(self):
+        super().__init__()
 
 
 class DiagnosticWidget(QWidget):
