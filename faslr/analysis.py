@@ -114,7 +114,10 @@ class AnalysisTab(QWidget):
             mack_valuation_spin.setSingleStep(.01)
             mack_valuation_spin.setFixedWidth(100)
             # mack_valuation_critical_layout.setAlignment(Qt.AlignLeft)
-            mack_valuation_critical_layout.addRow("Critical Value: ", mack_valuation_spin)
+            mack_valuation_critical_layout.addRow(
+                "Critical Value: ",
+                mack_valuation_spin
+            )
             mack_valuation_critical_container.setLayout(mack_valuation_critical_layout)
             mv_total_layout.addWidget(mack_valuation_critical_container, stretch=0)
             mv_total_layout.addWidget(QLabel("Status: " + valuation_pass), stretch=0)
@@ -125,8 +128,9 @@ class AnalysisTab(QWidget):
             mv_individual_view = MackValuationView()
             mv_individual_view.setModel(mv_individual_model)
 
-            mv_layout.addWidget(mv_individual_view)
+            mv_individual_view.setFixedHeight(135)
 
+            mv_layout.addWidget(mv_individual_view)
 
             mack_development_groupbox = QGroupBox("Mack Development Correlation Test")
             mack_development_layout = QHBoxLayout()
