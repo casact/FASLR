@@ -33,7 +33,14 @@ class DevelopmentTab(QWidget):
         self.check_heatmap = QCheckBox(text="Heatmap")
         self.add_ldf_btn = QPushButton("Available Averages")
         self.add_ldf_btn.setFixedWidth(self.add_ldf_btn.sizeHint().width())
-        self.add_ldf_btn.setContentsMargins(2, 2, 2, 2)
+
+        self.add_ldf_btn.setContentsMargins(
+            2,
+            2,
+            2,
+            2
+        )
+
         self.add_ldf_btn.clicked.connect(self.open_ldf_average_box) # noqa
 
         self.factor_model = FactorModel(self.triangle)
