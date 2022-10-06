@@ -3,6 +3,13 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.constants import (
+    MACK_DEVELOPMENT_CRITICAL,
+    MACK_VALUATION_CRITICAL,
+    VALUE_TYPES,
+    VALUE_TYPES_COMBO_BOX_WIDTH
+)
+
 from chainladder import Triangle
 
 from faslr.utilities.accessors import get_column
@@ -11,7 +18,12 @@ from PyQt5.QtCore import Qt
 
 from PyQt5.QtGui import QColor
 
+from PyQt5 import QtWidgets
+from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtCore import QCoreApplication
+
 from PyQt5.QtWidgets import (
+    QApplication,
     QComboBox,
     QFormLayout,
     QGroupBox,
@@ -29,12 +41,6 @@ from faslr.triangle_model import (
     TriangleView
 )
 
-value_types = [
-    'Values',
-    'Link Ratios',
-    'Diagnostics'
-]
-
 
 class AnalysisTab(QWidget):
     # should eventually contain the TriangleColumnTab
@@ -51,8 +57,8 @@ class AnalysisTab(QWidget):
 
         # The combo box is used to switch between values (losses/premiums) and link ratios.
         self.value_box = QComboBox()
-        self.value_box.setFixedWidth(200)
-        self.value_box.addItems(value_types)
+        self.value_box.setFixedWidth(VALUE_TYPES_COMBO_BOX_WIDTH)
+        self.value_box.addItems(VALUE_TYPES)
 
         self.column_tab = ColumnTab()
         self.column_tab.setTabPosition(QTabWidget.West)
@@ -63,6 +69,22 @@ class AnalysisTab(QWidget):
         # Each view is identified by the column name.
         self.triangle_views = {}
         self.analysis_containers = {}
+        self.diagnostic_containers = {}
+        self.mack_valuation_groupboxes = {}
+        self.mack_valuation_layouts = {}
+        self.mack_valuation_total_containers = {}
+        self.mack_valuation_total_layouts = {}
+        self.mack_valuation_critical_containers = {}
+        self.mack_valuation_critical_layouts = {}
+        self.mack_valuation_spin_boxes = {}
+        self.mack_valuation_individual_models = {}
+        self.mack_valuation_individual_views = {}
+        self.mv_max_individual_widths = {}
+        self.mack_development_groupboxes = {}
+        self.mack_development_layouts = {}
+        self.dynamic_labels = {}
+        self.diagnostic_widgets = {}
+        self.mack_valuation_padding_widgets = {}
 
         # For each chainladder column, we create a horizontal tab to the left.
         for i in self.column_list:
@@ -80,12 +102,12 @@ class AnalysisTab(QWidget):
 
             # Calculate the Mack correlation tests.
             valuation_correlation = triangle_column.valuation_correlation(
-                p_critical=0.1,
+                p_critical=MACK_VALUATION_CRITICAL,
                 total=True
             ).z_critical.values[0][0]
 
             development_correlation = triangle_column.development_correlation(
-                p_critical=0.5
+                p_critical=MACK_DEVELOPMENT_CRITICAL
             ).t_critical.values[0][0]
 
             if valuation_correlation:
@@ -98,52 +120,89 @@ class AnalysisTab(QWidget):
             else:
                 development_pass = "Pass"
 
-            mack_valuation_groupbox = QGroupBox("Mack Valuation Correlation Test")
-            diagnostic_container = QVBoxLayout()
-            mv_layout = QVBoxLayout()
-            mv_total_container = QWidget()
-            mv_total_layout = QHBoxLayout()
-            mv_total_container.setLayout(mv_total_layout)
-            diagnostic_container.addWidget(mack_valuation_groupbox)
-            mack_valuation_groupbox.setLayout(mv_layout)
-            mv_layout.addWidget(mv_total_container)
-            mack_valuation_critical_container = QWidget()
-            mack_valuation_critical_layout = QFormLayout()
-            mack_valuation_spin = QDoubleSpinBox()
-            mack_valuation_spin.setValue(0.10)
-            mack_valuation_spin.setSingleStep(.01)
-            mack_valuation_spin.setFixedWidth(100)
-            # mack_valuation_critical_layout.setAlignment(Qt.AlignLeft)
-            mack_valuation_critical_layout.addRow(
+            self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test")
+            self.diagnostic_containers[i] = QVBoxLayout()
+            self.mack_valuation_layouts[i] = QVBoxLayout()
+            self.mack_valuation_total_containers[i] = QWidget()
+            self.mack_valuation_total_layouts[i] = QHBoxLayout()
+            self.mack_valuation_total_containers[i].setLayout(self.mack_valuation_total_layouts[i])
+            self.diagnostic_containers[i].addWidget(self.mack_valuation_groupboxes[i])
+            self.mack_valuation_groupboxes[i].setLayout(self.mack_valuation_layouts[i])
+            self.mack_valuation_layouts[i].addWidget(self.mack_valuation_total_containers[i])
+
+            self.mack_valuation_critical_containers[i] = QWidget()
+            self.mack_valuation_critical_layouts[i] = QFormLayout()
+            self.mack_valuation_spin_boxes[i] = QDoubleSpinBox()
+            self.mack_valuation_spin_boxes[i].setValue(MACK_VALUATION_CRITICAL)
+            self.mack_valuation_spin_boxes[i].setSingleStep(.01)
+            self.mack_valuation_spin_boxes[i].setFixedWidth(100)
+
+            self.mack_valuation_critical_layouts[i].addRow(
                 "Critical Value: ",
-                mack_valuation_spin
+                self.mack_valuation_spin_boxes[i]
             )
-            mack_valuation_critical_container.setLayout(mack_valuation_critical_layout)
-            mv_total_layout.addWidget(mack_valuation_critical_container, stretch=0)
-            mv_total_layout.addWidget(QLabel("Status: " + valuation_pass), stretch=0)
-            mv_total_layout.addWidget(QWidget(), stretch=2)
-            mv_total_layout.setAlignment(Qt.AlignTop)
+            self.mack_valuation_critical_containers[i].setLayout(
+                self.mack_valuation_critical_layouts[i]
+            )
 
-            mv_individual_model = MackValuationModel(triangle=triangle_column)
-            mv_individual_view = MackValuationView()
-            mv_individual_view.setModel(mv_individual_model)
+            self.mack_valuation_total_layouts[i].addWidget(
+                self.mack_valuation_critical_containers[i],
+                stretch=0
+            )
+            self.mack_valuation_total_layouts[i].addWidget(
+                QLabel("Status: " + valuation_pass),
+                stretch=0
+            )
 
-            mv_individual_view.setFixedHeight(135)
+            self.mack_valuation_total_layouts[i].addWidget(
+                QWidget(),
+                stretch=2
+            )
+            self.mack_valuation_total_layouts[i].setAlignment(Qt.AlignTop)
 
-            mv_layout.addWidget(mv_individual_view)
+            self.mack_valuation_individual_models[i] = MackValuationModel(triangle=triangle_column)
+            self.mack_valuation_individual_views[i] = MackValuationView()
+            self.mack_valuation_individual_views[i].setModel(self.mack_valuation_individual_models[i])
 
-            mack_development_groupbox = QGroupBox("Mack Development Correlation Test")
-            mack_development_layout = QHBoxLayout()
-            diagnostic_container.addWidget(mack_development_groupbox)
-            mack_development_groupbox.setLayout(mack_development_layout)
-            mack_development_layout.addWidget(QLabel("Status: " + development_pass))
+            self.mv_max_individual_widths[i] = self.mack_valuation_individual_views[i].horizontalHeader().length() + \
+                self.mack_valuation_individual_views[i].verticalHeader().width() + 2
+
+            self.mack_valuation_individual_views[i].setFixedHeight(132)
+            self.mack_valuation_individual_views[i].setMaximumWidth(
+                self.mv_max_individual_widths[i]
+            )
+
+            self.mack_valuation_layouts[i].addWidget(self.mack_valuation_individual_views[i])
+            self.mack_valuation_padding_widgets[i] = QWidget()
+            self.mack_valuation_layouts[i].addWidget(
+                self.mack_valuation_padding_widgets[i]
+            )
+
+            self.mack_development_groupboxes[i] = QGroupBox("Mack Development Correlation Test")
+            self.mack_development_layouts[i] = QHBoxLayout()
+            self.diagnostic_containers[i].addWidget(
+                self.mack_development_groupboxes[i],
+                stretch=0
+            )
+            self.mack_development_groupboxes[i].setLayout(self.mack_development_layouts[i])
+            self.mack_development_layouts[i].addWidget(
+                QLabel("Status: " + development_pass)
+            )
+
+            self.dynamic_labels[i] = QLabel("test")
+            self.diagnostic_containers[i].addWidget(self.dynamic_labels[i])
+
+            self.diagnostic_containers[i].addWidget(
+                QWidget(),
+                stretch=2
+            )
 
             self.mack_development_view = MackValuationView
 
-            dw = DiagnosticWidget()
+            self.diagnostic_widgets[i] = DiagnosticWidget()
 
-            dw.setLayout(diagnostic_container)
-            self.analysis_containers[i].addWidget(dw)
+            self.diagnostic_widgets[i].setLayout(self.diagnostic_containers[i])
+            self.analysis_containers[i].addWidget(self.diagnostic_widgets[i])
 
             triangle_model = TriangleModel(triangle_column, 'value')
             self.triangle_views[i].setModel(triangle_model)
@@ -193,12 +252,27 @@ class AnalysisTab(QWidget):
 
         palette.setColor(
             self.backgroundRole(),
-            QColor.fromRgb(240, 240, 240)
+            QColor.fromRgb(
+                240,
+                240,
+                240
+            )
         )
 
         self.setPalette(palette)
 
-        self.value_box.currentTextChanged.connect(self.update_value_type)
+        self.value_box.currentTextChanged.connect(self.update_value_type) # noqa
+
+    def resizeEvent(self, event):
+
+        for i in self.column_list:
+            if self.width() >= self.mv_max_individual_widths[i] + 166:
+                self.mack_valuation_individual_views[i].setFixedHeight(103)
+                self.mack_valuation_padding_widgets[i].setFixedHeight(29)
+            else:
+                self.mack_valuation_individual_views[i].setFixedHeight(132)
+                self.mack_valuation_padding_widgets[i].setFixedHeight(0)
+            self.dynamic_labels[i].setText(str(self.width()))
 
     def update_value_type(self):
 
@@ -246,7 +320,9 @@ class MackValuationModel(FAbstractTableModel):
 
         print(corr)
 
-        self._data = corr.to_frame(origin_as_datetime=False)
+        self._data = corr.to_frame(
+            origin_as_datetime=False
+        )
 
     def data(
         self,
@@ -256,7 +332,10 @@ class MackValuationModel(FAbstractTableModel):
 
         if role == Qt.DisplayRole:
 
-            value = self._data.iloc[index.row(), index.column()]
+            value = self._data.iloc[
+                index.row(),
+                index.column()
+            ]
 
             value = str(value)
 
