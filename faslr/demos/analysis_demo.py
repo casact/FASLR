@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
 )
 
 auto = load_sample('us_industry_auto')
-xyz = load_sample('xyz')
+xyz = load_sample('uspp_incr_case')
 app = QApplication(sys.argv)
 
 test_pane = QTabWidget()
@@ -17,13 +17,13 @@ auto_tab = AnalysisTab(
     triangle=auto
 )
 
-xyz_tab = AnalysisTab(
+uspp_tab = AnalysisTab(
     triangle=xyz
 )
 
 
 test_pane.addTab(auto_tab, "Auto")
-test_pane.addTab(xyz_tab, "XYZ")
+test_pane.addTab(uspp_tab, "USPP")
 
 test_pane.setStyleSheet(
             """

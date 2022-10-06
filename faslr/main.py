@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
         # triangle placeholder
 
         self.auto_triangle = load_sample('us_industry_auto')
-        self.xyz_triangle = load_sample('xyz')
+        self.xyz_triangle = load_sample('uspp_incr_case')
         self.auto_tab = AnalysisTab(
             triangle=self.auto_triangle
         )
