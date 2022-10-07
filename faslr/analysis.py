@@ -77,9 +77,12 @@ class AnalysisTab(QWidget):
         self.mv_max_individual_widths = {}
         self.mack_development_groupboxes = {}
         self.mack_development_layouts = {}
-        self.dynamic_labels = {}
         self.diagnostic_widgets = {}
         self.mack_valuation_padding_widgets = {}
+        self.mack_valuation_correlations = {}
+        self.mack_development_correlations = {}
+        self.mack_valuation_passes = {}
+        self.mack_development_passes = {}
 
         # For each chainladder column, we create a horizontal tab to the left.
         for i in self.column_list:
@@ -96,24 +99,24 @@ class AnalysisTab(QWidget):
             self.analysis_containers[i].addWidget(self.triangle_views[i])
 
             # Calculate the Mack correlation tests.
-            valuation_correlation = triangle_column.valuation_correlation(
+            self.mack_valuation_correlations[i] = triangle_column.valuation_correlation(
                 p_critical=MACK_VALUATION_CRITICAL,
                 total=True
             ).z_critical.values[0][0]
 
-            development_correlation = triangle_column.development_correlation(
+            self.mack_development_correlations[i] = triangle_column.development_correlation(
                 p_critical=MACK_DEVELOPMENT_CRITICAL
             ).t_critical.values[0][0]
 
-            if valuation_correlation:
-                valuation_pass = "Fail"
+            if self.mack_valuation_correlations[i]:
+                self.mack_valuation_passes[i] = "Fail"
             else:
-                valuation_pass = "Pass"
+                self.mack_valuation_passes[i] = "Pass"
 
-            if development_correlation:
-                development_pass = "Fail"
+            if self.mack_development_correlations[i]:
+                self.mack_development_passes[i] = "Fail"
             else:
-                development_pass = "Pass"
+                self.mack_development_passes[i] = "Pass"
 
             self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test")
             self.diagnostic_containers[i] = QVBoxLayout()
@@ -145,7 +148,7 @@ class AnalysisTab(QWidget):
                 stretch=0
             )
             self.mack_valuation_total_layouts[i].addWidget(
-                QLabel("Status: " + valuation_pass),
+                QLabel("Status: " + self.mack_valuation_passes[i]),
                 stretch=0
             )
 
@@ -181,11 +184,8 @@ class AnalysisTab(QWidget):
             )
             self.mack_development_groupboxes[i].setLayout(self.mack_development_layouts[i])
             self.mack_development_layouts[i].addWidget(
-                QLabel("Status: " + development_pass)
+                QLabel("Status: " + self.mack_development_passes[i])
             )
-
-            self.dynamic_labels[i] = QLabel("test")
-            self.diagnostic_containers[i].addWidget(self.dynamic_labels[i])
 
             self.diagnostic_containers[i].addWidget(
                 QWidget(),
@@ -213,7 +213,10 @@ class AnalysisTab(QWidget):
 
             self.column_tab.addTab(self.analysis_containers[i], i)
 
-        self.layout.addWidget(self.value_box, alignment=Qt.AlignRight)
+        self.layout.addWidget(
+            self.value_box,
+            alignment=Qt.AlignRight
+        )
         self.layout.addWidget(self.column_tab)
 
         self.setLayout(self.layout)
@@ -267,7 +270,6 @@ class AnalysisTab(QWidget):
             else:
                 self.mack_valuation_individual_views[i].setFixedHeight(132)
                 self.mack_valuation_padding_widgets[i].setFixedHeight(0)
-            self.dynamic_labels[i].setText(str(self.width()))
 
     def update_value_type(self):
 
