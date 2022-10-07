@@ -14,7 +14,10 @@ from chainladder import Triangle
 
 from faslr.utilities.accessors import get_column
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    Qt,
+    QModelIndex
+)
 
 from PyQt5.QtGui import QColor
 
@@ -131,6 +134,8 @@ class AnalysisTab(QWidget):
             self.mack_valuation_critical_containers[i] = QWidget()
             self.mack_valuation_critical_layouts[i] = QFormLayout()
             self.mack_valuation_spin_boxes[i] = QDoubleSpinBox()
+            self.mack_valuation_spin_boxes[i].setMaximum(1)
+            self.mack_valuation_spin_boxes[i].setMinimum(0)
             self.mack_valuation_spin_boxes[i].setValue(MACK_VALUATION_CRITICAL)
             self.mack_valuation_spin_boxes[i].setSingleStep(.01)
             self.mack_valuation_spin_boxes[i].setFixedWidth(100)
@@ -158,7 +163,13 @@ class AnalysisTab(QWidget):
             )
             self.mack_valuation_total_layouts[i].setAlignment(Qt.AlignTop)
 
-            self.mack_valuation_individual_models[i] = MackValuationModel(triangle=triangle_column)
+            self.mack_valuation_individual_models[i] = MackValuationModel(
+                triangle=triangle_column,
+                critical=self.mack_valuation_spin_boxes[i]
+            )
+
+            # self.mack_valuation_spin_boxes[i].valueChanged.connect(self.recalculate_mack_valuation)
+
             self.mack_valuation_individual_views[i] = MackValuationView()
             self.mack_valuation_individual_views[i].setModel(self.mack_valuation_individual_models[i])
 
@@ -302,7 +313,8 @@ class AnalysisTab(QWidget):
 class MackValuationModel(FAbstractTableModel):
     def __init__(
         self,
-        triangle: Triangle
+        triangle: Triangle,
+        critical: QDoubleSpinBox
     ):
         super(
             MackValuationModel,
@@ -310,16 +322,19 @@ class MackValuationModel(FAbstractTableModel):
         ).__init__()
 
         self.triangle = triangle
+        self.spin_box = critical
+        self.critical_value = self.spin_box.value()
+
         corr = self.triangle.valuation_correlation(
-            p_critical=0.1,
+            p_critical=self.critical_value,
             total=False
         ).z_critical
-
-        print(corr)
 
         self._data = corr.to_frame(
             origin_as_datetime=False
         )
+
+        self.spin_box.valueChanged.connect(self.recalculate)
 
     def data(
         self,
@@ -351,6 +366,22 @@ class MackValuationModel(FAbstractTableModel):
 
             if qt_orientation == Qt.Vertical:
                 return str(self._data.index[p_int])
+
+    def recalculate(self):
+        self.critical_value = self.spin_box.value()
+        corr = self.triangle.valuation_correlation(
+            p_critical=self.critical_value,
+            total=False
+        ).z_critical
+
+        self._data = corr.to_frame(
+            origin_as_datetime=False
+        )
+
+        print(self._data)
+
+        # self.setData(index=QModelIndex(), value=None)
+        self.layoutChanged.emit()
 
 
 class MackValuationView(FTableView):
