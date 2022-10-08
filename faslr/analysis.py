@@ -15,8 +15,7 @@ from chainladder import Triangle
 from faslr.utilities.accessors import get_column
 
 from PyQt5.QtCore import (
-    Qt,
-    QModelIndex
+    Qt
 )
 
 from PyQt5.QtGui import QColor
@@ -79,13 +78,27 @@ class AnalysisTab(QWidget):
         self.mack_valuation_individual_views = {}
         self.mv_max_individual_widths = {}
         self.mack_development_groupboxes = {}
+        self.mack_development_critical_containers = {}
+        self.mack_development_critical_layouts = {}
         self.mack_development_layouts = {}
+        self.mack_development_spin_boxes = {}
         self.diagnostic_widgets = {}
         self.mack_valuation_padding_widgets = {}
         self.mack_valuation_correlations = {}
         self.mack_development_correlations = {}
         self.mack_valuation_passes = {}
         self.mack_development_passes = {}
+        self.mack_valuation_individual_groupboxes = {}
+        self.mack_valuation_individual_layouts = {}
+        self.mack_valuation_individual_critical_containers = {}
+        self.mack_valuation_individual_critical_layouts = {}
+        self.mack_valuation_individual_critical_spin_boxes = {}
+        self.mack_valuation_individual_container_layouts = {}
+        self.mack_valuation_individual_top_containers = {}
+        self.mack_individual_model_layouts = {}
+        self.mack_individual_model_containers = {}
+        self.mack_individual_model_paddings_left = {}
+        self.mack_individual_model_paddings_right = {}
 
         # For each chainladder column, we create a horizontal tab to the left.
         for i in self.column_list:
@@ -121,15 +134,12 @@ class AnalysisTab(QWidget):
             else:
                 self.mack_development_passes[i] = "Pass"
 
-            self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test")
+            self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test - All Years")
             self.diagnostic_containers[i] = QVBoxLayout()
-            self.mack_valuation_layouts[i] = QVBoxLayout()
-            self.mack_valuation_total_containers[i] = QWidget()
+            self.diagnostic_containers[i].setSpacing(30)
             self.mack_valuation_total_layouts[i] = QHBoxLayout()
-            self.mack_valuation_total_containers[i].setLayout(self.mack_valuation_total_layouts[i])
             self.diagnostic_containers[i].addWidget(self.mack_valuation_groupboxes[i])
-            self.mack_valuation_groupboxes[i].setLayout(self.mack_valuation_layouts[i])
-            self.mack_valuation_layouts[i].addWidget(self.mack_valuation_total_containers[i])
+            self.mack_valuation_groupboxes[i].setLayout(self.mack_valuation_total_layouts[i])
 
             self.mack_valuation_critical_containers[i] = QWidget()
             self.mack_valuation_critical_layouts[i] = QFormLayout()
@@ -163,12 +173,62 @@ class AnalysisTab(QWidget):
             )
             self.mack_valuation_total_layouts[i].setAlignment(Qt.AlignTop)
 
-            self.mack_valuation_individual_models[i] = MackValuationModel(
-                triangle=triangle_column,
-                critical=self.mack_valuation_spin_boxes[i]
+            self.mack_valuation_individual_groupboxes[i] = QGroupBox(
+                "Mack Valuation Correlation Test - Individual Years"
+            )
+            self.mack_valuation_individual_container_layouts[i] = QVBoxLayout()
+            self.mack_valuation_individual_container_layouts[i].setContentsMargins(
+                0,
+                0,
+                0,
+                0
+            )
+            self.mack_valuation_individual_top_containers[i] = QWidget()
+            self.mack_valuation_individual_layouts[i] = QHBoxLayout()
+            self.mack_valuation_individual_top_containers[i].setLayout(self.mack_valuation_individual_layouts[i])
+            self.diagnostic_containers[i].addWidget(self.mack_valuation_individual_groupboxes[i])
+            self.mack_valuation_individual_groupboxes[i].setLayout(self.mack_valuation_individual_container_layouts[i])
+            self.mack_valuation_individual_container_layouts[i].addWidget(
+                self.mack_valuation_individual_top_containers[i]
+            )
+            self.mack_valuation_individual_critical_containers[i] = QWidget()
+            self.mack_valuation_individual_critical_layouts[i] = QFormLayout()
+            self.mack_valuation_individual_critical_spin_boxes[i] = QDoubleSpinBox()
+            self.mack_valuation_individual_critical_spin_boxes[i].setMaximum(1)
+            self.mack_valuation_individual_critical_spin_boxes[i].setMinimum(0)
+            self.mack_valuation_individual_critical_spin_boxes[i].setValue(MACK_VALUATION_CRITICAL)
+            self.mack_valuation_individual_critical_spin_boxes[i].setSingleStep(.01)
+            self.mack_valuation_individual_critical_spin_boxes[i].setFixedWidth(100)
+
+            self.mack_valuation_individual_critical_layouts[i].addRow(
+                "Critical Value: ",
+                self.mack_valuation_individual_critical_spin_boxes[i]
             )
 
-            # self.mack_valuation_spin_boxes[i].valueChanged.connect(self.recalculate_mack_valuation)
+            self.mack_valuation_individual_critical_containers[i].setLayout(
+                self.mack_valuation_individual_critical_layouts[i]
+            )
+
+            self.mack_valuation_individual_layouts[i].addWidget(
+                self.mack_valuation_individual_critical_containers[i],
+                stretch=0
+            )
+
+            self.mack_individual_model_layouts[i] = QHBoxLayout()
+            self.mack_individual_model_layouts[i].setContentsMargins(
+                0,
+                0,
+                0,
+                0
+            )
+            self.mack_individual_model_containers[i] = QWidget()
+            self.mack_individual_model_paddings_right[i] = QWidget()
+            self.mack_individual_model_containers[i].setLayout(self.mack_individual_model_layouts[i])
+            self.mack_individual_model_paddings_left[i] = QWidget()
+            self.mack_valuation_individual_models[i] = MackValuationModel(
+                triangle=triangle_column,
+                critical=self.mack_valuation_individual_critical_spin_boxes[i]
+            )
 
             self.mack_valuation_individual_views[i] = MackValuationView()
             self.mack_valuation_individual_views[i].setModel(self.mack_valuation_individual_models[i])
@@ -181,9 +241,29 @@ class AnalysisTab(QWidget):
                 self.mv_max_individual_widths[i]
             )
 
-            self.mack_valuation_layouts[i].addWidget(self.mack_valuation_individual_views[i])
+            self.mack_individual_model_layouts[i].addWidget(
+                self.mack_individual_model_paddings_left[i],
+                stretch=0
+            )
+
+            self.mack_individual_model_paddings_left[i].setFixedWidth(20)
+
+            self.mack_individual_model_layouts[i].addWidget(
+                self.mack_valuation_individual_views[i],
+                stretch=0
+            )
+
+            self.mack_individual_model_layouts[i].addWidget(
+                self.mack_individual_model_paddings_right[i],
+                stretch=0
+            )
+
+            self.mack_valuation_individual_container_layouts[i].addWidget(
+                self.mack_individual_model_containers[i]
+            )
+
             self.mack_valuation_padding_widgets[i] = QWidget()
-            self.mack_valuation_layouts[i].addWidget(
+            self.mack_valuation_individual_container_layouts[i].addWidget(
                 self.mack_valuation_padding_widgets[i]
             )
 
@@ -194,8 +274,37 @@ class AnalysisTab(QWidget):
                 stretch=0
             )
             self.mack_development_groupboxes[i].setLayout(self.mack_development_layouts[i])
+
+            self.mack_development_critical_containers[i] = QWidget()
+            self.mack_development_critical_layouts[i] = QFormLayout()
+            self.mack_development_spin_boxes[i] = QDoubleSpinBox()
+            self.mack_development_spin_boxes[i].setMaximum(1)
+            self.mack_development_spin_boxes[i].setMinimum(0)
+            self.mack_development_spin_boxes[i].setValue(MACK_DEVELOPMENT_CRITICAL)
+            self.mack_development_spin_boxes[i].setSingleStep(.01)
+            self.mack_development_spin_boxes[i].setFixedWidth(100)
+
+            self.mack_development_critical_layouts[i].addRow(
+                "Critical Value: ",
+                self.mack_development_spin_boxes[i]
+            )
+            self.mack_development_critical_containers[i].setLayout(
+                self.mack_development_critical_layouts[i]
+            )
+
             self.mack_development_layouts[i].addWidget(
-                QLabel("Status: " + self.mack_development_passes[i])
+                self.mack_development_critical_containers[i],
+                stretch=0
+            )
+
+            self.mack_development_layouts[i].addWidget(
+                QLabel("Status: " + self.mack_development_passes[i]),
+                stretch=0
+            )
+
+            self.mack_development_layouts[i].addWidget(
+                QWidget(),
+                stretch=2
             )
 
             self.diagnostic_containers[i].addWidget(
@@ -277,10 +386,10 @@ class AnalysisTab(QWidget):
         for i in self.column_list:
             if self.width() >= self.mv_max_individual_widths[i] + 166:
                 self.mack_valuation_individual_views[i].setFixedHeight(103)
-                self.mack_valuation_padding_widgets[i].setFixedHeight(29)
+                self.mack_valuation_padding_widgets[i].setFixedHeight(55)
             else:
                 self.mack_valuation_individual_views[i].setFixedHeight(132)
-                self.mack_valuation_padding_widgets[i].setFixedHeight(0)
+                self.mack_valuation_padding_widgets[i].setFixedHeight(26)
 
     def update_value_type(self):
 
@@ -334,7 +443,8 @@ class MackValuationModel(FAbstractTableModel):
             origin_as_datetime=False
         )
 
-        self.spin_box.valueChanged.connect(self.recalculate)
+        self.spin_box.valueChanged.connect(self.recalculate) # noqa
+
 
     def data(
         self,
@@ -381,7 +491,7 @@ class MackValuationModel(FAbstractTableModel):
         print(self._data)
 
         # self.setData(index=QModelIndex(), value=None)
-        self.layoutChanged.emit()
+        self.layoutChanged.emit() # noqa
 
 
 class MackValuationView(FTableView):
