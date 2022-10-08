@@ -38,6 +38,11 @@ from faslr.triangle_model import (
     TriangleView
 )
 
+pass_alias = {
+    True: "Fail",
+    False: "Pass"
+}
+
 
 class AnalysisTab(QWidget):
     # should eventually contain the TriangleColumnTab
@@ -100,6 +105,15 @@ class AnalysisTab(QWidget):
         self.mack_individual_model_paddings_left = {}
         self.mack_individual_model_paddings_right = {}
 
+        column_count = len(self.column_list)
+
+        if column_count == 1:
+            bottom_border_width = 2
+            margin_top = "43"
+        else:
+            bottom_border_width = 1
+            margin_top = "0"
+
         # For each chainladder column, we create a horizontal tab to the left.
         for i in self.column_list:
 
@@ -115,24 +129,24 @@ class AnalysisTab(QWidget):
             self.analysis_containers[i].addWidget(self.triangle_views[i])
 
             # Calculate the Mack correlation tests.
-            self.mack_valuation_correlations[i] = triangle_column.valuation_correlation(
-                p_critical=MACK_VALUATION_CRITICAL,
-                total=True
-            ).z_critical.values[0][0]
+            # self.mack_valuation_correlations[i] = triangle_column.valuation_correlation(
+            #     p_critical=MACK_VALUATION_CRITICAL,
+            #     total=True
+            # ).z_critical.values[0][0]
+            #
+            # self.mack_development_correlations[i] = triangle_column.development_correlation(
+            #     p_critical=MACK_DEVELOPMENT_CRITICAL
+            # ).t_critical.values[0][0]
 
-            self.mack_development_correlations[i] = triangle_column.development_correlation(
-                p_critical=MACK_DEVELOPMENT_CRITICAL
-            ).t_critical.values[0][0]
-
-            if self.mack_valuation_correlations[i]:
-                self.mack_valuation_passes[i] = "Fail"
-            else:
-                self.mack_valuation_passes[i] = "Pass"
-
-            if self.mack_development_correlations[i]:
-                self.mack_development_passes[i] = "Fail"
-            else:
-                self.mack_development_passes[i] = "Pass"
+            # if self.mack_valuation_correlations[i]:
+            #     self.mack_valuation_passes[i] = "Fail"
+            # else:
+            #     self.mack_valuation_passes[i] = "Pass"
+            #
+            # if self.mack_development_correlations[i]:
+            #     self.mack_development_passes[i] = "Fail"
+            # else:
+            #     self.mack_development_passes[i] = "Pass"
 
             self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test - All Years")
             self.diagnostic_containers[i] = QVBoxLayout()
@@ -150,6 +164,12 @@ class AnalysisTab(QWidget):
             self.mack_valuation_spin_boxes[i].setSingleStep(.01)
             self.mack_valuation_spin_boxes[i].setFixedWidth(100)
 
+            self.mack_valuation_passes[i] = MackResultLabel(
+                spin=self.mack_valuation_spin_boxes[i],
+                triangle=triangle_column,
+                test_type="valuation correlation"
+            )
+
             self.mack_valuation_critical_layouts[i].addRow(
                 "Critical Value: ",
                 self.mack_valuation_spin_boxes[i]
@@ -163,7 +183,7 @@ class AnalysisTab(QWidget):
                 stretch=0
             )
             self.mack_valuation_total_layouts[i].addWidget(
-                QLabel("Status: " + self.mack_valuation_passes[i]),
+                self.mack_valuation_passes[i],
                 stretch=0
             )
 
@@ -284,6 +304,12 @@ class AnalysisTab(QWidget):
             self.mack_development_spin_boxes[i].setSingleStep(.01)
             self.mack_development_spin_boxes[i].setFixedWidth(100)
 
+            self.mack_development_passes[i] = MackResultLabel(
+                spin=self.mack_development_spin_boxes[i],
+                triangle=triangle_column,
+                test_type="development correlation"
+            )
+
             self.mack_development_critical_layouts[i].addRow(
                 "Critical Value: ",
                 self.mack_development_spin_boxes[i]
@@ -298,7 +324,7 @@ class AnalysisTab(QWidget):
             )
 
             self.mack_development_layouts[i].addWidget(
-                QLabel("Status: " + self.mack_development_passes[i]),
+                self.mack_development_passes[i],
                 stretch=0
             )
 
@@ -343,26 +369,27 @@ class AnalysisTab(QWidget):
 
         self.column_tab.setStyleSheet(
             """
-            QTabBar::tab:first {
-                margin-top: 42px;
-            }
+            QTabBar::tab:first {{
+                margin-top: 43px;
+            }}
             
             
-            QTabBar::tab {
+            QTabBar::tab {{
+              margin-top: {}px;
               background: rgb(230, 230, 230); 
-              border: 1px solid darkgrey; 
+              border: 1px solid darkgrey;
+              border-bottom: {}px solid darkgrey; 
               padding: 5px;
               padding-left: 10px;
               height: 250px;
               margin-right: -1px;
-            } 
+            }}
 
-            QTabBar::tab:selected { 
-              background: rgb(245, 245, 245); 
-              margin-bottom: -1px; 
-            }
-            
-            """
+            QTabBar::tab:selected {{ 
+              background: rgb(245, 245, 245);
+              margin-bottom: -1px;
+            }}
+            """.format(margin_top, bottom_border_width)
         )
 
         self.setAutoFillBackground(True)
@@ -445,7 +472,6 @@ class MackValuationModel(FAbstractTableModel):
 
         self.spin_box.valueChanged.connect(self.recalculate) # noqa
 
-
     def data(
         self,
         index,
@@ -454,9 +480,11 @@ class MackValuationModel(FAbstractTableModel):
 
         if role == Qt.DisplayRole:
 
-            value = self._data.iloc[
-                index.row(),
-                index.column()
+            value = pass_alias[
+                self._data.iloc[
+                    index.row(),
+                    index.column()
+                ]
             ]
 
             value = str(value)
@@ -472,7 +500,7 @@ class MackValuationModel(FAbstractTableModel):
 
         if role == Qt.DisplayRole:
             if qt_orientation == Qt.Horizontal:
-                return str(self._data.columns[p_int])
+                return self._data.columns[p_int]
 
             if qt_orientation == Qt.Vertical:
                 return str(self._data.index[p_int])
@@ -488,9 +516,6 @@ class MackValuationModel(FAbstractTableModel):
             origin_as_datetime=False
         )
 
-        print(self._data)
-
-        # self.setData(index=QModelIndex(), value=None)
         self.layoutChanged.emit() # noqa
 
 
@@ -507,3 +532,40 @@ class DiagnosticWidget(QWidget):
 class ColumnTab(QTabWidget):
     def __init__(self):
         super().__init__()
+
+
+class MackResultLabel(QLabel):
+    def __init__(
+            self,
+            spin: QDoubleSpinBox,
+            triangle: Triangle,
+            test_type: str
+    ):
+        super().__init__()
+
+        self.spin = spin
+        self.triangle = triangle
+        self.test_type = test_type
+        self.test_bool = None
+
+        self.update_result()
+
+        self.spin.valueChanged.connect(self.update_result) # noqa
+
+    def update_result(self):
+
+        if self.test_type == "valuation correlation":
+            self.test_bool = self.triangle.valuation_correlation(
+                p_critical=self.spin.value(),
+                total=True
+            ).z_critical.values[0][0]
+
+        elif self.test_type == "development correlation":
+            self.test_bool = self.triangle.development_correlation(
+                p_critical=self.spin.value()
+            ).t_critical.values[0][0]
+
+        else:
+            raise ValueError("Invalid test-type indicated.")
+
+        self.setText("Status: " + pass_alias[self.test_bool])
