@@ -75,31 +75,16 @@ class AnalysisTab(QWidget):
         # These dictionaries allow us to keep track of and manipulate the views later.
         # Each view is identified by the column name.
         self.triangle_views = {}
+
         self.analysis_containers = {}
+
         self.diagnostic_containers = {}
-        self.mack_valuation_groupboxes = {}
-        self.mack_valuation_individual_models = {}
-        self.mack_valuation_individual_views = {}
-        self.mv_max_individual_widths = {}
-        self.mack_development_groupboxes = {}
         self.diagnostic_widgets = {}
-        self.mack_valuation_padding_widgets = {}
-        self.mack_valuation_correlations = {}
-        self.mack_development_critical_layouts = {}
-        self.mack_development_correlations = {}
-        self.mack_valuation_passes = {}
-        self.mack_development_passes = {}
+
+        # 1 set of groupboxes for each of the Mack tests
+        self.mack_valuation_groupboxes = {}
+        self.mack_development_groupboxes = {}
         self.mack_valuation_individual_groupboxes = {}
-        self.mack_valuation_individual_layouts = {}
-        self.mack_valuation_individual_critical_containers = {}
-        self.mack_valuation_individual_critical_layouts = {}
-        self.mack_valuation_individual_critical_spin_boxes = {}
-        self.mack_valuation_individual_container_layouts = {}
-        self.mack_valuation_individual_top_containers = {}
-        self.mack_individual_model_layouts = {}
-        self.mack_individual_model_containers = {}
-        self.mack_individual_model_paddings_left = {}
-        self.mack_individual_model_paddings_right = {}
 
         column_count = len(self.column_list)
 
@@ -170,7 +155,7 @@ class AnalysisTab(QWidget):
             self.analysis_containers[i].setStyleSheet(
                 """
                 DiagnosticWidget {
-                    border: 1px solid darkgrey;
+                    border: 2px solid darkgrey;
                     background: rgb(230, 230, 230);
                 }
                 """
@@ -212,7 +197,10 @@ class AnalysisTab(QWidget):
             QTabWidget::pane {{
               border-top: 2px solid darkgrey;
             }}
-            """.format(margin_top, bottom_border_width)
+            """.format(
+                margin_top,
+                bottom_border_width
+            )
         )
 
         self.setAutoFillBackground(True)
@@ -481,7 +469,7 @@ class MackIndividualGroupBox(QGroupBox):
         super().__init__()
 
         self.setTitle(title)
-        self.triangle=triangle
+        self.triangle = triangle
 
         # Holds 2 levels, one for the critical spin box,
         # the other for the individual years results
@@ -527,9 +515,12 @@ class MackIndividualGroupBox(QGroupBox):
         )
         self.individual_container = QWidget()
         self.individual_container.setLayout(self.individual_layout)
+
+        # Left and right padding widgets keep the view from sliding to the left and right as the window resizes
         self.individual_right_padding = QWidget()
         self.individual_left_padding = QWidget()
         self.individual_left_padding.setFixedWidth(20)
+
         self.individual_model = MackValuationModel(
             triangle=self.triangle,
             critical=self.spin_box
@@ -538,6 +529,8 @@ class MackIndividualGroupBox(QGroupBox):
         self.individual_view = MackValuationView()
         self.individual_view.setModel(self.individual_model)
 
+        # Used to resize the height once the window width exceeds the view width
+        # Avoids leaving extra whitespace where the scrollbar used to be
         self.mv_max_individual_width = self.individual_view.horizontalHeader().length() + \
             self.individual_view.verticalHeader().width() + 2
 
