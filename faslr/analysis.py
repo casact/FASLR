@@ -134,99 +134,14 @@ class AnalysisTab(QWidget):
             )
             self.diagnostic_containers[i].addWidget(self.mack_valuation_groupboxes[i])
 
-            self.mack_valuation_individual_groupboxes[i] = QGroupBox(
-                "Mack Valuation Correlation Test - Individual Years"
+            self.mack_valuation_individual_groupboxes[i] = MackIndividualGroupBox(
+                title="Mack Valuation Correlation Test - Individual Years",
+                triangle=triangle_column
             )
-            self.mack_valuation_individual_container_layouts[i] = QVBoxLayout()
-            self.mack_valuation_individual_container_layouts[i].setContentsMargins(
-                0,
-                0,
-                0,
-                0
-            )
-            self.mack_valuation_individual_top_containers[i] = QWidget()
-            self.mack_valuation_individual_layouts[i] = QHBoxLayout()
-            self.mack_valuation_individual_top_containers[i].setLayout(self.mack_valuation_individual_layouts[i])
+
             self.diagnostic_containers[i].addWidget(self.mack_valuation_individual_groupboxes[i])
-            self.mack_valuation_individual_groupboxes[i].setLayout(self.mack_valuation_individual_container_layouts[i])
-            self.mack_valuation_individual_container_layouts[i].addWidget(
-                self.mack_valuation_individual_top_containers[i]
-            )
-            self.mack_valuation_individual_critical_containers[i] = QWidget()
-            self.mack_valuation_individual_critical_layouts[i] = QFormLayout()
-            self.mack_valuation_individual_critical_spin_boxes[i] = QDoubleSpinBox()
-            self.mack_valuation_individual_critical_spin_boxes[i].setMaximum(1)
-            self.mack_valuation_individual_critical_spin_boxes[i].setMinimum(0)
-            self.mack_valuation_individual_critical_spin_boxes[i].setValue(MACK_VALUATION_CRITICAL)
-            self.mack_valuation_individual_critical_spin_boxes[i].setSingleStep(.01)
-            self.mack_valuation_individual_critical_spin_boxes[i].setFixedWidth(100)
 
-            self.mack_valuation_individual_critical_layouts[i].addRow(
-                "Critical Value: ",
-                self.mack_valuation_individual_critical_spin_boxes[i]
-            )
-
-            self.mack_valuation_individual_critical_containers[i].setLayout(
-                self.mack_valuation_individual_critical_layouts[i]
-            )
-
-            self.mack_valuation_individual_layouts[i].addWidget(
-                self.mack_valuation_individual_critical_containers[i],
-                stretch=0
-            )
-
-            self.mack_individual_model_layouts[i] = QHBoxLayout()
-            self.mack_individual_model_layouts[i].setContentsMargins(
-                0,
-                0,
-                0,
-                0
-            )
-            self.mack_individual_model_containers[i] = QWidget()
-            self.mack_individual_model_paddings_right[i] = QWidget()
-            self.mack_individual_model_containers[i].setLayout(self.mack_individual_model_layouts[i])
-            self.mack_individual_model_paddings_left[i] = QWidget()
-            self.mack_valuation_individual_models[i] = MackValuationModel(
-                triangle=triangle_column,
-                critical=self.mack_valuation_individual_critical_spin_boxes[i]
-            )
-
-            self.mack_valuation_individual_views[i] = MackValuationView()
-            self.mack_valuation_individual_views[i].setModel(self.mack_valuation_individual_models[i])
-
-            self.mv_max_individual_widths[i] = self.mack_valuation_individual_views[i].horizontalHeader().length() + \
-                self.mack_valuation_individual_views[i].verticalHeader().width() + 2
-
-            self.mack_valuation_individual_views[i].setFixedHeight(132)
-            self.mack_valuation_individual_views[i].setMaximumWidth(
-                self.mv_max_individual_widths[i]
-            )
-
-            self.mack_individual_model_layouts[i].addWidget(
-                self.mack_individual_model_paddings_left[i],
-                stretch=0
-            )
-
-            self.mack_individual_model_paddings_left[i].setFixedWidth(20)
-
-            self.mack_individual_model_layouts[i].addWidget(
-                self.mack_valuation_individual_views[i],
-                stretch=0
-            )
-
-            self.mack_individual_model_layouts[i].addWidget(
-                self.mack_individual_model_paddings_right[i],
-                stretch=0
-            )
-
-            self.mack_valuation_individual_container_layouts[i].addWidget(
-                self.mack_individual_model_containers[i]
-            )
-
-            self.mack_valuation_padding_widgets[i] = QWidget()
-            self.mack_valuation_individual_container_layouts[i].addWidget(
-                self.mack_valuation_padding_widgets[i]
-            )
+            self.mv_max_individual_widths[i] = self.mack_valuation_individual_groupboxes[i].mv_max_individual_width
 
             self.mack_development_groupboxes[i] = MackAllYearGroupBox(
                 title="Mack Development Correlation Test",
@@ -552,3 +467,102 @@ class MackAllYearGroupBox(QGroupBox):
         )
 
         self.horizontal_layout.setAlignment(Qt.AlignTop)
+
+
+class MackIndividualGroupBox(QGroupBox):
+    def __init__(
+        self,
+        title: str,
+        triangle: Triangle
+    ):
+        super().__init__()
+
+        self.setTitle(title)
+        self.triangle=triangle
+
+        # Holds 2 levels, one for the critical spin box,
+        # the other for the individual years results
+        self.vertical_layout = QVBoxLayout()
+        self.setLayout(self.vertical_layout)
+        self.vertical_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+
+        # Holds the spin box
+        self.top_container = QWidget()
+        self.vertical_layout.addWidget(self.top_container)
+        self.top_horizontal_layout = QHBoxLayout()
+        self.top_container.setLayout(self.top_horizontal_layout)
+
+        self.critical_container = QWidget()
+        self.critical_layout = QFormLayout()
+        self.critical_container.setLayout(self.critical_layout)
+        self.spin_box = MackCriticalSpinBox(
+            starting_value=MACK_VALUATION_CRITICAL
+        )
+
+        self.critical_layout.addRow(
+            "Critical Value: ",
+            self.spin_box
+        )
+
+        self.top_horizontal_layout.addWidget(
+            self.critical_container,
+            stretch=0
+        )
+
+        # Holds the individual years results
+        self.individual_layout = QHBoxLayout()
+        self.individual_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        self.individual_container = QWidget()
+        self.individual_container.setLayout(self.individual_layout)
+        self.individual_right_padding = QWidget()
+        self.individual_left_padding = QWidget()
+        self.individual_left_padding.setFixedWidth(20)
+        self.individual_model = MackValuationModel(
+            triangle=self.triangle,
+            critical=self.spin_box
+        )
+
+        self.individual_view = MackValuationView()
+        self.individual_view.setModel(self.individual_model)
+
+        self.mv_max_individual_width = self.individual_view.horizontalHeader().length() + \
+            self.individual_view.verticalHeader().width() + 2
+
+        self.individual_view.setFixedHeight(132)
+        self.individual_view.setMaximumWidth(
+            self.mv_max_individual_width
+        )
+
+        self.individual_layout.addWidget(
+            self.individual_left_padding,
+            stretch=0
+        )
+
+        self.individual_layout.addWidget(
+            self.individual_view,
+            stretch=0
+        )
+
+        self.individual_layout.addWidget(
+            self.individual_right_padding,
+            stretch=0
+        )
+
+        self.vertical_layout.addWidget(
+            self.individual_container
+        )
+
+        self.vertical_padding_widget = QWidget()
+        self.vertical_layout.addWidget(
+            self.vertical_padding_widget
+        )
