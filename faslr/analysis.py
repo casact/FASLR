@@ -106,7 +106,7 @@ class AnalysisTab(QWidget):
         # Used to solve some issues with borders not appearing when there's only 1 tab.
         if column_count == 1:
             bottom_border_width = 2
-            margin_top = "43"
+            margin_top = "44"
         else:
             bottom_border_width = 1
             margin_top = "0"
@@ -140,8 +140,6 @@ class AnalysisTab(QWidget):
             )
 
             self.diagnostic_containers[i].addWidget(self.mack_valuation_individual_groupboxes[i])
-
-            self.mv_max_individual_widths[i] = self.mack_valuation_individual_groupboxes[i].mv_max_individual_width
 
             self.mack_development_groupboxes[i] = MackAllYearGroupBox(
                 title="Mack Development Correlation Test",
@@ -191,7 +189,7 @@ class AnalysisTab(QWidget):
         self.column_tab.setStyleSheet(
             """
             QTabBar::tab:first {{
-                margin-top: 43px;
+                margin-top: 44px;
             }}
             
             
@@ -236,12 +234,17 @@ class AnalysisTab(QWidget):
     def resizeEvent(self, event):
 
         for i in self.column_list:
-            if self.width() >= self.mv_max_individual_widths[i] + 166:
-                self.mack_valuation_individual_views[i].setFixedHeight(103)
-                self.mack_valuation_padding_widgets[i].setFixedHeight(55)
+
+            groupbox = self.mack_valuation_individual_groupboxes[i]
+            max_width = groupbox.mv_max_individual_width
+            padding_widget = groupbox.vertical_padding_widget
+
+            if self.width() >= max_width + 166:
+                groupbox.individual_view.setFixedHeight(103)
+                padding_widget.setFixedHeight(55)
             else:
-                self.mack_valuation_individual_views[i].setFixedHeight(132)
-                self.mack_valuation_padding_widgets[i].setFixedHeight(26)
+                groupbox.individual_view.setFixedHeight(132)
+                padding_widget.setFixedHeight(26)
 
     def update_value_type(self):
 
