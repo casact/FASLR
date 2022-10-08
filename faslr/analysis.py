@@ -107,6 +107,7 @@ class AnalysisTab(QWidget):
 
         column_count = len(self.column_list)
 
+        # Used to solve some issues with borders not appearing when there's only 1 tab.
         if column_count == 1:
             bottom_border_width = 2
             margin_top = "43"
@@ -127,26 +128,6 @@ class AnalysisTab(QWidget):
             # We use QStackedWidget to switch between tabular and diagnostic views.
             self.analysis_containers[i] = QStackedWidget()
             self.analysis_containers[i].addWidget(self.triangle_views[i])
-
-            # Calculate the Mack correlation tests.
-            # self.mack_valuation_correlations[i] = triangle_column.valuation_correlation(
-            #     p_critical=MACK_VALUATION_CRITICAL,
-            #     total=True
-            # ).z_critical.values[0][0]
-            #
-            # self.mack_development_correlations[i] = triangle_column.development_correlation(
-            #     p_critical=MACK_DEVELOPMENT_CRITICAL
-            # ).t_critical.values[0][0]
-
-            # if self.mack_valuation_correlations[i]:
-            #     self.mack_valuation_passes[i] = "Fail"
-            # else:
-            #     self.mack_valuation_passes[i] = "Pass"
-            #
-            # if self.mack_development_correlations[i]:
-            #     self.mack_development_passes[i] = "Fail"
-            # else:
-            #     self.mack_development_passes[i] = "Pass"
 
             self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test - All Years")
             self.diagnostic_containers[i] = QVBoxLayout()
@@ -388,6 +369,10 @@ class AnalysisTab(QWidget):
             QTabBar::tab:selected {{ 
               background: rgb(245, 245, 245);
               margin-bottom: -1px;
+            }}
+            
+            QTabWidget::pane {{
+              border-top: 2px solid darkgrey;
             }}
             """.format(margin_top, bottom_border_width)
         )
