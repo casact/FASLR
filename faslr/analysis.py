@@ -43,6 +43,11 @@ pass_alias = {
     False: "Pass"
 }
 
+starting_value_lookup = {
+    "valuation correlation": MACK_VALUATION_CRITICAL,
+    "development correlation": MACK_DEVELOPMENT_CRITICAL
+}
+
 
 class AnalysisTab(QWidget):
     # should eventually contain the TriangleColumnTab
@@ -73,23 +78,14 @@ class AnalysisTab(QWidget):
         self.analysis_containers = {}
         self.diagnostic_containers = {}
         self.mack_valuation_groupboxes = {}
-        self.mack_valuation_layouts = {}
-        self.mack_valuation_total_containers = {}
-        self.mack_valuation_total_layouts = {}
-        self.mack_valuation_critical_containers = {}
-        self.mack_valuation_critical_layouts = {}
-        self.mack_valuation_spin_boxes = {}
         self.mack_valuation_individual_models = {}
         self.mack_valuation_individual_views = {}
         self.mv_max_individual_widths = {}
         self.mack_development_groupboxes = {}
-        self.mack_development_critical_containers = {}
-        self.mack_development_critical_layouts = {}
-        self.mack_development_layouts = {}
-        self.mack_development_spin_boxes = {}
         self.diagnostic_widgets = {}
         self.mack_valuation_padding_widgets = {}
         self.mack_valuation_correlations = {}
+        self.mack_development_critical_layouts = {}
         self.mack_development_correlations = {}
         self.mack_valuation_passes = {}
         self.mack_development_passes = {}
@@ -128,51 +124,15 @@ class AnalysisTab(QWidget):
             # We use QStackedWidget to switch between tabular and diagnostic views.
             self.analysis_containers[i] = QStackedWidget()
             self.analysis_containers[i].addWidget(self.triangle_views[i])
-
-            self.mack_valuation_groupboxes[i] = QGroupBox("Mack Valuation Correlation Test - All Years")
             self.diagnostic_containers[i] = QVBoxLayout()
             self.diagnostic_containers[i].setSpacing(30)
-            self.mack_valuation_total_layouts[i] = QHBoxLayout()
-            self.diagnostic_containers[i].addWidget(self.mack_valuation_groupboxes[i])
-            self.mack_valuation_groupboxes[i].setLayout(self.mack_valuation_total_layouts[i])
 
-            self.mack_valuation_critical_containers[i] = QWidget()
-            self.mack_valuation_critical_layouts[i] = QFormLayout()
-            self.mack_valuation_spin_boxes[i] = QDoubleSpinBox()
-            self.mack_valuation_spin_boxes[i].setMaximum(1)
-            self.mack_valuation_spin_boxes[i].setMinimum(0)
-            self.mack_valuation_spin_boxes[i].setValue(MACK_VALUATION_CRITICAL)
-            self.mack_valuation_spin_boxes[i].setSingleStep(.01)
-            self.mack_valuation_spin_boxes[i].setFixedWidth(100)
-
-            self.mack_valuation_passes[i] = MackResultLabel(
-                spin=self.mack_valuation_spin_boxes[i],
+            self.mack_valuation_groupboxes[i] = MackAllYearGroupBox(
+                title="Mack Valuation Correlation Test - All Years",
                 triangle=triangle_column,
                 test_type="valuation correlation"
             )
-
-            self.mack_valuation_critical_layouts[i].addRow(
-                "Critical Value: ",
-                self.mack_valuation_spin_boxes[i]
-            )
-            self.mack_valuation_critical_containers[i].setLayout(
-                self.mack_valuation_critical_layouts[i]
-            )
-
-            self.mack_valuation_total_layouts[i].addWidget(
-                self.mack_valuation_critical_containers[i],
-                stretch=0
-            )
-            self.mack_valuation_total_layouts[i].addWidget(
-                self.mack_valuation_passes[i],
-                stretch=0
-            )
-
-            self.mack_valuation_total_layouts[i].addWidget(
-                QWidget(),
-                stretch=2
-            )
-            self.mack_valuation_total_layouts[i].setAlignment(Qt.AlignTop)
+            self.diagnostic_containers[i].addWidget(self.mack_valuation_groupboxes[i])
 
             self.mack_valuation_individual_groupboxes[i] = QGroupBox(
                 "Mack Valuation Correlation Test - Individual Years"
@@ -268,50 +228,15 @@ class AnalysisTab(QWidget):
                 self.mack_valuation_padding_widgets[i]
             )
 
-            self.mack_development_groupboxes[i] = QGroupBox("Mack Development Correlation Test")
-            self.mack_development_layouts[i] = QHBoxLayout()
-            self.diagnostic_containers[i].addWidget(
-                self.mack_development_groupboxes[i],
-                stretch=0
-            )
-            self.mack_development_groupboxes[i].setLayout(self.mack_development_layouts[i])
-
-            self.mack_development_critical_containers[i] = QWidget()
-            self.mack_development_critical_layouts[i] = QFormLayout()
-            self.mack_development_spin_boxes[i] = QDoubleSpinBox()
-            self.mack_development_spin_boxes[i].setMaximum(1)
-            self.mack_development_spin_boxes[i].setMinimum(0)
-            self.mack_development_spin_boxes[i].setValue(MACK_DEVELOPMENT_CRITICAL)
-            self.mack_development_spin_boxes[i].setSingleStep(.01)
-            self.mack_development_spin_boxes[i].setFixedWidth(100)
-
-            self.mack_development_passes[i] = MackResultLabel(
-                spin=self.mack_development_spin_boxes[i],
+            self.mack_development_groupboxes[i] = MackAllYearGroupBox(
+                title="Mack Development Correlation Test",
                 triangle=triangle_column,
                 test_type="development correlation"
             )
 
-            self.mack_development_critical_layouts[i].addRow(
-                "Critical Value: ",
-                self.mack_development_spin_boxes[i]
-            )
-            self.mack_development_critical_containers[i].setLayout(
-                self.mack_development_critical_layouts[i]
-            )
-
-            self.mack_development_layouts[i].addWidget(
-                self.mack_development_critical_containers[i],
+            self.diagnostic_containers[i].addWidget(
+                self.mack_development_groupboxes[i],
                 stretch=0
-            )
-
-            self.mack_development_layouts[i].addWidget(
-                self.mack_development_passes[i],
-                stretch=0
-            )
-
-            self.mack_development_layouts[i].addWidget(
-                QWidget(),
-                stretch=2
             )
 
             self.diagnostic_containers[i].addWidget(
@@ -554,3 +479,76 @@ class MackResultLabel(QLabel):
             raise ValueError("Invalid test-type indicated.")
 
         self.setText("Status: " + pass_alias[self.test_bool])
+
+
+class MackCriticalSpinBox(QDoubleSpinBox):
+    def __init__(
+            self,
+            starting_value: float,
+            maximum: float = 1,
+            minimum: float = 0,
+            step: float = .01,
+            width: int = 100
+    ):
+        super().__init__()
+
+        self.setMaximum(maximum)
+        self.setMinimum(minimum)
+        self.setValue(starting_value)
+        self.setSingleStep(step)
+        self.setFixedWidth(width)
+
+
+class MackAllYearGroupBox(QGroupBox):
+    def __init__(
+            self,
+            title: str,
+            triangle: Triangle,
+            test_type: str
+    ):
+        super().__init__()
+
+        self.setTitle(title)
+        self.triangle = triangle
+        self.test_type = test_type
+
+        starting_value = starting_value_lookup[self.test_type]
+
+        # Holds the critical container and test status, horizontally
+        self.horizontal_layout = QHBoxLayout()
+        self.setLayout(self.horizontal_layout)
+
+        # Critical layout holds the spinbox as a form
+        self.critical_container = QWidget()
+        self.critical_layout = QFormLayout()
+        self.critical_container.setLayout(self.critical_layout)
+        self.spin_box = MackCriticalSpinBox(starting_value=starting_value)
+
+        self.test_result_label = MackResultLabel(
+            spin=self.spin_box,
+            triangle=triangle,
+            test_type=self.test_type
+        )
+
+        self.critical_layout.addRow(
+            "Critical Value: ",
+            self.spin_box
+        )
+
+        # This configuration of stretch values is to keep the widgets fixed aligned to the left
+        self.horizontal_layout.addWidget(
+            self.critical_container,
+            stretch=0
+        )
+
+        self.horizontal_layout.addWidget(
+            self.test_result_label,
+            stretch=0
+        )
+
+        self.horizontal_layout.addWidget(
+            QWidget(),
+            stretch=2
+        )
+
+        self.horizontal_layout.setAlignment(Qt.AlignTop)
