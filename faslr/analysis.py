@@ -276,15 +276,9 @@ class MackValuationModel(FAbstractTableModel):
         self.triangle = triangle
         self.spin_box = critical
         self.critical_value = self.spin_box.value()
+        self._data = None
 
-        corr = self.triangle.valuation_correlation(
-            p_critical=self.critical_value,
-            total=False
-        ).z_critical
-
-        self._data = corr.to_frame(
-            origin_as_datetime=False
-        )
+        self.calculate()
 
         self.spin_box.valueChanged.connect(self.recalculate) # noqa
 
@@ -307,6 +301,15 @@ class MackValuationModel(FAbstractTableModel):
 
             return value
 
+        if role == Qt.BackgroundRole:
+            if self._data.iloc[
+                index.row(),
+                index.column()
+            ]:
+                return QColor(255, 230, 230)
+            else:
+                pass
+
     def headerData(
         self,
         p_int,
@@ -321,7 +324,7 @@ class MackValuationModel(FAbstractTableModel):
             if qt_orientation == Qt.Vertical:
                 return str(self._data.index[p_int])
 
-    def recalculate(self):
+    def calculate(self):
         self.critical_value = self.spin_box.value()
         corr = self.triangle.valuation_correlation(
             p_critical=self.critical_value,
@@ -331,6 +334,12 @@ class MackValuationModel(FAbstractTableModel):
         self._data = corr.to_frame(
             origin_as_datetime=False
         )
+
+        self._data = self._data.rename(index={min(self._data.index): 'Status'})
+
+    def recalculate(self):
+
+        self.calculate()
 
         self.layoutChanged.emit() # noqa
 
