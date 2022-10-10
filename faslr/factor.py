@@ -426,14 +426,14 @@ class FactorModel(FAbstractTableModel):
             self.selected_row.iloc[0, index.column()] = value
             self.recalculate_factors()
             self.get_display_data()
-            self.dataChanged.emit(index, index)
+            self.dataChanged.emit(index, index) # noqa
             # noinspection PyUnresolvedReferences
             self.layoutChanged.emit()
             return True
         elif refresh:
             self.recalculate_factors()
             self.get_display_data()
-            self.dataChanged.emit(index, index)
+            self.dataChanged.emit(index, index) # noqa
             # noinspection PyUnresolvedReferences
             self.layoutChanged.emit()
 
@@ -451,7 +451,7 @@ class FactorView(FTableView):
         self.delete_action = QAction("&Delete Selected LDF(s)", self)
         self.delete_action.setShortcut(QKeySequence("Del"))
         self.delete_action.setStatusTip("Delete the selected LDF(s).")
-        self.delete_action.triggered.connect(self.delete_selection)
+        self.delete_action.triggered.connect(self.delete_selection) # noqa
 
         self.installEventFilter(self)
 
@@ -475,9 +475,9 @@ class FactorView(FTableView):
         h_headers.setContextMenuPolicy(Qt.CustomContextMenu)
         v_headers.setContextMenuPolicy(Qt.CustomContextMenu)
 
-        h_headers.customContextMenuRequested.connect(
+        h_headers.customContextMenuRequested.connect( # noqa
             lambda *args: self.custom_menu_event(*args, header_type="horizontal"))
-        v_headers.customContextMenuRequested.connect(
+        v_headers.customContextMenuRequested.connect( # noqa
             lambda *args: self.custom_menu_event(*args, header_type="vertical"))
 
         # Set the styling for the table corner so that it matches the rest of the headers.
@@ -629,7 +629,7 @@ class LDFAverageModel(QAbstractTableModel):
             self.checkable_columns.add(column)
         else:
             self.checkable_columns.discard(column)
-        self.dataChanged.emit(
+        self.dataChanged.emit( # noqa
             self.index(0, column), self.index(self.rowCount() - 1, column)
         )
 
@@ -689,12 +689,12 @@ class LDFAverageModel(QAbstractTableModel):
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.CheckStateRole and index.column() in self.checkable_columns:
             self._data.iloc[index.row(), index.column()] = bool(value)
-            self.dataChanged.emit(index, index)
+            self.dataChanged.emit(index, index) # noqa
             return True
 
         if value is not None and role == Qt.EditRole:
             self._data.iloc[index.row(), index.column()] = value
-            self.dataChanged.emit(index, index)
+            self.dataChanged.emit(index, index) # noqa
             return True
         return False
 
@@ -713,10 +713,10 @@ class LDFAverageModel(QAbstractTableModel):
         self._data = pd.concat([self._data, df])
         self.parent.ldf_types = self._data
 
-        self.dataChanged.emit(index, index)
+        self.dataChanged.emit(index, index) # noqa
         # noinspection PyUnresolvedReferences
         self.layoutChanged.emit()
-        self.parent.dataChanged.emit(index, index)
+        self.parent.dataChanged.emit(index, index) # noqa
         # noinspection PyUnresolvedReferences
         self.parent.layoutChanged.emit()
 
@@ -760,8 +760,8 @@ class LDFAverageBox(QDialog):
         self.button_box.addButton("Add Average", QDialogButtonBox.ActionRole)
         self.button_box.addButton(QDialogButtonBox.Ok)
 
-        self.button_box.clicked.connect(self.add_ldf_average)
-        self.button_box.accepted.connect(self.accept_changes)
+        self.button_box.clicked.connect(self.add_ldf_average) # noqa
+        self.button_box.accepted.connect(self.accept_changes) # noqa
 
         self.layout.addWidget(self.button_box)
 
@@ -827,8 +827,8 @@ class AddLDFDialog(QDialog):
         self.layout.addWidget(button_box)
         self.setLayout(self.layout)
 
-        button_box.rejected.connect(self.cancel_close)
-        button_box.accepted.connect(self.add_average)
+        button_box.rejected.connect(self.cancel_close) # noqa
+        button_box.accepted.connect(self.add_average) # noqa
 
     def cancel_close(self):
         self.close()
@@ -838,13 +838,13 @@ class AddLDFDialog(QDialog):
         avg_type = self.type_combo.currentText()
         years = self.year_spin.value()
 
-        self.parent.model.add_average(
+        self.parent.model.add_average( # noqa
             label=label,
             avg_type=avg_type,
             years=years
         )
 
-        self.parent.set_dimensions()
+        self.parent.set_dimensions() # noqa
         self.close()
 
 
@@ -854,7 +854,7 @@ class CheckBoxStyle(QProxyStyle):
     """
 
     def subElementRect(self, element, opt, widget=None):
-        if element == self.SE_ItemViewItemCheckIndicator and not opt.text:
+        if element == self.SE_ItemViewItemCheckIndicator and not opt.text: # noqa
             rect = super().subElementRect(element, opt, widget)
             rect.moveCenter(opt.rect.center())
             return rect
