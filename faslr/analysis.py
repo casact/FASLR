@@ -1,3 +1,5 @@
+from chainladder import Triangle
+
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
@@ -10,17 +12,15 @@ from faslr.constants import (
     VALUE_TYPES_COMBO_BOX_WIDTH
 )
 
-from chainladder import Triangle
-
 from faslr.utilities.accessors import get_column
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     Qt
 )
 
-from PyQt5.QtGui import QColor
+from PyQt6.QtGui import QColor
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QComboBox,
     QFormLayout,
     QGroupBox,
@@ -66,9 +66,8 @@ class AnalysisTab(QWidget):
         self.value_box = QComboBox()
         self.value_box.setFixedWidth(VALUE_TYPES_COMBO_BOX_WIDTH)
         self.value_box.addItems(VALUE_TYPES)
-
         self.column_tab = ColumnTab()
-        self.column_tab.setTabPosition(QTabWidget.West)
+        self.column_tab.setTabPosition(QTabWidget.TabPosition.West)
 
         self.column_list = list(self.triangle.columns)
 
@@ -90,7 +89,7 @@ class AnalysisTab(QWidget):
 
         # Used to solve some issues with borders not appearing when there's only 1 tab.
         if column_count == 1:
-            bottom_border_width = 2
+            bottom_border_width = 1
             margin_top = "44"
         else:
             bottom_border_width = 1
@@ -152,20 +151,20 @@ class AnalysisTab(QWidget):
             triangle_model = TriangleModel(triangle_column, 'value')
             self.triangle_views[i].setModel(triangle_model)
 
-            self.analysis_containers[i].setStyleSheet(
-                """
-                DiagnosticWidget {
-                    border: 2px solid darkgrey;
-                    background: rgb(230, 230, 230);
-                }
-                """
-            )
+            # self.analysis_containers[i].setStyleSheet(
+            #     """
+            #     DiagnosticWidget {
+            #         border: 2px solid darkgrey;
+            #         background: rgb(230, 230, 230);
+            #     }
+            #     """
+            # )
 
             self.column_tab.addTab(self.analysis_containers[i], i)
 
         self.layout.addWidget(
             self.value_box,
-            alignment=Qt.AlignRight
+            alignment=Qt.AlignmentFlag.AlignRight
         )
         self.layout.addWidget(self.column_tab)
 
@@ -174,28 +173,29 @@ class AnalysisTab(QWidget):
         self.column_tab.setStyleSheet(
             """
             QTabBar::tab:first {{
-                margin-top: 44px;
-            }}
-            
-            
-            QTabBar::tab {{
-              margin-top: {}px;
-              background: rgb(230, 230, 230); 
-              border: 1px solid darkgrey;
-              border-bottom: {}px solid darkgrey; 
-              padding: 5px;
-              padding-left: 10px;
-              height: 250px;
-              margin-right: -1px;
+                margin-top: 22px;
             }}
 
-            QTabBar::tab:selected {{ 
-              background: rgb(245, 245, 245);
-              margin-bottom: -1px;
+
+            QTabBar::tab {{
+              margin-top: {}px;
+              background: rgb(230, 230, 230);
+              border: 1px solid darkgrey;
+              border-bottom: {}px solid darkgrey;
+              padding: 5px;
+              padding-left: 10px;
+              height: 125px;
+              margin-right: 0px;
+              border-right: 0px;
             }}
-            
+
+            QTabBar::tab:selected {{
+              background: rgb(245, 245, 245);
+
+            }}
+
             QTabWidget::pane {{
-              border-top: 2px solid darkgrey;
+              border: 1px solid darkgrey;
             }}
             """.format(
                 margin_top,
@@ -288,7 +288,7 @@ class MackValuationModel(FAbstractTableModel):
         role=None
     ):
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
 
             value = pass_alias[
                 self._data.iloc[
@@ -301,7 +301,7 @@ class MackValuationModel(FAbstractTableModel):
 
             return value
 
-        if role == Qt.BackgroundRole:
+        if role == Qt.ItemDataRole.BackgroundRole:
             if self._data.iloc[
                 index.row(),
                 index.column()
@@ -317,11 +317,11 @@ class MackValuationModel(FAbstractTableModel):
         role=None
     ):
 
-        if role == Qt.DisplayRole:
-            if qt_orientation == Qt.Horizontal:
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
                 return self._data.columns[p_int]
 
-            if qt_orientation == Qt.Vertical:
+            if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
 
     def calculate(self):
@@ -466,7 +466,7 @@ class MackAllYearGroupBox(QGroupBox):
             stretch=2
         )
 
-        self.horizontal_layout.setAlignment(Qt.AlignTop)
+        self.horizontal_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
 
 class MackIndividualGroupBox(QGroupBox):
