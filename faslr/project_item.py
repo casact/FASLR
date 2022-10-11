@@ -1,6 +1,6 @@
 from faslr.style.project import DEFAULT_PROJECT_FONT
 
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
     QColor,
     QFont,
     QStandardItem

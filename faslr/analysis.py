@@ -90,9 +90,9 @@ class AnalysisTab(QWidget):
         # Used to solve some issues with borders not appearing when there's only 1 tab.
         if column_count == 1:
             bottom_border_width = 1
-            margin_top = "44"
+            margin_top = "22"
         else:
-            bottom_border_width = 1
+            bottom_border_width = 0
             margin_top = "0"
 
         # For each chainladder column, we create a horizontal tab to the left.
@@ -174,6 +174,7 @@ class AnalysisTab(QWidget):
             """
             QTabBar::tab:first {{
                 margin-top: 22px;
+                border-bottom: {}px solid darkgrey;
             }}
 
 
@@ -181,7 +182,7 @@ class AnalysisTab(QWidget):
               margin-top: {}px;
               background: rgb(230, 230, 230);
               border: 1px solid darkgrey;
-              border-bottom: {}px solid darkgrey;
+              border-bottom: 1px solid darkgrey;
               padding: 5px;
               padding-left: 10px;
               height: 125px;
@@ -198,8 +199,8 @@ class AnalysisTab(QWidget):
               border: 1px solid darkgrey;
             }}
             """.format(
-                margin_top,
-                bottom_border_width
+                bottom_border_width,
+                margin_top
             )
         )
 
@@ -227,12 +228,12 @@ class AnalysisTab(QWidget):
             max_width = groupbox.mv_max_individual_width
             padding_widget = groupbox.vertical_padding_widget
 
-            if self.width() >= max_width + 166:
-                groupbox.individual_view.setFixedHeight(103)
-                padding_widget.setFixedHeight(55)
+            if self.width() >= max_width + 109:
+                groupbox.individual_view.setFixedHeight(52)
+                padding_widget.setFixedHeight(30)
             else:
-                groupbox.individual_view.setFixedHeight(132)
-                padding_widget.setFixedHeight(26)
+                groupbox.individual_view.setFixedHeight(66)
+                padding_widget.setFixedHeight(16)
 
     def update_value_type(self):
 

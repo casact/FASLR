@@ -66,6 +66,14 @@ test_pane.resize(
 #             """
 # )
 
+# test_pane.setStyleSheet(
+#     """
+#     QTabBar::tab:selected {
+#                background: rgb(245, 245, 245);
+#     }
+#     """
+# )
+
 test_pane.setWindowTitle("Mack Diagnostics Demo")
 test_pane.show()
 

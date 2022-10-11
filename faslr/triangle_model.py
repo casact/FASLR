@@ -148,19 +148,31 @@ class TriangleView(FTableView):
         opt = QStyleOptionHeader()
 
         # Set the styling for the table corner so that it matches the rest of the headers.
+        # self.setStyleSheet(
+        #     """
+        #     QTableCornerButton::section{
+        #         border-right: 1px;
+        #         border-bottom: 1px;
+        #         border-style: solid;
+        #         border-color:none darkgrey darkgrey none;
+        #         margin-right: 0px;
+        #     }
+        #     """
+        # )
+
         self.setStyleSheet(
             """
-            QTableCornerButton::section{
-                border-width: 1px;
-                border-style: solid;
-                border-color:none darkgrey darkgrey none;
+            QTableCornerButton::section {
+                border: 1px outset darkgrey;
             }
             """
         )
 
         s = QSize(btn.style().sizeFromContents(
             QStyle.ContentsType.CT_HeaderSection, opt, QSize(), btn).
-                  expandedTo(QSize(50,50)))
+                  expandedTo(QSize()))
+
+        print(s.width())
 
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())

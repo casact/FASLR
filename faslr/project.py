@@ -9,19 +9,19 @@ from faslr.schema import (
 
 from faslr.project_item import ProjectItem
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     Qt,
     QModelIndex
 )
 
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
+    QAction,
     QColor,
     QKeySequence,
     QStandardItem
 )
 
-from PyQt5.QtWidgets import (
-    QAction,
+from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -48,7 +48,7 @@ class ProjectDialog(QDialog):
         self.layout.addRow("State:", self.state_edit)
         self.layout.addRow("Line of Business:", self.lob_edit)
 
-        button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
 
         self.button_box = QDialogButtonBox(button_layout)
 
@@ -131,7 +131,12 @@ class ProjectDialog(QDialog):
 
                 new_project.lob = new_lob
 
-                country_tree_item = main_window.project_model.findItems(country_uuid, Qt.MatchExactly, 1)
+                country_tree_item = main_window.project_model.findItems(
+                    country_uuid,
+                    Qt.MatchFlag.MatchExactly,
+                    1
+                )
+
                 if country_tree_item:
                     ix = main_window.project_model.indexFromItem(country_tree_item[0])
                     ix_col_0 = main_window.project_model.sibling(ix.row(), 0, ix)
@@ -148,7 +153,11 @@ class ProjectDialog(QDialog):
                 new_lob.state = existing_state
 
                 new_project.lob = new_lob
-                state_tree_item = main_window.project_model.findItems(state_uuid, Qt.MatchRecursive, 1)
+                state_tree_item = main_window.project_model.findItems(
+                    state_uuid,
+                    Qt.MatchFlag.MatchRecursive,
+                    1
+                )
                 # state_tree_item = country_tree_item.findItems(state_uuid, Qt.MatchExactly, 1)
                 if state_tree_item:
                     ix = main_window.project_model.indexFromItem(state_tree_item[0])

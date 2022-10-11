@@ -1,7 +1,7 @@
 import sys
 
 from faslr.methods.development import DevelopmentTab
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 from faslr.utilities.sample import load_sample
 
 test = load_sample("us_industry_auto")
@@ -15,4 +15,4 @@ mytab = DevelopmentTab(
 
 mytab.show()
 
-app.exec_()
+app.exec()

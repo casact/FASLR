@@ -11,12 +11,12 @@ from faslr.project import ProjectDialog
 
 from faslr.settings import SettingsDialog
 
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
+    QAction,
     QKeySequence
 )
 
-from PyQt5.QtWidgets import (
-    QAction,
+from PyQt6.QtWidgets import (
     QMenu,
     QMenuBar
 )
@@ -77,21 +77,24 @@ class MainMenuBar(QMenuBar):
     def edit_connection(self):
         # function triggers the connection dialog box to connect to a database
         dlg = ConnectionDialog(self)
-        dlg.exec_()
+        dlg.exec()
 
     def display_about(self):
         # function to display about dialog box
         dlg = AboutDialog(self)
-        dlg.exec_()
+        dlg.exec()
 
     def new_project(self):
         # function to display new project dialog box
         dlg = ProjectDialog(self)
-        dlg.exec_()
+        dlg.exec()
 
     def display_settings(self):
         # launch settings window
-        dlg = SettingsDialog(parent=self, config_path=CONFIG_PATH)
+        dlg = SettingsDialog(
+            parent=self,
+            config_path=CONFIG_PATH
+        )
         dlg.show()
 
     def toggle_project_actions(self):
