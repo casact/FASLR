@@ -22,6 +22,7 @@ from PyQt6.QtGui import (
 )
 
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -183,6 +184,10 @@ class ProjectTreeView(QTreeView):
         super().__init__()
         self.parent = parent
         print(parent)
+
+        # Prevent ability of user to edit a project node by double-clicking on it
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
         self.new_analysis_action = QAction("&New Analysis", self)
         self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
         self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
