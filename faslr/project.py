@@ -1,5 +1,9 @@
 from faslr.connection import connect_db
 
+from faslr.data import(
+    DataPane
+)
+
 from faslr.schema import (
     CountryTable,
     LOBTable,
@@ -196,7 +200,13 @@ class ProjectTreeView(QTreeView):
         self.delete_project_action.setStatusTip("Delete the project.")
         self.delete_project_action.triggered.connect(self.delete_project)
 
-        self.doubleClicked.connect(self.get_value) # noqa
+        # self.doubleClicked.connect(self.get_value) # noqa
+
+        self.doubleClicked.connect(self.open_data_pane)
+
+    def open_data_pane(self, val: QModelIndex):
+        title = str(val.data())
+        self.parent.analysis_pane.addTab(DataPane(), title)
 
     def contextMenuEvent(self, event):
         """
