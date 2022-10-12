@@ -5,21 +5,20 @@ from faslr.base_table import (
 
 from chainladder import Triangle
 
-from PyQt5.QtCore import (
-    Qt,
+from PyQt6.QtCore import (
     QSize,
+    Qt,
     QVariant
 )
 
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
+    QAction,
     QFont,
     QKeySequence
 )
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QAbstractButton,
-    QAction,
-    QApplication,
     QLabel,
     QMenu,
     QStyle,
@@ -62,7 +61,7 @@ class TriangleModel(FAbstractTableModel):
             role=None
     ):
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
 
@@ -88,19 +87,20 @@ class TriangleModel(FAbstractTableModel):
                     index.row(),
                     index.column()
                 ),
-                QVariant(Qt.AlignRight),
-                Qt.TextAlignmentRole
+                QVariant(Qt.AlignmentFlag.AlignRight),
+                Qt.ItemDataRole.TextAlignmentRole
             )
 
             return display_value
 
-        if role == Qt.TextAlignmentRole:
-            return Qt.AlignRight
+        if role == Qt.ItemDataRole.TextAlignmentRole:
+            return Qt.AlignmentFlag.AlignRight
 
-        if role == Qt.BackgroundRole and (index.column() >= self.n_rows - index.row()):
+        if role == Qt.ItemDataRole.BackgroundRole and (index.column() >= self.n_rows - index.row()):
+
             return LOWER_DIAG_COLOR
 
-        if (role == Qt.FontRole) and (self.value_type == "ratio"):
+        if (role == Qt.ItemDataRole.FontRole) and (self.value_type == "ratio"):
             font = QFont()
             exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
             if exclude:
@@ -117,11 +117,11 @@ class TriangleModel(FAbstractTableModel):
     ):
 
         # section is the index of the column/row.
-        if role == Qt.DisplayRole:
-            if qt_orientation == Qt.Horizontal:
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
                 return str(self._data.columns[p_int])
 
-            if qt_orientation == Qt.Vertical:
+            if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
 
 
@@ -140,7 +140,7 @@ class TriangleView(FTableView):
         btn = self.findChild(QAbstractButton)
         btn.installEventFilter(self)
         btn_label = QLabel("AY")
-        btn_label.setAlignment(Qt.AlignCenter)
+        btn_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         btn_layout = QVBoxLayout()
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.addWidget(btn_label)
@@ -148,19 +148,31 @@ class TriangleView(FTableView):
         opt = QStyleOptionHeader()
 
         # Set the styling for the table corner so that it matches the rest of the headers.
+        # self.setStyleSheet(
+        #     """
+        #     QTableCornerButton::section{
+        #         border-right: 1px;
+        #         border-bottom: 1px;
+        #         border-style: solid;
+        #         border-color:none darkgrey darkgrey none;
+        #         margin-right: 0px;
+        #     }
+        #     """
+        # )
+
         self.setStyleSheet(
             """
-            QTableCornerButton::section{
-                border-width: 1px; 
-                border-style: solid; 
-                border-color:none darkgrey darkgrey none;
+            QTableCornerButton::section {
+                border: 1px outset darkgrey;
             }
             """
         )
 
         s = QSize(btn.style().sizeFromContents(
-            QStyle.CT_HeaderSection, opt, QSize(), btn).
-                  expandedTo(QApplication.globalStrut()))
+            QStyle.ContentsType.CT_HeaderSection, opt, QSize(), btn).
+                  expandedTo(QSize()))
+
+        print(s.width())
 
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())

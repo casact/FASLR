@@ -1,14 +1,14 @@
 import csv
 import io
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QAbstractTableModel,
     QEvent
 )
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QAbstractButton,
-    qApp,
+    QApplication,
     QStyle,
     QStyleOptionHeader,
     QStylePainter,
@@ -44,27 +44,27 @@ class FTableView(QTableView):
         super().__init__()
 
     def eventFilter(self, obj, event):
-        if event.type() != QEvent.Paint or not isinstance(
+        if event.type() != QEvent.Type.Paint or not isinstance(
                 obj, QAbstractButton):
             return False
 
         # Paint by hand (borrowed from QTableCornerButton)
         opt = QStyleOptionHeader()
         opt.initFrom(obj)
-        style_state = QStyle.State_None
+        style_state = QStyle.StateFlag.State_None
         if obj.isEnabled():
-            style_state |= QStyle.State_Enabled
+            style_state |= QStyle.StateFlag.State_Enabled
         if obj.isActiveWindow():
-            style_state |= QStyle.State_Active
+            style_state |= QStyle.StateFlag.State_Active
         if obj.isDown():
-            style_state |= QStyle.State_Sunken
+            style_state |= QStyle.StateFlag.State_Sunken
         opt.state = style_state
         opt.rect = obj.rect()
         # This line is the only difference to QTableCornerButton
         opt.text = obj.text()
-        opt.position = QStyleOptionHeader.OnlyOneSection
+        opt.position = QStyleOptionHeader.SectionPosition.OnlyOneSection
         painter = QStylePainter(obj)
-        painter.drawControl(QStyle.CE_Header, opt)
+        painter.drawControl(QStyle.ControlElement.CE_Header, opt)
 
         return True
 
@@ -83,5 +83,5 @@ class FTableView(QTableView):
                 table[row][column] = index.data()
             stream = io.StringIO()
             csv.writer(stream, delimiter='\t').writerows(table)
-            qApp.clipboard().setText(stream.getvalue())
+            QApplication.clipboard().setText(stream.getvalue())
         return

@@ -12,13 +12,13 @@ from faslr.constants import (
     SETTINGS_LIST
 )
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QAbstractListModel,
     QCoreApplication,
     Qt
 )
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
@@ -42,7 +42,7 @@ class SettingsListModel(QAbstractListModel):
         self.setting_items = setting_items or []
 
     def data(self, index, role=None):
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return self.setting_items[index.row()]
 
     def rowCount(self, parent=None):
@@ -69,7 +69,7 @@ class SettingsDialog(QDialog):
 
         self.layout = QVBoxLayout()
 
-        button_layout = QDialogButtonBox.Ok
+        button_layout = QDialogButtonBox.StandardButton.Ok
         self.button_box = QDialogButtonBox(button_layout)
         # noinspection PyUnresolvedReferences
         self.button_box.accepted.connect(self.accept)
@@ -97,7 +97,7 @@ class SettingsDialog(QDialog):
         self.list_pane.setCurrentIndex(self.list_model.index(0))
         self.update_config_layout(self.list_pane.currentIndex())
 
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self.list_pane)
         splitter.addWidget(self.configuration_layout)
         splitter.setStretchFactor(1, 1)
@@ -137,7 +137,7 @@ class SettingsDialog(QDialog):
         connect_button = QPushButton("Add Connection")
         layout.addWidget(label)
         layout.addWidget(connect_button)
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         # noinspection PyUnresolvedReferences
         connect_button.clicked.connect(self.set_connection)
         self.startup_connected_container.setLayout(layout)
@@ -154,7 +154,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(label)
         layout.addWidget(self.db_label)
         layout.addWidget(reset_connection)
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         # noinspection PyUnresolvedReferences
         reset_connection.clicked.connect(self.reset_connection)
         self.startup_unconnected_container.setLayout(layout)
@@ -164,7 +164,7 @@ class SettingsDialog(QDialog):
         delete_configuration_button = QPushButton("Delete Configuration")
         delete_configuration_button.setStatusTip("Delete the user config file and quit the application.")
         layout.addWidget(delete_configuration_button)
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         # noinspection PyUnresolvedReferences
         delete_configuration_button.clicked.connect(self.delete_configuration)
         self.user_container.setLayout(layout)

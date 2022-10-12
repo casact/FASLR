@@ -30,16 +30,16 @@ from faslr.style.main import (
     MAIN_WINDOW_TITLE
 )
 
-from PyQt5.Qt import (
+from PyQt6.QtGui import (
     QStandardItemModel
 )
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     Qt,
     QThreadPool
 )
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
     QSplitter,
@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
 
         self.project_pane.setModel(self.project_model)
 
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self.project_pane)
 
         # triangle placeholder
@@ -142,28 +142,28 @@ class MainWindow(QMainWindow):
         self.analysis_pane.addTab(self.xyz_tab, "XYZ")
 
         # This styling is mostly done to add a border right beneath the tab
-        self.analysis_pane.setStyleSheet(
-            """
-            QTabWidget::pane {
-              border: 1px solid darkgrey;
-              top:-1px; 
-              background: rgb(245, 245, 245); 
-            } 
-            
-            QTabBar::tab {
-              background: rgb(230, 230, 230); 
-              border: 1px solid darkgrey; 
-              padding: 5px;
-              padding-left: 10px;
-              height: 30px;
-            } 
-            
-            QTabBar::tab:selected { 
-              background: rgb(245, 245, 245); 
-              margin-bottom: -1px; 
-            }
-            """
-        )
+        # self.analysis_pane.setStyleSheet(
+        #     """
+        #     QTabWidget::pane {
+        #       border: 1px solid darkgrey;
+        #       top:-1px;
+        #       background: rgb(245, 245, 245);
+        #     }
+        #
+        #     QTabBar::tab {
+        #       background: rgb(230, 230, 230);
+        #       border: 1px solid darkgrey;
+        #       padding: 5px;
+        #       padding-left: 10px;
+        #       height: 30px;
+        #     }
+        #
+        #     QTabBar::tab:selected {
+        #       background: rgb(245, 245, 245);
+        #       margin-bottom: -1px;
+        #     }
+        #     """
+        # )
 
         # noinspection PyUnresolvedReferences
         self.analysis_pane.tabCloseRequested.connect(self.remove_tab)
@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):
         self.main_container = QWidget()
         self.layout.addWidget(self.menu_bar)
         self.layout.addWidget(self.body_container, stretch=1)
-        self.layout.setAlignment(Qt.AlignTop)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.main_container.setLayout(self.layout)
 
         # Otherwise, we get too much space between the menu bar and the top of the app and between
@@ -214,4 +214,4 @@ if __name__ == "__main__":
 
     window.show()
 
-    app.exec_()
+    app.exec()

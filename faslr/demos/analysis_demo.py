@@ -2,7 +2,7 @@ import sys
 
 from faslr.analysis import AnalysisTab
 from faslr.utilities.sample import load_sample
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QApplication,
     QTabWidget
 )
@@ -43,30 +43,38 @@ test_pane.resize(
     auto_tab.height()
 )
 
-test_pane.setStyleSheet(
-            """
-            QTabWidget::pane {
-              border: 1px solid darkgrey;
-              background: rgb(245, 245, 245);
-            }
+# test_pane.setStyleSheet(
+#             """
+#             QTabWidget::pane {
+#               border: 1px solid darkgrey;
+#               background: rgb(245, 245, 245);
+#             }
+#
+#             QTabBar::tab {
+#               background: rgb(230, 230, 230);
+#               border: 1px solid darkgrey;
+#               padding: 5px;
+#               padding-left: 10px;
+#               height: 30px;
+#             }
+#
+#             QTabBar::tab:selected {
+#               background: rgb(245, 245, 245);
+#               margin-bottom: -1px;
+#             }
+#
+#             """
+# )
 
-            QTabBar::tab {
-              background: rgb(230, 230, 230);
-              border: 1px solid darkgrey;
-              padding: 5px;
-              padding-left: 10px;
-              height: 30px;
-            }
-
-            QTabBar::tab:selected {
-              background: rgb(245, 245, 245);
-              margin-bottom: -1px;
-            }
-
-            """
-)
+# test_pane.setStyleSheet(
+#     """
+#     QTabBar::tab:selected {
+#                background: rgb(245, 245, 245);
+#     }
+#     """
+# )
 
 test_pane.setWindowTitle("Mack Diagnostics Demo")
 test_pane.show()
 
-app.exec_()
+app.exec()

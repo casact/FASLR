@@ -5,4 +5,5 @@ numpy
 pandas
 pytest
 PyQt5
+PyQt6
 sqlalchemy

@@ -17,12 +17,12 @@ from faslr.schema import (
 
 from faslr.project_item import ProjectItem
 
-from PyQt5.Qt import (
+from PyQt6.QtGui import (
     QColor,
     QStandardItem
 )
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
@@ -54,7 +54,7 @@ class ConnectionDialog(QDialog):
         self.new_connection = QRadioButton("Create new database")
         self.layout.addWidget(self.new_connection)
 
-        button_layout = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
 
         self.button_box = QDialogButtonBox(button_layout)
 

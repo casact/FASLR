@@ -1,13 +1,13 @@
 import os
 from os.path import dirname
-from PyQt5.QtWidgets import QFileDialog
+from PyQt6.QtWidgets import QFileDialog
 
 BUILD_VERSION = "0.0.2"
 
 if "PYCHARM_HOSTED" in os.environ:
-    QT_FILEPATH_OPTION = QFileDialog.DontUseNativeDialog
+    QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
 else:
-    QT_FILEPATH_OPTION = QFileDialog.ShowDirsOnly
+    QT_FILEPATH_OPTION = QFileDialog.Option.ShowDirsOnly
 
 
 ROOT_PATH = dirname(dirname(os.path.realpath(__file__)))

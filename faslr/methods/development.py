@@ -8,9 +8,9 @@ from faslr.factor import (
 
 from faslr.utilities.style_parser import parse_styler
 
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QCheckBox,
     QHBoxLayout,
     QPushButton,
@@ -61,7 +61,7 @@ class DevelopmentTab(QWidget):
         self.tool_layout.addWidget(self.add_ldf_btn)
         self.layout.addWidget(
             self.tool_container,
-            alignment=Qt.AlignRight
+            alignment=Qt.AlignmentFlag.AlignRight
         )
         self.layout.addWidget(self.factor_view)
         self.setLayout(self.layout)

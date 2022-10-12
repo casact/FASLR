@@ -18,7 +18,7 @@ from faslr.constants import (
 
 from pandas import DataFrame
 
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     Qt,
@@ -26,17 +26,16 @@ from PyQt5.QtCore import (
     QVariant
 )
 
-from PyQt5.QtGui import (
+from PyQt6.QtGui import (
+    QAction,
     QColor,
     QFont,
     QKeyEvent,
     QKeySequence
 )
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QAbstractButton,
-    QAction,
-    QApplication,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -139,7 +138,7 @@ class FactorModel(FAbstractTableModel):
             role: int = None
     ) -> Any:
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
             col = self._data.columns[index.column()]
@@ -175,16 +174,16 @@ class FactorModel(FAbstractTableModel):
                     index.row(),
                     index.column()
                 ),
-                QVariant(Qt.AlignRight),
-                Qt.TextAlignmentRole
+                QVariant(Qt.AlignmentFlag.AlignRight),
+                Qt.ItemDataRole.TextAlignmentRole
             )
 
             return display_value
 
-        if role == Qt.TextAlignmentRole:
-            return Qt.AlignRight
+        if role == Qt.ItemDataRole.TextAlignmentRole:
+            return Qt.AlignmentFlag.AlignRight
 
-        if role == Qt.BackgroundRole:
+        if role == Qt.ItemDataRole.BackgroundRole:
             if self._data.columns[index.column()] != "Ultimate Loss":
                 # Case when the index is on the lower diagonal
                 if (index.column() >= self.n_triangle_rows - index.row()) and \
@@ -210,7 +209,7 @@ class FactorModel(FAbstractTableModel):
                     return LOWER_DIAG_COLOR
 
         # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
-        if (role == Qt.FontRole) and \
+        if (role == Qt.ItemDataRole.FontRole) and \
                 (self.value_type == "ratio") and \
                 (index.row() < self.triangle_spacer_row - 2) and \
                 (index.column() < self.n_triangle_columns):
@@ -226,12 +225,12 @@ class FactorModel(FAbstractTableModel):
     def flags(
             self,
             index: QModelIndex
-    ) -> Qt.ItemFlags:
+    ) -> Qt.ItemFlag:
 
         if index.row() == self.selected_row_num:
-            return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            return Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         else:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
     def headerData(
             self,
@@ -241,11 +240,11 @@ class FactorModel(FAbstractTableModel):
     ) -> Any:
 
         # section is the index of the column/row.
-        if role == Qt.DisplayRole:
-            if qt_orientation == Qt.Horizontal:
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
                 return str(self._data.columns[p_int])
 
-            if qt_orientation == Qt.Vertical:
+            if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
 
     def toggle_exclude(
@@ -415,7 +414,7 @@ class FactorModel(FAbstractTableModel):
             role: int = None,
             refresh: bool = False
     ) -> bool:
-        if value is not None and role == Qt.EditRole:
+        if value is not None and role == Qt.ItemDataRole.EditRole:
 
             try:
                 value = float(value)
@@ -462,7 +461,7 @@ class FactorView(FTableView):
         btn = self.findChild(QAbstractButton)
         btn.installEventFilter(self)
         btn_label = QLabel("AY")
-        btn_label.setAlignment(Qt.AlignCenter)
+        btn_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         btn_layout = QVBoxLayout()
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.addWidget(btn_label)
@@ -472,8 +471,8 @@ class FactorView(FTableView):
         h_headers = self.horizontalHeader()
         v_headers = self.verticalHeader()
 
-        h_headers.setContextMenuPolicy(Qt.CustomContextMenu)
-        v_headers.setContextMenuPolicy(Qt.CustomContextMenu)
+        h_headers.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        v_headers.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
 
         h_headers.customContextMenuRequested.connect( # noqa
             lambda *args: self.custom_menu_event(*args, header_type="horizontal"))
@@ -492,16 +491,16 @@ class FactorView(FTableView):
         )
 
         s = QSize(btn.style().sizeFromContents(
-            QStyle.CT_HeaderSection,
+            QStyle.ContentsType.CT_HeaderSection,
             opt,
             QSize(),
             btn
-        ).expandedTo(QApplication.globalStrut()))
+        ).expandedTo(QSize()))
 
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())
 
-        self.verticalHeader().setDefaultAlignment(Qt.AlignCenter)
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # noinspection PyUnresolvedReferences
         self.verticalHeader().sectionDoubleClicked.connect(self.vertical_header_double_click)
@@ -516,7 +515,7 @@ class FactorView(FTableView):
             e: QKeyEvent
     ) -> None:
 
-        if e.key() == Qt.Key_Delete:
+        if e.key() == Qt.Key.Key_Delete:
             self.delete_selection()
         else:
             super().keyPressEvent(e)
@@ -640,17 +639,20 @@ class LDFAverageModel(QAbstractTableModel):
     ):
         value = self._data.iloc[index.row(), index.column()]
 
-        if role == Qt.CheckStateRole and index.column() in self.checkable_columns:
-            return Qt.Checked if value else Qt.Unchecked
-        elif index.column() not in self.checkable_columns and role in (Qt.DisplayRole, Qt.EditRole):
+        if role == Qt.ItemDataRole.CheckStateRole and index.column() in self.checkable_columns:
+            return Qt.CheckState.Checked if value else Qt.CheckState.Unchecked
+        elif index.column() not in self.checkable_columns and role in (
+                Qt.ItemDataRole.DisplayRole,
+                Qt.ItemDataRole.EditRole
+        ):
             return value
         else:
             return None
 
     def flags(self, index):
-        flags = Qt.ItemIsEnabled
+        flags = Qt.ItemFlag.ItemIsEnabled
         if index.column() in self.checkable_columns:
-            flags |= Qt.ItemIsUserCheckable
+            flags |= Qt.ItemFlag.ItemIsUserCheckable
         return flags
 
     def headerData(
@@ -661,11 +663,11 @@ class LDFAverageModel(QAbstractTableModel):
     ):
 
         # section is the index of the column/row.
-        if role == Qt.DisplayRole:
-            if qt_orientation == Qt.Horizontal:
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
                 return str(self._data.columns[p_int])
 
-            if qt_orientation == Qt.Vertical:
+            if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
 
     def rowCount(
@@ -686,13 +688,13 @@ class LDFAverageModel(QAbstractTableModel):
 
         return self._data.shape[1]
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if role == Qt.CheckStateRole and index.column() in self.checkable_columns:
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+        if role == Qt.ItemDataRole.CheckStateRole and index.column() in self.checkable_columns:
             self._data.iloc[index.row(), index.column()] = bool(value)
             self.dataChanged.emit(index, index) # noqa
             return True
 
-        if value is not None and role == Qt.EditRole:
+        if value is not None and role == Qt.ItemDataRole.EditRole:
             self._data.iloc[index.row(), index.column()] = value
             self.dataChanged.emit(index, index) # noqa
             return True
@@ -733,7 +735,11 @@ class LDFAverageBox(QDialog):
     Contains the view which houses a list of LDF averages that the user can choose to display in the factor view.
     """
 
-    def __init__(self, parent: FactorModel, view):
+    def __init__(
+            self,
+            parent: FactorModel,
+            view
+    ):
         super().__init__()
 
         self.parent = parent
@@ -757,8 +763,8 @@ class LDFAverageBox(QDialog):
 
         self.button_box = QDialogButtonBox()
 
-        self.button_box.addButton("Add Average", QDialogButtonBox.ActionRole)
-        self.button_box.addButton(QDialogButtonBox.Ok)
+        self.button_box.addButton("Add Average", QDialogButtonBox.ButtonRole.ActionRole)
+        self.button_box.addButton(QDialogButtonBox.StandardButton.Ok)
 
         self.button_box.clicked.connect(self.add_ldf_average) # noqa
         self.button_box.accepted.connect(self.accept_changes) # noqa
@@ -791,7 +797,7 @@ class LDFAverageBox(QDialog):
             return
         else:
             ldf_dialog = AddLDFDialog(parent=self)
-            ldf_dialog.exec_()
+            ldf_dialog.exec()
 
     def accept_changes(self):
         self.parent.get_display_data()
@@ -819,7 +825,7 @@ class AddLDFDialog(QDialog):
         self.year_spin.setMinimum(1)
         self.year_spin.setValue(1)
         self.avg_label = QLineEdit()
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
 
         self.layout.addRow("Type: ", self.type_combo)
         self.layout.addRow("Years: ", self.year_spin)
