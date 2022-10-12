@@ -3,9 +3,7 @@ Free Actuarial System for Loss Reserving
 
 FASLR (fæzlɹ̩) is a Qt-based frontend for open-source loss reserving packages. Current plans are to support the [Chainladder](https://github.com/casact/chainladder-python) package.
 
-The actuarial methods and example data used in this project are derived from publicly available papers and data sources. The GUI is developed in Python using the open-source PyQt5 package.
-
-Since PyQt6 has been released, I'm considering upgrading the project to PyQt6. A branch has been created for this purpose a thread in the discussions section has been started.
+The actuarial methods and example data used in this project are derived from publicly available papers and data sources. The GUI is developed in Python using the open-source PyQt6 package.
 
 ## Project Governance
 
