@@ -1,3 +1,4 @@
+from __future__ import annotations
 import configparser
 import logging
 import os
@@ -17,6 +18,8 @@ from faslr.schema import (
 
 from faslr.project_item import ProjectItem
 
+from PyQt6.QtCore import QEvent
+
 from PyQt6.QtGui import (
     QColor,
     QStandardItem
@@ -33,6 +36,11 @@ from PyQt6.QtWidgets import (
 
 from sqlalchemy.orm import sessionmaker
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from faslr.main import MainWindow
+    from faslr.menu import MainMenuBar
+
 
 class ConnectionDialog(QDialog):
     """
@@ -40,7 +48,10 @@ class ConnectionDialog(QDialog):
     connect to an existing one.
     """
 
-    def __init__(self, parent=None):
+    def __init__(
+            self,
+            parent=None
+    ):
         super().__init__(parent)
         logging.info("Connection window initialized.")
 
@@ -66,7 +77,10 @@ class ConnectionDialog(QDialog):
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
-    def make_connection(self, menu_bar):
+    def make_connection(
+            self,
+            menu_bar: MainMenuBar
+    ) -> None:
         """
         Depending on what the user selects, triggers function to either connect to an existing database
         or to a new one.
@@ -79,16 +93,19 @@ class ConnectionDialog(QDialog):
         elif self.new_connection.isChecked():
             main_window.db = self.create_new_db(menu_bar=menu_bar)
 
-    def create_new_db(self, menu_bar):
+    def create_new_db(
+            self,
+            menu_bar: MainMenuBar
+    ) -> str:
         """
         Creates a new backend database.
         """
 
         filename = QFileDialog.getSaveFileName(
-            self,
-            'SaveFile',
-            'untitled.db',
-            "Sqlite Database (*.db)",
+            parent=self,
+            caption='SaveFile',
+            directory='untitled.db',
+            filter="Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION
         )
 
@@ -115,25 +132,31 @@ class ConnectionDialog(QDialog):
 
         return db_filename
 
-    def open_existing_db(self, main_window):
+    def open_existing_db(
+            self,
+            main_window: MainWindow
+    ) -> str:
         """
         Opens a connection to an existing database.
         """
         db_filename = QFileDialog.getOpenFileName(
-            self,
-            'OpenFile',
-            '',
-            "Sqlite Database (*.db)",
+            parent=self,
+            caption='OpenFile',
+            filter='',
+            initialFilter="Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION)[0]
 
         if not db_filename == "":
 
-            populate_project_tree(db_filename=db_filename, main_window=main_window)
+            populate_project_tree(
+                db_filename=db_filename,
+                main_window=main_window
+            )
             self.close()
 
         return db_filename
 
-    def reject(self):
+    def reject(self) -> None:
         """
         Closes the connection dialog box if the user presses cancel.
         """
@@ -141,7 +164,10 @@ class ConnectionDialog(QDialog):
 
         self.close()
 
-    def closeEvent(self, event):
+    def closeEvent(
+            self,
+            event: QEvent
+    ) -> None:
         """
         Closes the connection dialog box.
         """
@@ -150,7 +176,10 @@ class ConnectionDialog(QDialog):
         event.accept()  # let the window close
 
 
-def populate_project_tree(db_filename, main_window):
+def populate_project_tree(
+        db_filename: str,
+        main_window: MainWindow
+) -> None:
     """
     Upon connection to an existing database, populates the project tree in the left-hand pane of the
     main window based on what projects have been saved to the database.
@@ -229,7 +258,10 @@ def populate_project_tree(db_filename, main_window):
 
 
 class FaslrConnection:
-    def __init__(self, db_path):
+    def __init__(
+            self,
+            db_path: str
+    ):
 
         self.engine = sa.create_engine(
             'sqlite:///' + db_path,

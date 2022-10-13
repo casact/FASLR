@@ -1,6 +1,8 @@
 """
 Contains the menu bar of the main window i.e., the horizontal bar that has stuff like File, Edit, Tools, About, etc.
 """
+from __future__ import annotations
+
 from faslr.about import AboutDialog
 
 from faslr.connection import ConnectionDialog
@@ -21,9 +23,16 @@ from PyQt6.QtWidgets import (
     QMenuBar
 )
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from faslr.main import MainWindow
+
 
 class MainMenuBar(QMenuBar):
-    def __init__(self, parent=None):
+    def __init__(
+            self,
+            parent: MainWindow = None
+    ):
         super().__init__(parent)
 
         self.parent = parent
