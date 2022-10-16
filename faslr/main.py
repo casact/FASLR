@@ -35,6 +35,7 @@ from PyQt6.QtGui import (
 )
 
 from PyQt6.QtCore import (
+    QEvent,
     Qt,
     QThreadPool
 )
@@ -195,13 +196,19 @@ class MainWindow(QMainWindow):
                 main_window=self
             )
 
-    def remove_tab(self, index: int):
+    def remove_tab(
+            self,
+            index: int
+    ) -> None:
         """
         Deletes an open tab from the analysis pane.
         """
         self.analysis_pane.removeTab(index)
 
-    def closeEvent(self, event):
+    def closeEvent(
+            self,
+            event: QEvent
+    ) -> None:
         logging.info("Main window closed.")
 
         event.accept()  # let the window close
