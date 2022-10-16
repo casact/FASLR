@@ -1,0 +1,10 @@
+TIME_FIELDS = [
+    'ACCIDENT YEAR',
+    'POLICY YEAR',
+    'CALENDAR YEAR',
+    'REPORT YEAR'
+]
+
+LOSS_FIELDS = [
+    ''
+]
