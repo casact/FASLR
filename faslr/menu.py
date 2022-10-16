@@ -83,22 +83,22 @@ class MainMenuBar(QMenuBar):
 
         help_menu.addAction(self.about_action)
 
-    def edit_connection(self):
+    def edit_connection(self) -> None:
         # function triggers the connection dialog box to connect to a database
         dlg = ConnectionDialog(self)
         dlg.exec()
 
-    def display_about(self):
+    def display_about(self) -> None:
         # function to display about dialog box
         dlg = AboutDialog(self)
         dlg.exec()
 
-    def new_project(self):
+    def new_project(self) -> None:
         # function to display new project dialog box
         dlg = ProjectDialog(self)
         dlg.exec()
 
-    def display_settings(self):
+    def display_settings(self) -> None:
         # launch settings window
         dlg = SettingsDialog(
             parent=self,
@@ -106,7 +106,7 @@ class MainMenuBar(QMenuBar):
         )
         dlg.show()
 
-    def toggle_project_actions(self):
+    def toggle_project_actions(self) -> None:
         # disable project-based menu items until connection is established
 
         if self.parent.connection_established:
