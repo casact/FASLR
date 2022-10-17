@@ -18,6 +18,7 @@ from PyQt6.QtCore import (
 from PyQt6.QtWidgets import (
     QFileDialog,
     QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QLineEdit,
     QPushButton,
@@ -86,7 +87,12 @@ class DataImportWizard(QWidget):
         self.upload_sample_view = UploadSampleView()
         self.upload_sample_view.setModel(self.upload_sample_model)
 
-        self.layout.addWidget(self.upload_sample_view)
+        self.sample_groupbox = QGroupBox("File Data")
+        self.sample_layout = QVBoxLayout()
+        self.sample_groupbox.setLayout(self.sample_layout)
+        self.sample_layout.addWidget(self.upload_sample_view)
+
+        self.layout.addWidget(self.sample_groupbox)
 
     def load_file(self):
 
