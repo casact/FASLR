@@ -12,6 +12,7 @@ from faslr.constants import (
 
 from PyQt6.QtCore import (
     QAbstractTableModel,
+    QModelIndex,
     Qt
 )
 
@@ -26,6 +27,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
+
+from typing import Any
 
 
 class DataPane(QWidget):
@@ -111,11 +114,43 @@ class UploadSampleModel(FAbstractTableModel):
         super().__init__()
 
         self._data = pd.DataFrame(
-            data={'A': [np.nan, np.nan, np.nan],
+            data={'A': [5, 2, np.nan],
                   'B': [np.nan, np.nan, np.nan],
                   'C': [np.nan, np.nan, np.nan],
                   '': [np.nan, np.nan, np.nan]
                   })
+
+    def data(
+            self,
+            index: QModelIndex,
+            role: int = None
+    ) -> Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+
+            if value is np.nan:
+                value = ""
+            else:
+                value = str(value)
+
+            return value
+
+    def headerData(
+            self,
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> Any:
+
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Orientation.Vertical:
+                return str(self._data.index[p_int])
 
     def read_header(
             self,
@@ -125,7 +160,26 @@ class UploadSampleModel(FAbstractTableModel):
 
         self._data = df.head()
 
-        self.layoutChanged.emit()
+        print("hi")
+
+        index = QModelIndex()
+
+        self.setData(
+            index=index,
+            value=None,
+            role=Qt.ItemDataRole.DisplayRole,
+            refresh=True
+        )
+
+    def setData(
+            self,
+            index: QModelIndex,
+            value: Any,
+            role: int = None,
+            refresh: bool = False
+    ):
+
+        self.layoutChanged.emit() # noqa
 
 
 class UploadSampleView(FTableView):
