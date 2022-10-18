@@ -43,10 +43,9 @@ class DataPane(QWidget):
         )
         filler = QWidget()
         self.layout.addWidget(filler)
-        self.upload_btn.pressed.connect(self.start_wizard) # noqa
+        self.upload_btn.pressed.connect(self.start_wizard)  # noqa
 
     def start_wizard(self):
-
         self.wizard = DataImportWizard()
 
         self.wizard.show()
@@ -81,7 +80,7 @@ class DataImportWizard(QWidget):
         self.layout.addWidget(self.upload_container)
         self.setLayout(self.layout)
 
-        self.upload_btn.pressed.connect(self.load_file) # noqa
+        self.upload_btn.pressed.connect(self.load_file)  # noqa
 
         self.upload_sample_model = UploadSampleModel()
         self.upload_sample_view = UploadSampleView()
@@ -95,7 +94,6 @@ class DataImportWizard(QWidget):
         self.layout.addWidget(self.sample_groupbox)
 
     def load_file(self):
-
         filename = QFileDialog.getOpenFileName(
             parent=self,
             caption='Open File',
@@ -104,6 +102,8 @@ class DataImportWizard(QWidget):
         )[0]
 
         self.file_path.setText(filename)
+
+        self.upload_sample_model.read_header(file_path=filename)
 
 
 class UploadSampleModel(FAbstractTableModel):
@@ -115,8 +115,17 @@ class UploadSampleModel(FAbstractTableModel):
                   'B': [np.nan, np.nan, np.nan],
                   'C': [np.nan, np.nan, np.nan],
                   '': [np.nan, np.nan, np.nan]
-            })
+                  })
 
+    def read_header(
+            self,
+            file_path: str
+    ):
+        df = pd.read_csv(file_path)
+
+        self._data = df.head()
+
+        self.layoutChanged.emit()
 
 
 class UploadSampleView(FTableView):
