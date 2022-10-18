@@ -6,5 +6,8 @@ TIME_FIELDS = [
 ]
 
 LOSS_FIELDS = [
-    ''
+    'PAID LOSS',
+    'INCURRED LOSS',
+    'CASE RESERVES',
+    'CASE INCURRED',
 ]
