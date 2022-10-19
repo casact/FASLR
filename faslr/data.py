@@ -11,7 +11,6 @@ from faslr.constants import (
 )
 
 from PyQt6.QtCore import (
-    QAbstractTableModel,
     QModelIndex,
     Qt
 )
@@ -19,11 +18,13 @@ from PyQt6.QtCore import (
 from PyQt6.QtWidgets import (
     QFileDialog,
     QFormLayout,
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QPushButton,
-    QTableView,
+    QRadioButton,
     QVBoxLayout,
     QWidget
 )
@@ -89,10 +90,28 @@ class DataImportWizard(QWidget):
         self.upload_sample_view = UploadSampleView()
         self.upload_sample_view.setModel(self.upload_sample_model)
 
+        self.mapping_groupbox = QGroupBox("Header Mapping")
+        self.mapping_layout = QVBoxLayout()
+        self.mapping_groupbox.setLayout(self.mapping_layout)
+        self.mapping_layout.addWidget(QLabel("Origin: "))
+        self.mapping_layout.addWidget(QLabel("Development: "))
+        self.mapping_layout.addWidget(QLabel("Values: "))
+        self.layout.addWidget(self.mapping_groupbox)
+
         self.sample_groupbox = QGroupBox("File Data")
         self.sample_layout = QVBoxLayout()
         self.sample_groupbox.setLayout(self.sample_layout)
         self.sample_layout.addWidget(self.upload_sample_view)
+
+        self.sample_groupbox = QGroupBox("Measure")
+        self.measure_layout = QGridLayout()
+        self.sample_groupbox.setLayout(self.measure_layout)
+        self.incremental_btn = QRadioButton("Incremental")
+        self.cumulative_btn = QRadioButton("Cumulative")
+        self.measure_layout.addWidget(self.incremental_btn, 0, 0)
+        self.measure_layout.addWidget(self.cumulative_btn, 0, 1)
+
+        self.layout.addWidget(self.sample_groupbox)
 
         self.layout.addWidget(self.sample_groupbox)
 
@@ -114,7 +133,7 @@ class UploadSampleModel(FAbstractTableModel):
         super().__init__()
 
         self._data = pd.DataFrame(
-            data={'A': [5, 2, np.nan],
+            data={'A': [np.nan, np.nan, np.nan],
                   'B': [np.nan, np.nan, np.nan],
                   'C': [np.nan, np.nan, np.nan],
                   '': [np.nan, np.nan, np.nan]
@@ -130,10 +149,10 @@ class UploadSampleModel(FAbstractTableModel):
 
             value = self._data.iloc[index.row(), index.column()]
 
-            if value is np.nan:
+            value = str(value)
+
+            if value == "nan":
                 value = ""
-            else:
-                value = str(value)
 
             return value
 
@@ -149,8 +168,8 @@ class UploadSampleModel(FAbstractTableModel):
             if qt_orientation == Qt.Orientation.Horizontal:
                 return str(self._data.columns[p_int])
 
-            if qt_orientation == Qt.Orientation.Vertical:
-                return str(self._data.index[p_int])
+            # if qt_orientation == Qt.Orientation.Vertical:
+            #     return str(self._data.index[p_int])
 
     def read_header(
             self,
@@ -159,8 +178,6 @@ class UploadSampleModel(FAbstractTableModel):
         df = pd.read_csv(file_path)
 
         self._data = df.head()
-
-        print("hi")
 
         index = QModelIndex()
 
