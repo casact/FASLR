@@ -67,6 +67,8 @@ class DataImportWizard(QWidget):
         self.layout = QVBoxLayout()
         self.upload_form = QFormLayout()
         self.file_path = QLineEdit()
+
+        # File upload section
         self.upload_btn = QPushButton("Upload File")
         self.upload_container = QWidget()
         self.upload_container.setLayout(self.upload_form)
@@ -86,10 +88,7 @@ class DataImportWizard(QWidget):
 
         self.upload_btn.pressed.connect(self.load_file)  # noqa
 
-        self.upload_sample_model = UploadSampleModel()
-        self.upload_sample_view = UploadSampleView()
-        self.upload_sample_view.setModel(self.upload_sample_model)
-
+        # Column mapping section
         self.mapping_groupbox = QGroupBox("Header Mapping")
         self.mapping_layout = QVBoxLayout()
         self.mapping_groupbox.setLayout(self.mapping_layout)
@@ -98,9 +97,14 @@ class DataImportWizard(QWidget):
         self.mapping_layout.addWidget(QLabel("Values: "))
         self.layout.addWidget(self.mapping_groupbox)
 
+        # Data sample section
         self.sample_groupbox = QGroupBox("File Data")
         self.sample_layout = QVBoxLayout()
         self.sample_groupbox.setLayout(self.sample_layout)
+        self.upload_sample_model = UploadSampleModel()
+        self.upload_sample_view = UploadSampleView()
+        self.upload_sample_view.setModel(self.upload_sample_model)
+
         self.sample_layout.addWidget(self.upload_sample_view)
 
         self.sample_groupbox = QGroupBox("Measure")
