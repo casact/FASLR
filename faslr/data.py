@@ -16,6 +16,7 @@ from PyQt6.QtCore import (
 )
 
 from PyQt6.QtWidgets import (
+    QComboBox,
     QFileDialog,
     QFormLayout,
     QGridLayout,
@@ -90,11 +91,39 @@ class DataImportWizard(QWidget):
 
         # Column mapping section
         self.mapping_groupbox = QGroupBox("Header Mapping")
-        self.mapping_layout = QVBoxLayout()
+        self.mapping_layout = QFormLayout()
         self.mapping_groupbox.setLayout(self.mapping_layout)
-        self.mapping_layout.addWidget(QLabel("Origin: "))
-        self.mapping_layout.addWidget(QLabel("Development: "))
-        self.mapping_layout.addWidget(QLabel("Values: "))
+        self.origin_selection = QWidget()
+        self.origin_dropdown = QComboBox()
+        self.development_dropdown = QComboBox()
+        self.values_dropdown = QComboBox()
+
+        self.origin_dropdown.setFixedWidth(120)
+        self.development_dropdown.setFixedWidth(120)
+        self.values_dropdown.setFixedWidth(120)
+
+        self.values_container = QWidget()
+        self.values_layout = QHBoxLayout()
+        self.values_container.setLayout(self.values_layout)
+        self.values_layout.addWidget(self.values_dropdown)
+        self.values_button = QPushButton("+")
+        self.values_layout.addWidget(self.values_button)
+
+        self.mapping_layout.addRow(
+            "Origin: ",
+            self.origin_dropdown
+        )
+        self.mapping_layout.addRow(
+            "Development: ",
+            self.development_dropdown
+        )
+        self.mapping_layout.addRow(
+            "Values: ",
+            self.values_container
+        )
+
+
+
         self.layout.addWidget(self.mapping_groupbox)
 
         # Data sample section
@@ -107,15 +136,15 @@ class DataImportWizard(QWidget):
 
         self.sample_layout.addWidget(self.upload_sample_view)
 
-        self.sample_groupbox = QGroupBox("Measure")
+        self.measure_groupbox = QGroupBox("Measure")
         self.measure_layout = QGridLayout()
-        self.sample_groupbox.setLayout(self.measure_layout)
+        self.measure_groupbox.setLayout(self.measure_layout)
         self.incremental_btn = QRadioButton("Incremental")
         self.cumulative_btn = QRadioButton("Cumulative")
         self.measure_layout.addWidget(self.incremental_btn, 0, 0)
         self.measure_layout.addWidget(self.cumulative_btn, 0, 1)
-
-        self.layout.addWidget(self.sample_groupbox)
+        self.measure_layout.columnStretch(2)
+        self.layout.addWidget(self.measure_groupbox)
 
         self.layout.addWidget(self.sample_groupbox)
 
