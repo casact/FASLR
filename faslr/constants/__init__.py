@@ -25,3 +25,10 @@ from faslr.constants.general import (
     ROOT_PATH,
     TEMPLATES_PATH
 )
+
+from faslr.constants.triangle import (
+    DEVELOPMENT_FIELDS,
+    LOSS_FIELDS,
+    ORIGIN_FIELDS,
+    TIME_FIELDS
+)
