@@ -151,6 +151,7 @@ class ImportArgumentsTab(QWidget):
 
         self.cancel_btn = QPushButton('')
         self.cancel_btn.setIcon(QIcon(ICONS_PATH + 'cancel.svg'))
+        self.cancel_btn.setToolTip('Reset the form')
 
         self.cancel_btn.pressed.connect(self.clear_contents)  # noqa
 
@@ -283,6 +284,8 @@ class ImportArgumentsTab(QWidget):
         self.upload_sample_model.read_header(
             file_path=filename
         )
+
+        self.upload_sample_view.resizeColumnsToContents()
 
         self.data = pd.read_csv(filename)
         columns = self.data.columns
