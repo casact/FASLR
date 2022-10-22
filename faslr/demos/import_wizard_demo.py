@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QApplication
 app = QApplication(sys.argv)
 
 wizard = DataImportWizard()
+wizard.setWindowTitle("Import Wizard")
 
 wizard.show()
 
