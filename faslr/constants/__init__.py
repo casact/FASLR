@@ -21,6 +21,7 @@ from faslr.constants.settings import (
 from faslr.constants.general import (
     BUILD_VERSION,
     CONFIG_PATH,
+    ICONS_PATH,
     QT_FILEPATH_OPTION,
     ROOT_PATH,
     TEMPLATES_PATH
