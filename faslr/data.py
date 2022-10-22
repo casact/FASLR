@@ -8,6 +8,8 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.constants import ICONS_PATH
+
 from chainladder import Triangle
 
 from faslr.constants import (
@@ -20,6 +22,10 @@ from faslr.constants import (
 from PyQt6.QtCore import (
     QModelIndex,
     Qt
+)
+
+from PyQt6.QtGui import (
+    QIcon
 )
 
 from PyQt6.QtWidgets import (
@@ -38,8 +44,23 @@ from PyQt6.QtWidgets import (
 
 from typing import Any
 
+# Starting contents of data preview when no files have been uploaded yet
+dummy_df = pd.DataFrame(
+    data={
+        'A': [np.nan, np.nan, np.nan],
+        'B': [np.nan, np.nan, np.nan],
+        'C': [np.nan, np.nan, np.nan],
+        'D': [np.nan, np.nan, np.nan]
+    }
+)
+
+COMBO_BOX_STARTING_WIDTH = 120
+
 
 class DataPane(QWidget):
+    """
+    Holds links to data views uploaded from the user.
+    """
     def __init__(
             self,
             parent=None
@@ -52,6 +73,8 @@ class DataPane(QWidget):
         self.layout = QVBoxLayout()
         self.upload_btn = QPushButton("Upload")
         self.setLayout(self.layout)
+
+        # Keep the upload button in the upper right-hand corner
         self.layout.addWidget(
             self.upload_btn,
             alignment=Qt.AlignmentFlag.AlignRight
@@ -66,14 +89,21 @@ class DataPane(QWidget):
 
 
 class DataImportWizard(QTabWidget):
+    """
+    Tool used to import external data such as those from .csv files. Contains two main tabs,
+    one to specify the triangle arguments, and the other to preview the resulting triangles.
+    """
     def __init__(
             self,
     ):
         super().__init__()
 
+        self.setWindowTitle("Import Wizard")
+
         self.args_tab = ImportArgumentsTab()
         self.preview_tab = TrianglePreviewTab(
-            sibling=self.args_tab
+            sibling=self.args_tab,
+            parent=self
         )
 
         self.addTab(
@@ -86,7 +116,7 @@ class DataImportWizard(QTabWidget):
             "Preview"
         )
 
-        self.currentChanged.connect( # noqa
+        self.currentChanged.connect(  # noqa
             self.preview_tab.generate_triangle
         )
 
@@ -116,11 +146,21 @@ class ImportArgumentsTab(QWidget):
         self.upload_container = QWidget()
         self.upload_container.setLayout(self.upload_form)
 
+        self.refresh_btn = QPushButton('')
+        self.refresh_btn.setIcon(QIcon(ICONS_PATH + 'refresh.svg'))
+
+        self.cancel_btn = QPushButton('')
+        self.cancel_btn.setIcon(QIcon(ICONS_PATH + 'cancel.svg'))
+
+        self.cancel_btn.pressed.connect(self.clear_contents)  # noqa
+
         self.file_path_layout = QHBoxLayout()
         self.file_path_container = QWidget()
         self.file_path_container.setLayout(self.file_path_layout)
         self.file_path_layout.addWidget(self.upload_btn)
         self.file_path_layout.addWidget(self.file_path)
+        self.file_path_layout.addWidget(self.refresh_btn)
+        self.file_path_layout.addWidget(self.cancel_btn)
 
         self.upload_form.addRow(
             self.file_path_container
@@ -142,9 +182,9 @@ class ImportArgumentsTab(QWidget):
         self.development_dropdown = QComboBox()
         self.values_dropdown = QComboBox()
 
-        self.origin_dropdown.setFixedWidth(120)
-        self.development_dropdown.setFixedWidth(120)
-        self.values_dropdown.setFixedWidth(120)
+        self.origin_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+        self.development_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+        self.values_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
 
         self.values_container = QWidget()
         self.values_layout = QHBoxLayout()
@@ -181,12 +221,12 @@ class ImportArgumentsTab(QWidget):
             self.values_container
         )
 
-        self.values_button.pressed.connect( # noqa
+        self.values_button.pressed.connect(  # noqa
             lambda form=self.mapping_layout: self.add_values_row(form)
         )
 
-        self.remove_values_btn.pressed.connect( # noqa
-            lambda form=self.mapping_layout: self.delete_values_row(form)
+        self.remove_values_btn.pressed.connect(  # noqa
+            self.delete_values_row
         )
 
         self.layout.addWidget(self.mapping_groupbox)
@@ -271,12 +311,10 @@ class ImportArgumentsTab(QWidget):
         new_value_key = last_value_key + 1
 
         new_dropdown = QComboBox()
-        new_dropdown.setFixedWidth(120)
+        new_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
 
         # add new entry to dropdowns dictionary
         self.dropdowns['values_' + str(new_value_key)] = new_dropdown
-
-        print(self.dropdowns.keys())
 
         form.addRow(
             "",
@@ -291,19 +329,18 @@ class ImportArgumentsTab(QWidget):
             new_dropdown.setFixedWidth(new_dropdown.sizeHint().width() - 1)
 
     def delete_values_row(
-            self,
-            form: QFormLayout
+            self
     ) -> None:
 
-        n_row = form.rowCount()
+        n_row = self.mapping_layout.rowCount()
 
         if n_row == 3:
             return
         else:
-            form.removeRow(n_row - 1)
+            self.mapping_layout.removeRow(n_row - 1)
 
         # remove last entry from dropdown dict
-        values_key = n_row - 3
+        values_key = n_row - 2
         del self.dropdowns['values_' + str(values_key)]
 
     def smart_match(self):
@@ -318,17 +355,38 @@ class ImportArgumentsTab(QWidget):
             elif column.upper() in LOSS_FIELDS:
                 self.dropdowns['values_1'].setCurrentText(column)
 
+    def clear_contents(self):
+
+        self.file_path.clear()
+        self.data = None
+        self.upload_sample_model._data = dummy_df
+        index = QModelIndex()
+        self.upload_sample_model.setData(
+            index=index,
+            value=None,
+            role=Qt.ItemDataRole.DisplayRole,
+            refresh=True
+        )
+
+        n_dropdowns = len(self.dropdowns.keys())
+        if n_dropdowns > 3:
+            for i in range(n_dropdowns - 2, 1, -1):
+                self.delete_values_row()
+
+        self.origin_dropdown.clear()
+        self.development_dropdown.clear()
+        self.values_dropdown.clear()
+
+        self.origin_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+        self.development_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+        self.values_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+
 
 class UploadSampleModel(FAbstractTableModel):
     def __init__(self):
         super().__init__()
 
-        self._data = pd.DataFrame(
-            data={'A': [np.nan, np.nan, np.nan],
-                  'B': [np.nan, np.nan, np.nan],
-                  'C': [np.nan, np.nan, np.nan],
-                  'D': [np.nan, np.nan, np.nan]
-                  })
+        self._data = dummy_df
 
     def data(
             self,
@@ -387,7 +445,7 @@ class UploadSampleModel(FAbstractTableModel):
             refresh: bool = False
     ):
 
-        self.layoutChanged.emit() # noqa
+        self.layoutChanged.emit()  # noqa
 
 
 class UploadSampleView(FTableView):
@@ -400,9 +458,9 @@ class UploadSampleView(FTableView):
 
 class TrianglePreviewTab(QWidget):
     def __init__(
-        self,
-        parent: DataImportWizard = None,
-        sibling: ImportArgumentsTab = None
+            self,
+            parent: DataImportWizard = None,
+            sibling: ImportArgumentsTab = None
     ):
         super().__init__()
 
@@ -426,6 +484,19 @@ class TrianglePreviewTab(QWidget):
     def generate_triangle(
             self,
     ):
+
+        index = self.parent.currentIndex()
+
+        # No need to go through all the work when switching back to the arguments pain
+        if index == 0:
+            return
+
+        # If no data have been loaded yet, do nothing
+
+        if (self.sibling.data is None) or self.sibling.data.equals(dummy_df):
+            self.clear_layout()
+            return
+
         self.clear_layout()
         self.dropdowns = self.sibling.dropdowns
         self.columns = self.get_columns()
@@ -452,7 +523,7 @@ class TrianglePreviewTab(QWidget):
 
         columns = []
         for key in self.sibling.dropdowns:
-            # print(key)
+
             if 'values' in key:
                 columns.append(self.dropdowns[key].currentText())
 
