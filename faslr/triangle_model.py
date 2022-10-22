@@ -172,8 +172,6 @@ class TriangleView(FTableView):
             QStyle.ContentsType.CT_HeaderSection, opt, QSize(), btn).
                   expandedTo(QSize()))
 
-        print(s.width())
-
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())
 
