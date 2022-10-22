@@ -141,7 +141,7 @@ class AnalysisTab(QWidget):
                 stretch=2
             )
 
-            self.mack_development_view = MackValuationView
+            self.mack_development_view = MackValuationView()
 
             self.diagnostic_widgets[i] = DiagnosticWidget()
 
