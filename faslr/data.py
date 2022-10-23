@@ -122,6 +122,10 @@ class DataImportWizard(QTabWidget):
 
 
 class ImportArgumentsTab(QWidget):
+    """
+    The tab in the import wizard used to select a file to upload and map the field headers to chainladder
+    triangle arguments.
+    """
     def __init__(
             self,
             parent=None
@@ -133,25 +137,26 @@ class ImportArgumentsTab(QWidget):
 
         # Holds the uploaded dataframe
         self.data = None
-
         self.triangle = None
 
-        self.arg_tab = QTabWidget()
         self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        # Form to upload a file, and displays its path
         self.upload_form = QFormLayout()
         self.file_path = QLineEdit()
 
-        # File upload section
         self.upload_btn = QPushButton("Upload File")
         self.upload_container = QWidget()
         self.upload_container.setLayout(self.upload_form)
 
         self.refresh_btn = QPushButton('')
         self.refresh_btn.setIcon(QIcon(ICONS_PATH + 'refresh.svg'))
+        self.refresh_btn.setToolTip('Refresh')
 
         self.cancel_btn = QPushButton('')
         self.cancel_btn.setIcon(QIcon(ICONS_PATH + 'cancel.svg'))
-        self.cancel_btn.setToolTip('Reset the form')
+        self.cancel_btn.setToolTip('Reset the form and clear contents')
 
         self.cancel_btn.pressed.connect(self.clear_contents)  # noqa
 
@@ -168,7 +173,6 @@ class ImportArgumentsTab(QWidget):
         )
 
         self.layout.addWidget(self.upload_container)
-        self.setLayout(self.layout)
 
         self.upload_btn.pressed.connect(self.load_file)  # noqa
 
@@ -201,9 +205,12 @@ class ImportArgumentsTab(QWidget):
         self.values_container.setLayout(self.values_layout)
         self.values_layout.addWidget(self.values_dropdown)
         self.values_button = QPushButton("+")
+        self.values_button.setToolTip("Map an additional column to the triangle values argument.")
         self.remove_values_btn = QPushButton("-")
+        self.values_button.setToolTip("Remove a column from the triangle values argument.")
         self.values_button.setFixedWidth(30)
         self.remove_values_btn.setFixedWidth(30)
+
         self.values_layout.addWidget(self.values_button)
         self.values_layout.addWidget(self.remove_values_btn)
 
@@ -243,17 +250,30 @@ class ImportArgumentsTab(QWidget):
         self.sample_layout.addWidget(self.upload_sample_view)
 
         self.measure_groupbox = QGroupBox("Measure")
-        # self.measure_layout = QGridLayout()
         self.measure_layout = QHBoxLayout()
         self.measure_groupbox.setLayout(self.measure_layout)
         self.incremental_btn = QRadioButton("Incremental")
         self.cumulative_btn = QRadioButton("Cumulative")
 
-        self.measure_layout.addWidget(self.cumulative_btn, stretch=0)
-        self.measure_layout.addWidget(self.incremental_btn, stretch=0)
+        self.measure_layout.addWidget(
+            self.cumulative_btn,
+            stretch=0
+        )
+
+        self.measure_layout.addWidget(
+            self.incremental_btn,
+            stretch=0
+        )
+
+        # Default is cumulative, since most triangles are expected to be cumulative.
         self.cumulative_btn.setChecked(True)
+
+        # Add a spacer to keep radio buttons from expanding.
         spacer = QWidget()
-        self.measure_layout.addWidget(spacer, stretch=2)
+        self.measure_layout.addWidget(
+            spacer,
+            stretch=2
+        )
         self.layout.addWidget(self.measure_groupbox)
 
         self.layout.addWidget(self.sample_groupbox)
@@ -262,15 +282,10 @@ class ImportArgumentsTab(QWidget):
         self.dropdowns['development'] = self.development_dropdown
         self.dropdowns['values_1'] = self.values_dropdown
 
-        self.setStyleSheet(
-            """
-            ImportArgumentsTab {{
-              background: rgb(0, 0, 0);
-            }}
-            """
-        )
-
     def load_file(self) -> None:
+        """
+        Method to handle uploading a data file.
+        """
 
         filename = QFileDialog.getOpenFileName(
             parent=self,
@@ -290,6 +305,7 @@ class ImportArgumentsTab(QWidget):
         self.data = pd.read_csv(filename)
         columns = self.data.columns
 
+        # Resize mapping dropdowns to fit contents
         width = None
         for i in self.dropdowns.keys():
             hint_widths = []
@@ -306,8 +322,11 @@ class ImportArgumentsTab(QWidget):
             self,
             form: QFormLayout
     ) -> None:
+        """
+        This method is used to add a mapping dropdown to the triangle values field.
+        """
 
-        # of value keys is total number of keys - 3
+        # of value keys is total number of keys - 2
         n_keys = len(self.dropdowns.keys())
         last_value_key = n_keys - 2
 
@@ -334,6 +353,9 @@ class ImportArgumentsTab(QWidget):
     def delete_values_row(
             self
     ) -> None:
+        """
+        This method is to remove a values mapping field, although the minimum number is 1.
+        """
 
         n_row = self.mapping_layout.rowCount()
 
@@ -347,6 +369,9 @@ class ImportArgumentsTab(QWidget):
         del self.dropdowns['values_' + str(values_key)]
 
     def smart_match(self):
+        """
+        Tries to set the starting mapping value to the most likely value.
+        """
 
         columns = self.data.columns
 
@@ -359,6 +384,9 @@ class ImportArgumentsTab(QWidget):
                 self.dropdowns['values_1'].setCurrentText(column)
 
     def clear_contents(self):
+        """
+        Resets the form and clears all fields.
+        """
 
         self.file_path.clear()
         self.data = None
@@ -386,6 +414,9 @@ class ImportArgumentsTab(QWidget):
 
 
 class UploadSampleModel(FAbstractTableModel):
+    """
+    Model used to hold uploaded file data.
+    """
     def __init__(self):
         super().__init__()
 
@@ -460,6 +491,10 @@ class UploadSampleView(FTableView):
 
 
 class TrianglePreviewTab(QWidget):
+    """
+    The tab in the import wizard where the user can preview the triangle created from the uploaded
+    file data and field mappings.
+    """
     def __init__(
             self,
             parent: DataImportWizard = None,
@@ -486,11 +521,13 @@ class TrianglePreviewTab(QWidget):
 
     def generate_triangle(
             self,
-    ):
-
+    ) -> None:
+        """
+        Builds the triangle that goes into the preview pane.
+        """
         index = self.parent.currentIndex()
 
-        # No need to go through all the work when switching back to the arguments pain
+        # No need to go through all the work when switching back to the arguments pane
         if index == 0:
             return
 
@@ -500,7 +537,9 @@ class TrianglePreviewTab(QWidget):
             self.clear_layout()
             return
 
+        # Removes the previous triangle when arguments are changed
         self.clear_layout()
+
         self.dropdowns = self.sibling.dropdowns
         self.columns = self.get_columns()
 
