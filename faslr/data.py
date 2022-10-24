@@ -30,6 +30,7 @@ from PyQt6.QtGui import (
 
 from PyQt6.QtWidgets import (
     QComboBox,
+    QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
@@ -100,7 +101,9 @@ class DataImportWizard(QTabWidget):
 
         self.setWindowTitle("Import Wizard")
 
-        self.args_tab = ImportArgumentsTab()
+        self.args_tab = ImportArgumentsTab(
+            parent=self
+        )
         self.preview_tab = TrianglePreviewTab(
             sibling=self.args_tab,
             parent=self
@@ -154,11 +157,11 @@ class ImportArgumentsTab(QWidget):
         self.refresh_btn.setIcon(QIcon(ICONS_PATH + 'refresh.svg'))
         self.refresh_btn.setToolTip('Refresh')
 
-        self.cancel_btn = QPushButton('')
-        self.cancel_btn.setIcon(QIcon(ICONS_PATH + 'cancel.svg'))
-        self.cancel_btn.setToolTip('Reset the form and clear contents')
+        self.reset_btn = QPushButton('')
+        self.reset_btn.setIcon(QIcon(ICONS_PATH + 'cancel.svg'))
+        self.reset_btn.setToolTip('Reset the form and clear contents')
 
-        self.cancel_btn.pressed.connect(self.clear_contents)  # noqa
+        self.reset_btn.pressed.connect(self.clear_contents)  # noqa
 
         self.file_path_layout = QHBoxLayout()
         self.file_path_container = QWidget()
@@ -166,7 +169,7 @@ class ImportArgumentsTab(QWidget):
         self.file_path_layout.addWidget(self.upload_btn)
         self.file_path_layout.addWidget(self.file_path)
         self.file_path_layout.addWidget(self.refresh_btn)
-        self.file_path_layout.addWidget(self.cancel_btn)
+        self.file_path_layout.addWidget(self.reset_btn)
 
         self.upload_form.addRow(
             self.file_path_container
@@ -207,7 +210,7 @@ class ImportArgumentsTab(QWidget):
         self.values_button = QPushButton("+")
         self.values_button.setToolTip("Map an additional column to the triangle values argument.")
         self.remove_values_btn = QPushButton("-")
-        self.values_button.setToolTip("Remove a column from the triangle values argument.")
+        self.remove_values_btn.setToolTip("Remove a column from the triangle values argument.")
         self.values_button.setFixedWidth(30)
         self.remove_values_btn.setFixedWidth(30)
 
@@ -282,6 +285,18 @@ class ImportArgumentsTab(QWidget):
         self.dropdowns['development'] = self.development_dropdown
         self.dropdowns['values_1'] = self.values_dropdown
 
+        self.ok_btn = QDialogButtonBox.StandardButton.Ok
+        self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
+        self.button_layout = self.ok_btn | self.cancel_btn
+        self.button_box = QDialogButtonBox(self.button_layout)
+        # self.button_box.button(self.ok_btn).setIcon(QIcon(ICONS_PATH + 'check-circled-outline.svg'))
+        # self.button_box.button(self.cancel_btn).setIcon(QIcon(ICONS_PATH + 'delete-circled-outline.svg'))
+
+        self.button_box.accepted.connect(self.accept_import) # noqa
+        self.button_box.rejected.connect(self.reject_import) # noqa
+
+        self.layout.addWidget(self.button_box)
+
     def load_file(self) -> None:
         """
         Method to handle uploading a data file.
@@ -293,6 +308,10 @@ class ImportArgumentsTab(QWidget):
             filter='CSV (*.csv)',
             options=QT_FILEPATH_OPTION
         )[0]
+
+        # Do nothing if the user cancels loading the file
+        if filename == '':
+            return
 
         self.file_path.setText(filename)
 
@@ -411,6 +430,26 @@ class ImportArgumentsTab(QWidget):
         self.origin_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
         self.development_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
         self.values_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+
+    def accept_import(self) -> None:
+        """
+        Accept the configuration, import the triangle into the data store, and exit.
+        """
+
+        if self.parent:
+            self.parent.close()
+
+        self.close()
+
+    def reject_import(self) -> None:
+        """
+        Cancel import and close the dialog box.
+        """
+
+        if self.parent:
+            self.parent.close()
+
+        self.close()
 
 
 class UploadSampleModel(FAbstractTableModel):
