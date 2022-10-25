@@ -6,8 +6,8 @@ from PyQt6.QtWidgets import QApplication
 
 app = QApplication(sys.argv)
 
-test = ImportArgumentsTab()
+arg_tab = ImportArgumentsTab()
 
-test.show()
+arg_tab.show()
 
 app.exec()
