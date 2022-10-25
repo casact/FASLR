@@ -619,3 +619,13 @@ class TrianglePreviewTab(QWidget):
                     widget.deleteLater()
                 else:
                     self.clear_layout()
+
+
+class ProjectDataView(FTableView):
+    def __init__(self):
+        super().__init__()
+
+
+class ProjectDataModel(FAbstractTableModel):
+    def __init__(self):
+        super().__init__()
