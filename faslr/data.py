@@ -80,9 +80,16 @@ class DataPane(QWidget):
             self.upload_btn,
             alignment=Qt.AlignmentFlag.AlignRight
         )
+
+        self.data_view = ProjectDataView()
+        self.data_model = ProjectDataModel()
+        self.data_view.setModel(self.data_model)
+        self.layout.addWidget(self.data_view)
+
         filler = QWidget()
         self.layout.addWidget(filler)
         self.upload_btn.pressed.connect(self.start_wizard)  # noqa
+
 
     def start_wizard(self) -> None:
         self.wizard = DataImportWizard()
@@ -624,6 +631,25 @@ class TrianglePreviewTab(QWidget):
 class ProjectDataView(FTableView):
     def __init__(self):
         super().__init__()
+
+        self._data = None
+
+    def data(
+            self,
+            index: QModelIndex,
+            role: int = None
+    ) -> Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+
+            value = str(value)
+
+            if value == "nan":
+                value = ""
+
+            return value
 
 
 class ProjectDataModel(FAbstractTableModel):
