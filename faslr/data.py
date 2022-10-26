@@ -55,6 +55,16 @@ dummy_df = pd.DataFrame(
     }
 )
 
+
+data_views_df = pd.DataFrame(
+    data={
+        'Name': [],
+        'Description': [],
+        'Created': [],
+        'Modified': []
+    }
+)
+
 COMBO_BOX_STARTING_WIDTH = 120
 
 
@@ -628,11 +638,11 @@ class TrianglePreviewTab(QWidget):
                     self.clear_layout()
 
 
-class ProjectDataView(FTableView):
+class ProjectDataModel(FAbstractTableModel):
     def __init__(self):
         super().__init__()
 
-        self._data = None
+        self._data = data_views_df
 
     def data(
             self,
@@ -651,7 +661,22 @@ class ProjectDataView(FTableView):
 
             return value
 
+    def headerData(
+            self,
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> Any:
 
-class ProjectDataModel(FAbstractTableModel):
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
+                return str(self._data.columns[p_int])
+
+            # if qt_orientation == Qt.Orientation.Vertical:
+            #     return str(self._data.index[p_int])
+
+
+class ProjectDataView(FTableView):
     def __init__(self):
         super().__init__()
