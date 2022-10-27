@@ -100,9 +100,8 @@ class DataPane(QWidget):
         self.layout.addWidget(filler)
         self.upload_btn.pressed.connect(self.start_wizard)  # noqa
 
-
     def start_wizard(self) -> None:
-        self.wizard = DataImportWizard()
+        self.wizard = DataImportWizard(parent=self)
         self.wizard.show()
 
 
@@ -113,6 +112,7 @@ class DataImportWizard(QTabWidget):
     """
     def __init__(
             self,
+            parent: DataPane = None
     ):
         super().__init__()
 
@@ -139,6 +139,38 @@ class DataImportWizard(QTabWidget):
         self.currentChanged.connect(  # noqa
             self.preview_tab.generate_triangle
         )
+
+        self.ok_btn = QDialogButtonBox.StandardButton.Ok
+        self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
+        self.button_layout = self.ok_btn | self.cancel_btn
+        self.button_box = QDialogButtonBox(self.button_layout)
+        # self.button_box.button(self.ok_btn).setIcon(QIcon(ICONS_PATH + 'check-circled-outline.svg'))
+        # self.button_box.button(self.cancel_btn).setIcon(QIcon(ICONS_PATH + 'delete-circled-outline.svg'))
+
+        self.button_box.accepted.connect(self.accept_import)  # noqa
+        self.button_box.rejected.connect(self.reject_import)  # noqa
+
+        self.layout.addWidget(self.button_box)
+
+    def accept_import(self) -> None:
+        """
+        Accept the configuration, import the triangle into the data store, and exit.
+        """
+
+        if self.parent:
+            self.parent.close()
+
+        self.close()
+
+    def reject_import(self) -> None:
+        """
+        Cancel import and close the dialog box.
+        """
+
+        if self.parent:
+            self.parent.close()
+
+        self.close()
 
 
 class ImportArgumentsTab(QWidget):
@@ -302,18 +334,6 @@ class ImportArgumentsTab(QWidget):
         self.dropdowns['development'] = self.development_dropdown
         self.dropdowns['values_1'] = self.values_dropdown
 
-        self.ok_btn = QDialogButtonBox.StandardButton.Ok
-        self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
-        self.button_layout = self.ok_btn | self.cancel_btn
-        self.button_box = QDialogButtonBox(self.button_layout)
-        # self.button_box.button(self.ok_btn).setIcon(QIcon(ICONS_PATH + 'check-circled-outline.svg'))
-        # self.button_box.button(self.cancel_btn).setIcon(QIcon(ICONS_PATH + 'delete-circled-outline.svg'))
-
-        self.button_box.accepted.connect(self.accept_import) # noqa
-        self.button_box.rejected.connect(self.reject_import) # noqa
-
-        self.layout.addWidget(self.button_box)
-
     def load_file(self) -> None:
         """
         Method to handle uploading a data file.
@@ -448,25 +468,6 @@ class ImportArgumentsTab(QWidget):
         self.development_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
         self.values_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
 
-    def accept_import(self) -> None:
-        """
-        Accept the configuration, import the triangle into the data store, and exit.
-        """
-
-        if self.parent:
-            self.parent.close()
-
-        self.close()
-
-    def reject_import(self) -> None:
-        """
-        Cancel import and close the dialog box.
-        """
-
-        if self.parent:
-            self.parent.close()
-
-        self.close()
 
 
 class UploadSampleModel(FAbstractTableModel):
