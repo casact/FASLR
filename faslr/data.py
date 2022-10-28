@@ -1,3 +1,4 @@
+import datetime as dt
 import numpy as np
 import pandas as pd
 
@@ -104,6 +105,11 @@ class DataPane(QWidget):
         self.wizard = DataImportWizard(parent=self)
         self.wizard.show()
 
+    def add_record(self) -> None:
+        test_record = ['Test Triangle', 'Test Description', dt.datetime.today(), dt.datetime.today()]
+
+        self.data_model.add_record(record=test_record)
+
 
 class DataImportWizard(QWidget):
     """
@@ -165,6 +171,8 @@ class DataImportWizard(QWidget):
         """
 
         if self.parent:
+            # Add metadata to data pane view
+            self.parent.add_record()
             self.close()
 
         self.close()
@@ -682,6 +690,26 @@ class ProjectDataModel(FAbstractTableModel):
 
             # if qt_orientation == Qt.Orientation.Vertical:
             #     return str(self._data.index[p_int])
+
+    def add_record(self, record: list):
+        self._data.loc[len(self._data.index)] = record
+        index = QModelIndex()
+        self.setData(
+            index=index,
+            value=None,
+            role=Qt.ItemDataRole.DisplayRole,
+            refresh=True
+        )
+
+    def setData(
+            self,
+            index: QModelIndex,
+            value: Any,
+            role: int = None,
+            refresh: bool = False
+    ):
+
+        self.layoutChanged.emit()  # noqa
 
 
 class ProjectDataView(FTableView):
