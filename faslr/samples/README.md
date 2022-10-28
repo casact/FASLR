@@ -8,3 +8,4 @@
 - **Friedland USPP Auto Increasing Claim Ratios and Case Outstanding Strength** (friedland_uspp_auto_increasing_claim_case.csv) - Taken from page 121 of the Friedland reserving text.
 - **Friedland US Auto Steady State** (friedland_us_auto_steady_state.csv) - Taken from page 126 of the Friedland reserving text.
 - **Friedland US Auto Changing Product Mix** (friedland_us_auto_chg_prod_mix.csv) - Taken from page 128 of the Friedland reserving text.
+- **Friedland Auto Collision Insurer Claim Counts** (friedland_auto_freq_sev.csv)- Taken from pages 215-220 of the Friedland reserving text.
