@@ -105,7 +105,7 @@ class DataPane(QWidget):
         self.wizard.show()
 
 
-class DataImportWizard(QTabWidget):
+class DataImportWizard(QWidget):
     """
     Tool used to import external data such as those from .csv files. Contains two main tabs,
     one to specify the triangle arguments, and the other to preview the resulting triangles.
@@ -118,6 +118,11 @@ class DataImportWizard(QTabWidget):
 
         self.setWindowTitle("Import Wizard")
 
+        self.parent = parent
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.tab_container = QTabWidget()
+
         self.args_tab = ImportArgumentsTab(
             parent=self
         )
@@ -126,17 +131,19 @@ class DataImportWizard(QTabWidget):
             parent=self
         )
 
-        self.addTab(
+        self.tab_container.addTab(
             self.args_tab,
             "Arguments"
         )
 
-        self.addTab(
+        self.tab_container.addTab(
             self.preview_tab,
             "Preview"
         )
 
-        self.currentChanged.connect(  # noqa
+        self.layout.addWidget(self.tab_container)
+
+        self.tab_container.currentChanged.connect(  # noqa
             self.preview_tab.generate_triangle
         )
 
@@ -158,7 +165,7 @@ class DataImportWizard(QTabWidget):
         """
 
         if self.parent:
-            self.parent.close()
+            self.close()
 
         self.close()
 
@@ -168,7 +175,7 @@ class DataImportWizard(QTabWidget):
         """
 
         if self.parent:
-            self.parent.close()
+            self.close()
 
         self.close()
 
@@ -469,7 +476,6 @@ class ImportArgumentsTab(QWidget):
         self.values_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
 
 
-
 class UploadSampleModel(FAbstractTableModel):
     """
     Model used to hold uploaded file data.
@@ -582,7 +588,7 @@ class TrianglePreviewTab(QWidget):
         """
         Builds the triangle that goes into the preview pane.
         """
-        index = self.parent.currentIndex()
+        index = self.parent.tab_container.currentIndex()
 
         # No need to go through all the work when switching back to the arguments pane
         if index == 0:
