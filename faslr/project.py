@@ -206,7 +206,7 @@ class ProjectTreeView(QTreeView):
 
     def open_data_pane(self, val: QModelIndex):
         title = str(val.data())
-        self.parent.analysis_pane.addTab(DataPane(), title)
+        self.parent.analysis_pane.addTab(DataPane(main_window=self.parent), title)
 
     def contextMenuEvent(self, event):
         """
