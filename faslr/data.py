@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as dt
 import numpy as np
 import pandas as pd
@@ -36,6 +38,7 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QHeaderView,
     QLineEdit,
     QPushButton,
     QRadioButton,
@@ -44,7 +47,13 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 
-from typing import Any
+from typing import (
+    Any,
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from faslr.main import MainWindow
 
 # Starting contents of data preview when no files have been uploaded yet
 dummy_df = pd.DataFrame(
@@ -75,12 +84,13 @@ class DataPane(QWidget):
     """
     def __init__(
             self,
-            parent=None
+            main_window: MainWindow = None
     ):
         super().__init__()
 
         self.wizard = None
-        self.parent = parent
+        self.main_window = main_window
+        self.triangle = None  # for testing purposes, will store triangle data in db later so remove once that is done
 
         self.layout = QVBoxLayout()
         self.upload_btn = QPushButton("Upload")
@@ -92,11 +102,14 @@ class DataPane(QWidget):
             alignment=Qt.AlignmentFlag.AlignRight
         )
 
-        self.data_view = ProjectDataView()
-        self.data_model = ProjectDataModel()
+        self.data_view = ProjectDataView(parent=self)
+        self.data_model = ProjectDataModel(parent=self)
         self.data_view.setModel(self.data_model)
         self.layout.addWidget(self.data_view)
 
+        self.data_view.doubleClicked.connect(self.data_view.open_triangle) # noqa
+
+        self.data_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         filler = QWidget()
         self.layout.addWidget(filler)
         self.upload_btn.pressed.connect(self.start_wizard)  # noqa
@@ -105,9 +118,19 @@ class DataPane(QWidget):
         self.wizard = DataImportWizard(parent=self)
         self.wizard.show()
 
-    def add_record(self) -> None:
-        test_record = ['Test Triangle', 'Test Description', dt.datetime.today(), dt.datetime.today()]
+    def add_record(
+            self,
+            triangle: Triangle
+    ) -> None:
+        test_record = [
+            'Test Triangle',
+            'Test Description',
+            dt.datetime.today(),
+            dt.datetime.today()
+        ]
 
+        self.triangle = triangle
+        print(triangle)
         self.data_model.add_record(record=test_record)
 
 
@@ -123,6 +146,7 @@ class DataImportWizard(QWidget):
         super().__init__()
 
         self.setWindowTitle("Import Wizard")
+        self.triangle = None
 
         self.parent = parent
         self.layout = QVBoxLayout()
@@ -150,7 +174,7 @@ class DataImportWizard(QWidget):
         self.layout.addWidget(self.tab_container)
 
         self.tab_container.currentChanged.connect(  # noqa
-            self.preview_tab.generate_triangle
+            self.preview_tab.refresh_triangle
         )
 
         self.ok_btn = QDialogButtonBox.StandardButton.Ok
@@ -172,7 +196,9 @@ class DataImportWizard(QWidget):
 
         if self.parent:
             # Add metadata to data pane view
-            self.parent.add_record()
+            self.preview_tab.generate_triangle()
+            triangle = self.triangle
+            self.parent.add_record(triangle=triangle)
             self.close()
 
         self.close()
@@ -585,14 +611,12 @@ class TrianglePreviewTab(QWidget):
 
         self.setLayout(self.analysis_layout)
         self.analysis_tab = None
-        self.triangle = None
         self.dropdowns = None
         self.columns = None
         self.cumulative = None
 
-    def generate_triangle(
-            self,
-    ) -> None:
+    def refresh_triangle(self) -> None:
+
         """
         Builds the triangle that goes into the preview pane.
         """
@@ -611,6 +635,18 @@ class TrianglePreviewTab(QWidget):
         # Removes the previous triangle when arguments are changed
         self.clear_layout()
 
+        self.generate_triangle()
+
+        self.analysis_tab = AnalysisTab(
+            triangle=self.parent.triangle
+        )
+
+        self.analysis_layout.addWidget(self.analysis_tab)
+
+    def generate_triangle(
+            self,
+    ) -> None:
+
         self.dropdowns = self.sibling.dropdowns
         self.columns = self.get_columns()
 
@@ -619,18 +655,13 @@ class TrianglePreviewTab(QWidget):
         else:
             self.cumulative = False
 
-        self.triangle = Triangle(
+        self.parent.triangle = Triangle(
             data=self.sibling.data,
             origin=self.dropdowns['origin'].currentText(),
             development=self.sibling.dropdowns['development'].currentText(),
             columns=self.columns,
             cumulative=self.cumulative
         )
-        self.analysis_tab = AnalysisTab(
-            triangle=self.triangle
-        )
-
-        self.analysis_layout.addWidget(self.analysis_tab)
 
     def get_columns(self) -> list:
 
@@ -654,7 +685,10 @@ class TrianglePreviewTab(QWidget):
 
 
 class ProjectDataModel(FAbstractTableModel):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: DataPane = None
+    ):
         super().__init__()
 
         self._data = data_views_df
@@ -713,5 +747,17 @@ class ProjectDataModel(FAbstractTableModel):
 
 
 class ProjectDataView(FTableView):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: DataPane = None
+    ):
         super().__init__()
+
+        self.parent = parent
+
+    def open_triangle(self) -> None:
+
+        self.parent.main_window.analysis_pane.addTab(
+            AnalysisTab(triangle=self.parent.triangle),
+            "Test Triangle"
+        )
