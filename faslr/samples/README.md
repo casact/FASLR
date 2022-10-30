@@ -10,3 +10,4 @@
 - **Friedland US Auto Changing Product Mix** (friedland_us_auto_chg_prod_mix.csv) - Taken from page 128 of the Friedland reserving text.
 - **Friedland Auto Collision Insurer Frequency Severity** (friedland_auto_freq_sev.csv)- Taken from pages 215-220 of the Friedland reserving text.
 - **Friedland XYZ Insurer - Auto BI Frequency Severity** (friedland_xyz_freq_sev.csv) - Taken from pages 223-227 of the Friedland reserving text.
+- **Friedland WC Self-Insurer** (friedland_wc_self_insurer.csv) - Taken from pages 230-236 of the Friedland reserving text.
