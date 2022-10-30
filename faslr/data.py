@@ -11,7 +11,10 @@ from faslr.base_table import (
     FTableView
 )
 
-from faslr.constants import ICONS_PATH
+from faslr.constants import (
+    GRAINS,
+    ICONS_PATH
+)
 
 from chainladder import Triangle
 
@@ -39,10 +42,12 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
+    QLabel,
     QLineEdit,
     QPushButton,
     QRadioButton,
     QTabWidget,
+    QTextEdit,
     QVBoxLayout,
     QWidget
 )
@@ -120,11 +125,13 @@ class DataPane(QWidget):
 
     def add_record(
             self,
+            name: str,
+            desc: str,
             triangle: Triangle
     ) -> None:
         test_record = [
-            'Test Triangle',
-            'Test Description',
+            name,
+            desc,
             dt.datetime.today(),
             dt.datetime.today()
         ]
@@ -198,7 +205,11 @@ class DataImportWizard(QWidget):
             # Add metadata to data pane view
             self.preview_tab.generate_triangle()
             triangle = self.triangle
-            self.parent.add_record(triangle=triangle)
+            self.parent.add_record(
+                name=self.args_tab.name_line.text(),
+                desc=self.args_tab.desc_edit.toPlainText(),
+                triangle=triangle
+            )
             self.close()
 
         self.close()
@@ -268,6 +279,27 @@ class ImportArgumentsTab(QWidget):
         self.layout.addWidget(self.upload_container)
 
         self.upload_btn.pressed.connect(self.load_file)  # noqa
+
+        # Description section
+        self.general_groupbox = QGroupBox()
+        self.general_layout = QVBoxLayout()
+        self.desc_layout = QVBoxLayout()
+        self.name_label = QLabel("Name:")
+        self.name_line = QLineEdit()
+        self.name_layout = QVBoxLayout()
+        self.name_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.name_layout.addWidget(self.name_label)
+        self.name_layout.addWidget(self.name_line)
+
+        self.desc_label = QLabel("Description:")
+        self.desc_edit = QTextEdit()
+        self.desc_layout.addWidget(self.desc_label)
+        self.desc_layout.addWidget(self.desc_edit)
+        self.general_layout.addLayout(self.name_layout)
+        self.general_layout.addLayout(self.desc_layout)
+
+        self.general_groupbox.setLayout(self.general_layout)
+        self.layout.addWidget(self.general_groupbox)
 
         # Column mapping section
 
@@ -368,6 +400,28 @@ class ImportArgumentsTab(QWidget):
             stretch=2
         )
         self.layout.addWidget(self.measure_groupbox)
+
+        self.grain_groupbox = QGroupBox("Grain")
+        self.origin_grain_dropdown = QComboBox()
+        self.dev_grain_dropdown = QComboBox()
+        self.origin_grain_dropdown.addItems(GRAINS)
+        self.dev_grain_dropdown.addItems(GRAINS)
+        self.origin_grain_dropdown.setCurrentText("Annual")
+        self.dev_grain_dropdown.setCurrentText("Annual")
+
+        self.origin_grain_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+        self.dev_grain_dropdown.setFixedWidth(COMBO_BOX_STARTING_WIDTH)
+        self.grain_layout = QFormLayout()
+        self.grain_layout.addRow(
+            "Origin Grain: ",
+            self.origin_grain_dropdown
+        )
+        self.grain_layout.addRow(
+            "Development Grain: ",
+            self.dev_grain_dropdown
+        )
+        self.grain_groupbox.setLayout(self.grain_layout)
+        self.layout.addWidget(self.grain_groupbox)
 
         self.layout.addWidget(self.sample_groupbox)
 
@@ -690,6 +744,8 @@ class ProjectDataModel(FAbstractTableModel):
             parent: DataPane = None
     ):
         super().__init__()
+
+        self.parent = parent
 
         self._data = data_views_df
 
