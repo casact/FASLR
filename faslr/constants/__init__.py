@@ -29,6 +29,7 @@ from faslr.constants.general import (
 
 from faslr.constants.triangle import (
     DEVELOPMENT_FIELDS,
+    GRAINS,
     LOSS_FIELDS,
     ORIGIN_FIELDS,
     TIME_FIELDS

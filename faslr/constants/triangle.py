@@ -21,3 +21,10 @@ ORIGIN_FIELDS = [
 DEVELOPMENT_FIELDS = [
     'CALENDAR YEAR'
 ]
+
+GRAINS = [
+    'Annual',
+    'Semi-Annual',
+    'Quarterly',
+    'Monthly'
+]
