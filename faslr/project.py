@@ -210,13 +210,45 @@ class ProjectTreeView(QTreeView):
 
         # self.doubleClicked.connect(self.get_value) # noqa
 
-        self.doubleClicked.connect(self.open_data_pane) # noqa
+        self.doubleClicked.connect(self.process_double_click) # noqa
 
-    def open_data_pane(self, val: QModelIndex):
-        title = str(val.data())
-        self.parent.analysis_pane.addTab(DataPane(main_window=self.parent), title)
+    def process_double_click(
+            self,
+            val: QModelIndex
+    ) -> None:
 
-    def contextMenuEvent(self, event):
+        # if clicking the uuid column, get the name from the project column
+        if val.column() == 1:
+            ix_col_0 = self.model().sibling(
+                val.row(),
+                0,
+                val
+            )
+            title = ix_col_0.data()
+        else:
+            title = str(val.data())
+
+        self.open_data_pane(title=title)
+
+    def open_data_pane(
+            self,
+            title
+    ) -> None:
+
+        title = title
+        self.parent.analysis_pane.addTab(
+            DataPane(main_window=self.parent),
+            title
+        )
+
+        # set focus to newly created tab
+        new_index = self.parent.analysis_pane.count()
+        self.parent.analysis_pane.setCurrentIndex(new_index - 1)
+
+    def contextMenuEvent(
+            self,
+            event
+    ) -> None:
         """
         When right-clicking a cell, activate context menu.
         :param event:
@@ -227,7 +259,10 @@ class ProjectTreeView(QTreeView):
         menu.addAction(self.delete_project_action)
         menu.exec(event.globalPos())
 
-    def get_value(self, val: QModelIndex):
+    def get_value(
+            self,
+            val: QModelIndex
+    ) -> None:
         # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
         # print(val)
         # print(self)
@@ -239,7 +274,7 @@ class ProjectTreeView(QTreeView):
         print(self.parent.db)
         # print(self.table.selectedIndexes())
 
-    def delete_project(self):
+    def delete_project(self) -> None:
 
         """print uuid of current selected index"""
         uuid = self.currentIndex().siblingAtColumn(1).data()

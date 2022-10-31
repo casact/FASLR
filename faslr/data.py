@@ -232,7 +232,7 @@ class ImportArgumentsTab(QWidget):
     """
     def __init__(
             self,
-            parent=None
+            parent: DataImportWizard = None
     ):
         super().__init__()
 
