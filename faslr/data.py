@@ -16,6 +16,8 @@ from faslr.constants import (
     ICONS_PATH
 )
 
+from faslr.utilities import open_item_tab
+
 from chainladder import Triangle
 
 from faslr.constants import (
@@ -813,7 +815,9 @@ class ProjectDataView(FTableView):
 
     def open_triangle(self) -> None:
 
-        self.parent.main_window.analysis_pane.addTab(
-            AnalysisTab(triangle=self.parent.triangle),
-            "Test Triangle"
+        open_item_tab(
+            title="Test Triangle",
+            tab_widget=self.parent.main_window.analysis_pane,
+            item_widget=AnalysisTab(triangle=self.parent.triangle)
         )
+
