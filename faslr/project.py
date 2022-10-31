@@ -14,6 +14,8 @@ from faslr.schema import (
 
 from faslr.project_item import ProjectItem
 
+from faslr.utilities import open_item_tab
+
 from PyQt6.QtCore import (
     Qt,
     QModelIndex
@@ -228,22 +230,11 @@ class ProjectTreeView(QTreeView):
         else:
             title = str(val.data())
 
-        self.open_data_pane(title=title)
-
-    def open_data_pane(
-            self,
-            title
-    ) -> None:
-
-        title = title
-        self.parent.analysis_pane.addTab(
-            DataPane(main_window=self.parent),
-            title
+        open_item_tab(
+            title=title,
+            tab_widget=self.parent.analysis_pane,
+            item_widget=DataPane(main_window=self.parent)
         )
-
-        # set focus to newly created tab
-        new_index = self.parent.analysis_pane.count()
-        self.parent.analysis_pane.setCurrentIndex(new_index - 1)
 
     def contextMenuEvent(
             self,
