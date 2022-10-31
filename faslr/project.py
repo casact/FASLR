@@ -1,6 +1,7 @@
+from __future__ import annotations
 from faslr.connection import connect_db
 
-from faslr.data import(
+from faslr.data import (
     DataPane
 )
 
@@ -35,7 +36,11 @@ from PyQt6.QtWidgets import (
     QTreeView
 )
 
+from typing import TYPE_CHECKING
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from main import MainWindow
 
 
 class ProjectDialog(QDialog):
@@ -184,7 +189,10 @@ class ProjectDialog(QDialog):
 
 
 class ProjectTreeView(QTreeView):
-    def __init__(self, parent=None):
+    def __init__(
+            self,
+            parent: MainWindow = None
+    ):
         super().__init__()
         self.parent = parent
         print(parent)
@@ -198,11 +206,11 @@ class ProjectTreeView(QTreeView):
 
         self.delete_project_action = QAction("&Delete Project", self)
         self.delete_project_action.setStatusTip("Delete the project.")
-        self.delete_project_action.triggered.connect(self.delete_project)
+        self.delete_project_action.triggered.connect(self.delete_project) # noqa
 
         # self.doubleClicked.connect(self.get_value) # noqa
 
-        self.doubleClicked.connect(self.open_data_pane)
+        self.doubleClicked.connect(self.open_data_pane) # noqa
 
     def open_data_pane(self, val: QModelIndex):
         title = str(val.data())
@@ -231,7 +239,7 @@ class ProjectTreeView(QTreeView):
         print(self.parent.db)
         # print(self.table.selectedIndexes())
 
-    def delete_project(self, mainwindow):
+    def delete_project(self):
 
         """print uuid of current selected index"""
         uuid = self.currentIndex().siblingAtColumn(1).data()
@@ -334,6 +342,3 @@ class ProjectTreeView(QTreeView):
         self.parent.project_pane.expandAll()
 
         connection.close()
-
-
-            
