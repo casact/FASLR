@@ -11,3 +11,4 @@
 - **Friedland Auto Collision Insurer Frequency Severity** (friedland_auto_freq_sev.csv)- Taken from pages 215-220 of the Friedland reserving text.
 - **Friedland XYZ Insurer - Auto BI Frequency Severity** (friedland_xyz_freq_sev.csv) - Taken from pages 223-227 of the Friedland reserving text.
 - **Friedland WC Self-Insurer** (friedland_wc_self_insurer.csv) - Taken from pages 230-236 of the Friedland reserving text.
+- **Friedland GL Insurer** (friedland_gl_insurer.csv) - Taken from pages 243-254 of the Friedland reserving text.
