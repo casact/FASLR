@@ -16,5 +16,4 @@ def open_item_tab(
     )
 
     new_index = tab_widget.count()
-    print(new_index)
     tab_widget.setCurrentIndex(new_index - 1)
