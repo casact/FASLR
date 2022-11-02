@@ -13,3 +13,4 @@
 - **Friedland WC Self-Insurer** (friedland_wc_self_insurer.csv) - Taken from pages 230-236 of the Friedland reserving text.
 - **Friedland GL Insurer** (friedland_gl_insurer.csv) - Taken from pages 243-254 of the Friedland reserving text.
 - **Friedland XYZ Insurer - Auto BI Disposal Technique** (friedland_xyz_disp.csv) - Taken from pages 255-264 of the Friedland reserving text.
+- **Friedland US Industry Auto Case Outstanding Technique** (friedland_us_industry_auto_case.csv) - Taken from pages 270-274 of the Friedland reserving text.
