@@ -3,6 +3,7 @@ chainladder
 matplotlib
 numpy
 pandas
+pydata-sphinx-theme
 pytest
 PyQt5
 PyQt6
