@@ -85,6 +85,12 @@ html_theme_options = {
             "icon": "fa-brands fa-square-github",
             "type": "fontawesome",
         }
+    ],
+    "external_links": [
+        {
+            "url": "https://genedan.com",
+            "name": "Development Blog",
+        }
     ]
 }
 
