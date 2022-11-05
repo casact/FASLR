@@ -18,3 +18,4 @@ The actuarial methods and example data used in this project are derived from pub
    user/index
    contributing/index
    api/index
+   gallery/index
