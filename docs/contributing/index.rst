@@ -30,6 +30,6 @@ Topics, and questions that don't fit neatly into a ticket can be discussed on th
 Project finances
 =================
 
-I am currently not accepting funding. Aside from the my own free time and that of the volunteers, current costs are $5/month to host this website.
+I am currently not accepting funding. Aside from my own free time and that of the volunteers, current costs are $5/month to host this website.
 
 Further costs may include the commissioning of artwork for things like themes and logos, but that will come at a later time.
