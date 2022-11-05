@@ -9,4 +9,4 @@ engine = sa.create_engine(
 
 schema.Base.metadata.create_all(engine)
 connection = engine.connect()
-
+connection.close()
