@@ -33,6 +33,7 @@ from PyQt6.QtCore import (
 )
 
 from PyQt6.QtGui import (
+    QAction,
     QIcon
 )
 
@@ -46,6 +47,7 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMenu,
     QPushButton,
     QRadioButton,
     QTabWidget,
@@ -136,6 +138,7 @@ class DataPane(QWidget):
             desc,
             dt.datetime.today(),
             dt.datetime.today()
+
         ]
 
         self.triangle = triangle
@@ -812,6 +815,9 @@ class ProjectDataView(FTableView):
         super().__init__()
 
         self.parent = parent
+        self.open_action = QAction("&Open", self)
+        self.open_action.setStatusTip("Open view in new window.")
+        self.open_action.triggered.connect(self.open_triangle) # noqa
 
     def open_triangle(self) -> None:
 
@@ -821,3 +827,8 @@ class ProjectDataView(FTableView):
             item_widget=AnalysisTab(triangle=self.parent.triangle)
         )
 
+    def contextMenuEvent(self, event):
+
+        menu = QMenu()
+        menu.addAction(self.open_action)
+        menu.exec(event.globalPos())
