@@ -15,3 +15,5 @@
 - **Friedland XYZ Insurer - Auto BI Disposal Technique** (friedland_xyz_disp.csv) - Taken from pages 255-264 of the Friedland reserving text.
 - **Friedland US Industry Auto Case Outstanding Technique** (friedland_us_industry_auto_case.csv) - Taken from pages 270-274 of the Friedland reserving text.
 - **Friedland XYZ Insurer Case Outstanding Technique** (friedland_xyz_case.csv) - Taken from pages 275-282 of the Friedland reserving text.
+- **Friedland Med Mal Insurer** (friedland_med_mal.csv) - Taken from pages 294-303 of the Friedland reserving text.
+- **Friedland Berq-Sher Auto BI Insurer** (friedland_berq_sher_auto.csv) Taken from pages 304-315 of the Friedland reserving text.
