@@ -1,0 +1,1 @@
+Contains the nginx configuration file for the web server that hosts the docs.
