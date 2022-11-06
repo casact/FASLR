@@ -4,7 +4,7 @@ User Interface
 .. toctree::
    :maxdepth: 1
 
-   main_window
+   main
    menu
    project
    analysis
