@@ -5,10 +5,12 @@ from sqlalchemy import (
     DateTime,
     Integer,
     ForeignKey,
-    String
+    String,
 )
 
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import (
+    relationship
+)
 
 Base = declarative_base()
 
@@ -61,13 +63,8 @@ class CountryTable(Base):
         primary_key=True
     )
 
-    location_id = Column(
-        Integer,
-        ForeignKey('location.location_id')
-    )
-
     project_id = Column(
-        Integer,
+        String,
         ForeignKey('project.project_id')
     )
 
@@ -110,13 +107,8 @@ class StateTable(Base):
         ForeignKey("country.country_id")
     )
 
-    location_id = Column(
-        Integer,
-        ForeignKey("location.location_id")
-    )
-
     project_id = Column(
-        Integer,
+        String,
         ForeignKey('project.project_id')
     )
 
@@ -160,7 +152,7 @@ class LOBTable(Base):
     )
 
     project_id = Column(
-        Integer,
+        String,
         ForeignKey('project.project_id')
     )
 
@@ -188,7 +180,7 @@ class ProjectTable(Base):
     __tablename__ = 'project'
 
     project_id = Column(
-        Integer,
+        String,
         primary_key=True
     )
 
@@ -211,7 +203,7 @@ class ProjectTable(Base):
     )
 
     lob = relationship(
-        "LobTable", back_populates="project"
+        "LOBTable", back_populates="project"
     )
 
     user = relationship(
@@ -234,6 +226,10 @@ class UserTable(Base):
     user_id = Column(
         Integer,
         primary_key=True
+    )
+
+    user_name = Column(
+        String
     )
 
     project = relationship(
