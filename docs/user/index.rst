@@ -9,3 +9,4 @@ The FASLR user guide covers basic setup and installation, user interface feature
    install
    interface/index
    schema/index
+   methods/index
