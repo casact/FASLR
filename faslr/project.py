@@ -201,6 +201,7 @@ class ProjectDialog(QDialog):
             country_id = existing_country.country_id
             country_uuid = existing_country.project_id
 
+            # If the state is in the database, this query should return it
             state_query = session.query(StateTable).filter(
                 StateTable.state_name == state_text
             ).filter(
@@ -209,16 +210,57 @@ class ProjectDialog(QDialog):
 
             # If the state isn't already in the database, create an entry for it
             if state_query.first() is None:
+
+                # create project ids for state and lob only, since country uuid already exists
                 state_uuid = str(uuid4())
                 lob_uuid = str(uuid4())
-                new_state = StateTable(state_name=state_text, project_id=state_uuid)
+
+                # Create database entry for the state and its associated project
+                new_state = StateTable(
+                    state_name=state_text,
+                    project_id=state_uuid
+                )
+
+                new_state_project = ProjectTable(
+                    project_id=state_uuid
+                )
+
                 new_state.country = existing_country
-                new_lob = LOBTable(lob_type=lob_text, project_id=lob_uuid)
+
+                session.add(new_state_project)
+
+                # flush the session to get the newly created state id
+                session.flush()
+
+                new_state_location = LocationTable(
+                    state_id=new_state.state_id
+                )
+
+                # Define the new LOB
+                lob_location = session.query(
+                    LocationTable.location_id
+                ).filter(
+                    LocationTable.state_id == new_state.state_id
+                ).scalar_subquery()
+
+                new_lob = LOBTable(
+                    lob_type=lob_text,
+                    project_id=lob_uuid,
+                    location_id=lob_location
+                )
+
+                new_lob_project = ProjectTable(
+                    project_id=lob_uuid
+                )
+
                 new_lob.country = existing_country
                 new_lob.state = new_state
+                new_lob_project.lob = [new_lob]
 
-                new_project.lob = new_lob
+                session.add(new_lob_project)
+                session.add(new_state_location)
 
+                # populate the project tree
                 # find the existing country and append the new state to it
                 country_tree_item = main_window.project_model.findItems(
                     country_uuid,
@@ -238,11 +280,28 @@ class ProjectDialog(QDialog):
                 existing_state = state_query.first()
                 state_uuid = existing_state.project_id
                 lob_uuid = str(uuid4())
-                new_lob = LOBTable(lob_type=lob_text, project_id=lob_uuid)
+
+                lob_location = session.query(
+                    LocationTable.location_id
+                ).filter(
+                    LocationTable.state_id == existing_state.state_id
+                ).scalar_subquery()
+
+                new_lob = LOBTable(
+                    lob_type=lob_text,
+                    project_id=lob_uuid,
+                    location_id=lob_location
+                )
+
                 new_lob.country = existing_country
                 new_lob.state = existing_state
 
-                new_project.lob = new_lob
+                new_lob_project = ProjectTable(
+                    project_id=lob_uuid
+                )
+
+                session.add(new_lob_project)
+
                 state_tree_item = main_window.project_model.findItems(
                     state_uuid,
                     Qt.MatchFlag.MatchRecursive,
@@ -254,8 +313,6 @@ class ProjectDialog(QDialog):
                     ix_col_0 = main_window.project_model.sibling(ix.row(), 0, ix)
                     it_col_0 = main_window.project_model.itemFromIndex(ix_col_0)
                     it_col_0.appendRow([lob, QStandardItem(lob_uuid)])
-
-        # session.add(new_project)
 
         session.commit()
 
