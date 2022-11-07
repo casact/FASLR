@@ -241,3 +241,50 @@ class UserTable(Base):
                ")>" % (
 
                )
+
+
+class ProjectViewsTable(Base):
+    __tablename__ = 'project_views'
+
+    view_id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    name = Column(
+        String
+    )
+
+    description = Column(
+        String
+    )
+
+    created = Column(
+        DateTime
+    )
+
+    modified = Column(
+        DateTime
+    )
+
+    project_id = Column(
+        String,
+        ForeignKey("project.project_id")
+    )
+
+    project = relationship("ProjectTable", back_populates="project_views")
+
+    def __repr__(self):
+        return "ProjectViewsTable(" \
+               "name='%s', " \
+               "description='%s', " \
+               "created='%s', " \
+               "modified='%s', " \
+               "project_id='%s'" \
+               ")>" % (
+                   self.name,
+                   self.description,
+                   self.created,
+                   self.modified,
+                   self.project_id
+               )
