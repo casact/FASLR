@@ -5,8 +5,24 @@ The FASLR user guide covers basic setup and installation, user interface feature
 
 .. toctree::
    :maxdepth: 1
+   :caption: Getting Started
 
    install
+
+.. toctree::
+   :maxdepth: 1
+   :caption: User Interface
+
    interface/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Database Schema
+
    schema/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Actuarial Methods
+
    methods/index

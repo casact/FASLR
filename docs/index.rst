@@ -12,6 +12,7 @@ The actuarial methods and example data used in this project are derived from pub
 .. image:: https://faslr.com/media/basic_ui_09082021.png
 
 .. toctree::
+   :hidden:
    :maxdepth: 1
    :caption: Sections:
 
