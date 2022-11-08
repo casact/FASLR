@@ -23,14 +23,8 @@ class LocationTable(Base):
         primary_key=True
     )
 
-    country_id = Column(
-        Integer,
-        ForeignKey("country.country_id")
-    )
-
-    state_id = Column(
-        Integer,
-        ForeignKey("state.state_id")
+    hierarchy = Column(
+        String
     )
 
     country = relationship(
@@ -47,11 +41,9 @@ class LocationTable(Base):
 
     def __repr__(self):
         return "LocationTable(" \
-               "country_id='%s', " \
-               "state_id='%s'" \
+               "hierarchy='%s'" \
                ")>" % (
-                   self.country_id,
-                   self.state_id
+                   self.hierarchy
                )
 
 
@@ -66,6 +58,11 @@ class CountryTable(Base):
     project_id = Column(
         String,
         ForeignKey('project.project_id')
+    )
+
+    location_id = Column(
+        Integer,
+        ForeignKey('location.location_id')
     )
 
     country_name = Column(String)
@@ -84,10 +81,12 @@ class CountryTable(Base):
 
     def __repr__(self):
         return "CountryTable(" \
+               "project_id='%s', " \
                "location_id='%s', " \
                "country_name='%s', " \
-               "project_id='%s', " \
+               "project_id='%s'" \
                ")>" % (
+                   self.project_id,
                    self.location_id,
                    self.country_name,
                    self.project_id
@@ -100,6 +99,11 @@ class StateTable(Base):
     state_id = Column(
         Integer,
         primary_key=True
+    )
+
+    location_id = Column(
+        Integer,
+        ForeignKey("location.location_id")
     )
 
     country_id = Column(
@@ -124,11 +128,13 @@ class StateTable(Base):
 
     def __repr__(self):
         return "StateTable(" \
-               "country_id='%s'" \
                "location_id='%s'" \
+               "country_id='%s', " \
+               "location_id='%s', " \
                "state_name='%s', " \
                "project_id='%s', " \
                ")>" % (
+                   self.location_id,
                    self.country_id,
                    self.location_id,
                    self.state_name,
@@ -210,6 +216,10 @@ class ProjectTable(Base):
         "UserTable", back_populates="project"
     )
 
+    project_view = relationship(
+        "ProjectViewTable", back_populates="project"
+    )
+
     def __repr__(self):
         return "ProjectTable(" \
                "user_id='%s', " \
@@ -243,8 +253,8 @@ class UserTable(Base):
                )
 
 
-class ProjectViewsTable(Base):
-    __tablename__ = 'project_views'
+class ProjectViewTable(Base):
+    __tablename__ = 'project_view'
 
     view_id = Column(
         Integer,
@@ -272,7 +282,7 @@ class ProjectViewsTable(Base):
         ForeignKey("project.project_id")
     )
 
-    project = relationship("ProjectTable", back_populates="project_views")
+    project = relationship("ProjectTable", back_populates="project_view")
 
     def __repr__(self):
         return "ProjectViewsTable(" \
