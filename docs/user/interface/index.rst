@@ -1,5 +1,5 @@
-User Interface
-===============
+Introduction
+============
 
 .. toctree::
    :maxdepth: 1
@@ -8,3 +8,4 @@ User Interface
    menu
    project
    analysis
+   settings
