@@ -17,3 +17,4 @@
 - **Friedland XYZ Insurer Case Outstanding Technique** (friedland_xyz_case.csv) - Taken from pages 275-282 of the Friedland reserving text.
 - **Friedland Med Mal Insurer** (friedland_med_mal.csv) - Taken from pages 294-303 of the Friedland reserving text.
 - **Friedland Berq-Sher Auto BI Insurer** (friedland_berq_sher_auto.csv) Taken from pages 304-315 of the Friedland reserving text.
+- **Friedland Auto Salvage and Subrogation** (friedland_auto_salsub.csv) Taken from pages 333-341 of the Friedland reserving text.
