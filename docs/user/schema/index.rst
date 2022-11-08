@@ -1,2 +1,2 @@
-Database Schema
+Introduction
 ================
