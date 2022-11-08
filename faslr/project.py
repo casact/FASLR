@@ -120,15 +120,28 @@ class ProjectDialog(QDialog):
             state_uuid = str(uuid4())
             lob_uuid = str(uuid4())
 
+            # Create location ids for country and state
+            new_country_location = LocationTable(hierarchy="country")
+
+            new_state_location = LocationTable(hierarchy="state")
+
+            session.add(new_country_location)
+            session.add(new_state_location)
+
+            # flush the session to get the newly created location ids
+            session.flush()
+
             # Create state and country db entries
             new_country = CountryTable(
                 country_name=country_text,
-                project_id=country_uuid
+                project_id=country_uuid,
+                location_id=new_country_location.location_id
             )
 
             new_state = StateTable(
                 state_name=state_text,
-                project_id=state_uuid
+                project_id=state_uuid,
+                location_id=new_state_location.location_id
             )
 
             # Create corresponding projects
@@ -158,27 +171,12 @@ class ProjectDialog(QDialog):
             session.add(new_country_project)
             session.add(new_state_project)
 
-            # flush session to get the auto-generated state and country ids
-            session.flush()
-
-            new_country_location = LocationTable(
-                country_id=new_country.country_id
-            )
-
-            new_state_location = LocationTable(
-                state_id=new_state.state_id
-            )
-
             # define lob entry, we need to do this after state and country because we depend on the ids
             new_lob_project = ProjectTable(
                 project_id=lob_uuid
             )
 
-            lob_location = session.query(
-                LocationTable.location_id
-            ).filter(
-                LocationTable.state_id == new_state.state_id
-            ).scalar_subquery()
+            lob_location = new_state_location.location_id
 
             new_lob = LOBTable(
                 lob_type=lob_text,
@@ -191,8 +189,6 @@ class ProjectDialog(QDialog):
             new_lob_project.lob = [new_lob]
 
             session.add(new_lob_project)
-            session.add(new_country_location)
-            session.add(new_state_location)
 
         # Otherwise, check if the state is already in the database
         else:
@@ -215,10 +211,16 @@ class ProjectDialog(QDialog):
                 state_uuid = str(uuid4())
                 lob_uuid = str(uuid4())
 
+                new_state_location = LocationTable(hierarchy="state")
+                session.add(new_state_location)
+                # flush the session to get the newly created location id
+                session.flush()
+
                 # Create database entry for the state and its associated project
                 new_state = StateTable(
                     state_name=state_text,
-                    project_id=state_uuid
+                    project_id=state_uuid,
+                    location_id=new_state_location.location_id
                 )
 
                 new_state_project = ProjectTable(
@@ -229,19 +231,8 @@ class ProjectDialog(QDialog):
 
                 session.add(new_state_project)
 
-                # flush the session to get the newly created state id
-                session.flush()
-
-                new_state_location = LocationTable(
-                    state_id=new_state.state_id
-                )
-
                 # Define the new LOB
-                lob_location = session.query(
-                    LocationTable.location_id
-                ).filter(
-                    LocationTable.state_id == new_state.state_id
-                ).scalar_subquery()
+                lob_location = new_state_location.location_id
 
                 new_lob = LOBTable(
                     lob_type=lob_text,
@@ -258,7 +249,6 @@ class ProjectDialog(QDialog):
                 new_lob_project.lob = [new_lob]
 
                 session.add(new_lob_project)
-                session.add(new_state_location)
 
                 # populate the project tree
                 # find the existing country and append the new state to it
@@ -281,11 +271,7 @@ class ProjectDialog(QDialog):
                 state_uuid = existing_state.project_id
                 lob_uuid = str(uuid4())
 
-                lob_location = session.query(
-                    LocationTable.location_id
-                ).filter(
-                    LocationTable.state_id == existing_state.state_id
-                ).scalar_subquery()
+                lob_location = existing_state.location_id
 
                 new_lob = LOBTable(
                     lob_type=lob_text,
@@ -300,6 +286,7 @@ class ProjectDialog(QDialog):
                     project_id=lob_uuid
                 )
 
+                session.add(new_lob)
                 session.add(new_lob_project)
 
                 state_tree_item = main_window.project_model.findItems(
