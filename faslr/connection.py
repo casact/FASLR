@@ -13,6 +13,7 @@ from faslr.constants import (
 from faslr.schema import (
     CountryTable,
     LOBTable,
+    LocationTable,
     StateTable,
 )
 
@@ -35,11 +36,21 @@ from PyQt6.QtWidgets import (
 )
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine import Engine
+from sqlalchemy import event
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from faslr.main import MainWindow
     from faslr.menu import MainMenuBar
+
+
+# Enforce foreign key constraints for sqlite db
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 class ConnectionDialog(QDialog):
@@ -228,10 +239,12 @@ def populate_project_tree(
 
             lobs = session.query(
                 LOBTable.lob_type, LOBTable.project_id
+            ).join(
+                LocationTable
+            ).join(
+                StateTable
             ).filter(
-                LOBTable.country_id == country_id
-            ).filter(
-                LOBTable.state_id == state_id
+                StateTable.state_id == state_id
             )
 
             for lob, lob_uuid in lobs:
