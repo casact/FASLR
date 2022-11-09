@@ -28,15 +28,21 @@ class LocationTable(Base):
     )
 
     country = relationship(
-        "CountryTable", back_populates="location"
+        "CountryTable",
+        back_populates="location",
+        cascade="all, delete"
     )
 
     state = relationship(
-        "StateTable", back_populates='location'
+        "StateTable",
+        back_populates='location',
+        cascade="all, delete"
     )
 
     lob = relationship(
-        "LOBTable", back_populates="location"
+        "LOBTable",
+        back_populates="location",
+        cascade="all, delete"
     )
 
     def __repr__(self):
@@ -62,7 +68,7 @@ class CountryTable(Base):
 
     location_id = Column(
         Integer,
-        ForeignKey('location.location_id')
+        ForeignKey('location.location_id', ondelete="CASCADE")
     )
 
     country_name = Column(String)
@@ -103,7 +109,7 @@ class StateTable(Base):
 
     location_id = Column(
         Integer,
-        ForeignKey("location.location_id")
+        ForeignKey("location.location_id", ondelete="CASCADE")
     )
 
     country_id = Column(
@@ -154,7 +160,7 @@ class LOBTable(Base):
 
     location_id = Column(
         Integer,
-        ForeignKey('location.location_id')
+        ForeignKey('location.location_id', ondelete="CASCADE")
     )
 
     project_id = Column(
