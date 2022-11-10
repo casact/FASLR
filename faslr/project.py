@@ -408,8 +408,10 @@ class ProjectTreeView(QTreeView):
             else:
                 state = session.query(StateTable).filter(StateTable.project_id == uuid)
                 state_first = state.first()
-                session.query(LOBTable).filter(LOBTable.state_id == state_first.state_id).delete()
-                state.delete()
+                location_id = state_first.location_id
+                print("location_id: " + str(location_id))
+                session.query(LocationTable).filter(LocationTable.location_id == location_id).delete()
+                # state.delete()
 
         # Case when selection is a country
         else:

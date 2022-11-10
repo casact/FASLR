@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     Column,
+    Float,
     DateTime,
     Integer,
     ForeignKey,
@@ -68,21 +69,28 @@ class CountryTable(Base):
 
     location_id = Column(
         Integer,
-        ForeignKey('location.location_id', ondelete="CASCADE")
+        ForeignKey(
+            'location.location_id',
+            ondelete="CASCADE"
+        )
     )
 
     country_name = Column(String)
 
     location = relationship(
-        "LocationTable", back_populates="country"
+        "LocationTable",
+        back_populates="country"
     )
 
     state = relationship(
-        "StateTable", back_populates="country"
+        "StateTable",
+        back_populates="country"
     )
 
     project = relationship(
-        "ProjectTable", back_populates="country"
+        "ProjectTable",
+        back_populates="country",
+        cascade="all, delete"
     )
 
     def __repr__(self):
@@ -109,7 +117,10 @@ class StateTable(Base):
 
     location_id = Column(
         Integer,
-        ForeignKey("location.location_id", ondelete="CASCADE")
+        ForeignKey(
+            "location.location_id",
+            ondelete="CASCADE"
+        )
     )
 
     country_id = Column(
@@ -124,12 +135,20 @@ class StateTable(Base):
 
     state_name = Column(String)
 
-    country = relationship("CountryTable", back_populates="state")
+    country = relationship(
+        "CountryTable",
+        back_populates="state"
+    )
 
-    location = relationship("LocationTable", back_populates="state")
+    location = relationship(
+        "LocationTable",
+        back_populates="state"
+    )
 
     project = relationship(
-        "ProjectTable", back_populates="state"
+        "ProjectTable",
+        back_populates="state",
+        cascade="all, delete"
     )
 
     def __repr__(self):
@@ -160,7 +179,10 @@ class LOBTable(Base):
 
     location_id = Column(
         Integer,
-        ForeignKey('location.location_id', ondelete="CASCADE")
+        ForeignKey(
+            'location.location_id',
+            ondelete="CASCADE"
+        )
     )
 
     project_id = Column(
@@ -169,11 +191,14 @@ class LOBTable(Base):
     )
 
     location = relationship(
-        "LocationTable", back_populates='lob'
+        "LocationTable",
+        back_populates='lob'
     )
 
     project = relationship(
-        "ProjectTable", back_populates="lob"
+        "ProjectTable",
+        back_populates="lob",
+        cascade='all, delete'
     )
 
     def __repr__(self):
@@ -207,23 +232,28 @@ class ProjectTable(Base):
     )
 
     country = relationship(
-        "CountryTable", back_populates="project"
+        "CountryTable",
+        back_populates="project"
     )
 
     state = relationship(
-        "StateTable", back_populates="project"
+        "StateTable",
+        back_populates="project"
     )
 
     lob = relationship(
-        "LOBTable", back_populates="project"
+        "LOBTable",
+        back_populates="project"
     )
 
     user = relationship(
-        "UserTable", back_populates="project"
+        "UserTable",
+        back_populates="project"
     )
 
     project_view = relationship(
-        "ProjectViewTable", back_populates="project"
+        "ProjectViewTable",
+        back_populates="project"
     )
 
     def __repr__(self):
@@ -249,7 +279,8 @@ class UserTable(Base):
     )
 
     project = relationship(
-        "ProjectTable", back_populates="user"
+        "ProjectTable",
+        back_populates="user"
     )
 
     def __repr__(self):
@@ -288,7 +319,10 @@ class ProjectViewTable(Base):
         ForeignKey("project.project_id")
     )
 
-    project = relationship("ProjectTable", back_populates="project_view")
+    project = relationship(
+        "ProjectTable",
+        back_populates="project_view"
+    )
 
     def __repr__(self):
         return "ProjectViewsTable(" \
@@ -304,3 +338,29 @@ class ProjectViewTable(Base):
                    self.modified,
                    self.project_id
                )
+
+
+class ProjectViewData(Base):
+    __tablename__ = 'project_view_data'
+
+    record_id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    view_id = Column(
+        Integer,
+        ForeignKey('project_view.view_id')
+    )
+
+    paid_loss = Column(
+        Float
+    )
+
+    reported_loss = Column(
+        Float
+    )
+
+    case_outstanding = Column(
+        Float
+    )
