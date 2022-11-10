@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 
 from faslr import schema
-from faslr.schema import UserTable
+from faslr.schema import UserTable, CountryTable, LocationTable
 from sqlalchemy.orm import sessionmaker
 
 engine = sa.create_engine(
@@ -13,9 +13,10 @@ schema.Base.metadata.create_all(engine)
 session = sessionmaker(bind=engine)()
 connection = engine.connect()
 
-new_user = UserTable(user_name="Gene")
+country_text = 'USA'
+country_query = session.query(CountryTable).filter(CountryTable.country_name == country_text)
 
-session.add(new_user)
+session.query(LocationTable)
 session.commit()
 
 connection.close()
