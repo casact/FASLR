@@ -4,7 +4,7 @@ Project Tree
 The project tree is the pane located on the left side of the :doc:`Main Window <main>`. It contains the lists of projects that have been saved to the underlying database, organized hierarchically by geographic region.
 
 
-.. image:: https://faslr.com/meda/project_tree.png
+.. image:: https://faslr.com/media/project_tree.png
 
 The current hierarchy is:
 
