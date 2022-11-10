@@ -18,3 +18,6 @@
 - **Friedland Med Mal Insurer** (friedland_med_mal.csv) - Taken from pages 294-303 of the Friedland reserving text.
 - **Friedland Berq-Sher Auto BI Insurer** (friedland_berq_sher_auto.csv) Taken from pages 304-315 of the Friedland reserving text.
 - **Friedland Auto Salvage and Subrogation** (friedland_auto_salsub.csv) Taken from pages 333-341 of the Friedland reserving text.
+- **Friedland Quota Share** (friedland_qs.csv) Taken from page 342 of the Friedland reserving text.
+- **Friedland Excess of Loss**(friedland_xol.csv) Taken from page 343 of the Friedland reserving text.
+- **Friedland Auto Property Damage Insurer**(friedland_autoprop.csv) Taken from pages 375-385 of the Friedland reserving text.
