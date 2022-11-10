@@ -5,6 +5,7 @@ The project tree is the pane located on the left side of the :doc:`Main Window <
 
 
 .. image:: https://faslr.com/media/project_tree.png
+   :width: 400px
 
 The current hierarchy is:
 
