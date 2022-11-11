@@ -358,6 +358,14 @@ class ProjectViewData(Base):
         ForeignKey('project_view.view_id')
     )
 
+    accident_year = Column(
+        Integer
+    )
+
+    calendar_year = Column(
+        Integer
+    )
+
     paid_loss = Column(
         Float
     )
