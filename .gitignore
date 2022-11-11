@@ -5,3 +5,4 @@ scratch*.py
 .idea/
 *.log
 *.db
+docs/_build/
