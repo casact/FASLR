@@ -11,6 +11,8 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.connection import connect_db
+
 from faslr.constants import (
     GRAINS,
     ICONS_PATH
@@ -26,6 +28,8 @@ from faslr.constants import (
     ORIGIN_FIELDS,
     QT_FILEPATH_OPTION
 )
+
+from faslr.schema import ProjectViewTable
 
 from PyQt6.QtCore import (
     QModelIndex,
@@ -93,13 +97,16 @@ class DataPane(QWidget):
     """
     def __init__(
             self,
-            main_window: MainWindow = None
+            main_window: MainWindow = None,
+            project_id: str = None
     ):
         super().__init__()
 
         self.wizard = None
         self.main_window = main_window
+        self.project_id = project_id
         self.triangle = None  # for testing purposes, will store triangle data in db later so remove once that is done
+        self.data = None
 
         self.layout = QVBoxLayout()
         self.upload_btn = QPushButton("Upload")
@@ -133,17 +140,69 @@ class DataPane(QWidget):
             desc: str,
             triangle: Triangle
     ) -> None:
+
+        created = dt.datetime.today()
+        modified = dt.datetime.today()
+
         test_record = [
             name,
             desc,
-            dt.datetime.today(),
-            dt.datetime.today()
+            created,
+            modified
 
         ]
 
         self.triangle = triangle
-        print(triangle)
+        self.data = self.wizard.args_tab.data
+
         self.data_model.add_record(record=test_record)
+        self.save_to_db(
+            name=name,
+            description=desc,
+            created=created,
+            modified=modified
+        )
+
+    def save_to_db(
+            self,
+            name: str,
+            description: str,
+            created,
+            modified,
+    ):
+
+        session, connection = connect_db(self.main_window.db)
+
+        project_view = ProjectViewTable(
+            name=name,
+            description=description,
+            created=created,
+            modified=modified,
+            project_id=self.project_id
+        )
+
+        session.add(project_view)
+
+        session.flush()
+        view_id = project_view.view_id
+
+        data = self.data.copy()
+        data.columns = ['accident_year', 'calendar_year', 'paid_loss', 'reported_loss']
+
+        data['view_id'] = view_id
+
+        session.commit()
+
+        data.to_sql(
+            name='project_view_data',
+            con=connection,
+            index=False,
+            if_exists='append'
+        )
+
+
+
+        connection.close()
 
 
 class DataImportWizard(QWidget):
