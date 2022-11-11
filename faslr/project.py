@@ -401,22 +401,24 @@ class ProjectTreeView(QTreeView):
             parent = current_item.parent()
             # case when selection is an LOB
             if parent.parent():
-                lob = session.query(LOBTable).filter(LOBTable.project_id == uuid)
-                lob.delete()
+                lob = session.query(LOBTable).filter(LOBTable.project_id == uuid).one()
+                session.delete(lob)
 
             # Case when selection is a state
             else:
                 state = session.query(StateTable).filter(StateTable.project_id == uuid)
                 state_first = state.first()
                 location_id = state_first.location_id
-                print("location_id: " + str(location_id))
-                session.query(LocationTable).filter(LocationTable.location_id == location_id).delete()
-                # state.delete()
+                location = session.query(LocationTable).filter(LocationTable.location_id == location_id).one()
+                session.delete(location)
 
         # Case when selection is a country
         else:
             country = session.query(CountryTable).filter(CountryTable.project_id == uuid)
-            country.delete()
+            country_first = country.first()
+            location_id = country_first.location_id
+            location = session.query(LocationTable).filter(LocationTable.location_id == location_id).one()
+            session.delete(location)
 
         session.commit()
         
@@ -469,10 +471,14 @@ class ProjectTreeView(QTreeView):
 
                 lobs = session.query(
                     LOBTable.lob_type, LOBTable.project_id
+                ).join(
+                    LocationTable
+                ).join(
+                    StateTable
                 ).filter(
-                    LOBTable.country_id == country_id
+                    StateTable.country_id == country_id
                 ).filter(
-                    LOBTable.state_id == state_id
+                    StateTable.state_id == state_id
                 )
 
                 for lob, lob_uuid in lobs:
