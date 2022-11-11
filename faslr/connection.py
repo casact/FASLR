@@ -38,6 +38,8 @@ from PyQt6.QtWidgets import (
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
+from sqlalchemy.orm.session import Session
+from sqlalchemy.engine.base import Connection
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -284,7 +286,7 @@ class FaslrConnection:
         self.connection = self.engine.connect()
 
 
-def connect_db(db_path: str):
+def connect_db(db_path: str) -> (Session, Connection):
     """
     Connects the db. Shortens amount of code required to do so.
     """
