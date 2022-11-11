@@ -9,3 +9,4 @@ Introduction
    project
    analysis
    settings
+   theme
