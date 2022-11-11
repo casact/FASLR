@@ -84,7 +84,8 @@ class CountryTable(Base):
 
     state = relationship(
         "StateTable",
-        back_populates="country"
+        back_populates="country",
+        cascade="all, delete"
     )
 
     project = relationship(
@@ -125,7 +126,10 @@ class StateTable(Base):
 
     country_id = Column(
         Integer,
-        ForeignKey("country.country_id")
+        ForeignKey(
+            "country.country_id",
+            ondelete="CASCADE"
+        )
     )
 
     project_id = Column(
@@ -142,7 +146,8 @@ class StateTable(Base):
 
     location = relationship(
         "LocationTable",
-        back_populates="state"
+        back_populates="state",
+        cascade="all, delete"
     )
 
     project = relationship(
