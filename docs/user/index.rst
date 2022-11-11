@@ -7,7 +7,8 @@ The FASLR user guide covers basic setup and installation, user interface feature
    :maxdepth: 1
    :caption: Getting Started
 
-   install
+   starting/install
+   starting/tutorial/index
 
 .. toctree::
    :maxdepth: 1
