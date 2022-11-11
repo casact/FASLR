@@ -343,6 +343,7 @@ class ProjectTreeView(QTreeView):
 
         # if clicking the uuid column, get the name from the project column
         if val.column() == 1:
+            project_id = val.data()
             ix_col_0 = self.model().sibling(
                 val.row(),
                 0,
@@ -351,11 +352,20 @@ class ProjectTreeView(QTreeView):
             title = ix_col_0.data()
         else:
             title = str(val.data())
+            ix_col_1 = self.model().sibling(
+                val.row(),
+                1,
+                val
+            )
+            project_id = ix_col_1.data()
 
         open_item_tab(
             title=title,
             tab_widget=self.parent.analysis_pane,
-            item_widget=DataPane(main_window=self.parent)
+            item_widget=DataPane(
+                main_window=self.parent,
+                project_id=project_id
+            )
         )
 
     def contextMenuEvent(
