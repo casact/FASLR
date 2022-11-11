@@ -11,7 +11,7 @@ The FASLR user guide covers basic setup and installation, user interface feature
    starting/tutorial/index
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: User Interface
 
    interface/index
