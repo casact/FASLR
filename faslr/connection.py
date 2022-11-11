@@ -45,14 +45,6 @@ if TYPE_CHECKING:
     from faslr.menu import MainMenuBar
 
 
-# Enforce foreign key constraints for sqlite db
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-
-
 class ConnectionDialog(QDialog):
     """
     Dialog box for connecting to a backend database. Can choose to either create a new one or
@@ -111,6 +103,13 @@ class ConnectionDialog(QDialog):
         """
         Creates a new backend database.
         """
+
+        # Enforce foreign key constraints for sqlite db
+        @event.listens_for(Engine, "connect")
+        def set_sqlite_pragma(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
 
         filename = QFileDialog.getSaveFileName(
             parent=self,
