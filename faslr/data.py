@@ -11,7 +11,9 @@ from faslr.base_table import (
     FTableView
 )
 
-from faslr.connection import connect_db
+from faslr.connection import (
+    FaslrConnection
+)
 
 from faslr.constants import (
     GRAINS,
@@ -29,7 +31,10 @@ from faslr.constants import (
     QT_FILEPATH_OPTION
 )
 
-from faslr.schema import ProjectViewTable
+from faslr.schema import (
+    ProjectViewTable,
+    ProjectViewData
+)
 
 from PyQt6.QtCore import (
     QModelIndex,
@@ -81,10 +86,16 @@ dummy_df = pd.DataFrame(
 
 data_views_df = pd.DataFrame(
     data={
+        'View Id': [],
         'Name': [],
         'Description': [],
         'Created': [],
-        'Modified': []
+        'Modified': [],
+        # 'Origin': [],
+        # 'Development': [],
+        # 'Columns': [],
+        # 'Cumulative': [],
+        # 'Project ID': []
     }
 )
 
@@ -125,7 +136,11 @@ class DataPane(QWidget):
 
         self.data_view.doubleClicked.connect(self.data_view.open_triangle) # noqa
 
-        self.data_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.data_view.horizontalHeader().setSectionResizeMode(
+            2,
+            QHeaderView.ResizeMode.Stretch
+        )
+
         filler = QWidget()
         self.layout.addWidget(filler)
         self.upload_btn.pressed.connect(self.start_wizard)  # noqa
@@ -144,24 +159,25 @@ class DataPane(QWidget):
         created = dt.datetime.today()
         modified = dt.datetime.today()
 
-        test_record = [
-            name,
-            desc,
-            created,
-            modified
-
-        ]
-
         self.triangle = triangle
         self.data = self.wizard.args_tab.data
 
-        self.data_model.add_record(record=test_record)
-        self.save_to_db(
+        view_id = self.save_to_db(
             name=name,
             description=desc,
             created=created,
             modified=modified
         )
+
+        test_record = [
+            view_id,
+            name,
+            desc,
+            created,
+            modified
+        ]
+
+        self.data_model.add_record(record=test_record)
 
     def save_to_db(
             self,
@@ -171,38 +187,57 @@ class DataPane(QWidget):
             modified,
     ):
 
-        session, connection = connect_db(self.main_window.db)
+        faslr_conn = FaslrConnection(db_path=self.main_window.db)
 
         project_view = ProjectViewTable(
             name=name,
             description=description,
             created=created,
             modified=modified,
+            origin=self.wizard.args_tab.dropdowns['origin'].currentText(),
+            development=self.wizard.args_tab.dropdowns['development'].currentText(),
+            columns=';'.join(self.wizard.preview_tab.columns),
+            cumulative=self.wizard.preview_tab.cumulative,
             project_id=self.project_id
         )
 
-        session.add(project_view)
+        faslr_conn.session.add(project_view)
 
-        session.flush()
+        faslr_conn.session.flush()
         view_id = project_view.view_id
 
         data = self.data.copy()
-        data.columns = ['accident_year', 'calendar_year', 'paid_loss', 'reported_loss']
+
+        data.columns = [
+            'accident_year',
+            'calendar_year',
+            'paid_loss',
+            'reported_loss'
+        ]
 
         data['view_id'] = view_id
+        #
+        # data.to_sql(
+        #     name='project_view_data',
+        #     con=connection,
+        #     index=False,
+        #     if_exists='append'
+        # )
 
-        session.commit()
+        data_list = data.to_dict('records')
 
-        data.to_sql(
-            name='project_view_data',
-            con=connection,
-            index=False,
-            if_exists='append'
-        )
+        obj_list = []
+        for record in data_list:
+            data_obj = ProjectViewData(**record)
+            obj_list.append(data_obj)
 
+        faslr_conn.session.add_all(obj_list)
 
+        faslr_conn.session.commit()
 
-        connection.close()
+        faslr_conn.connection.close()
+
+        return view_id
 
 
 class DataImportWizard(QWidget):
@@ -811,7 +846,11 @@ class ProjectDataModel(FAbstractTableModel):
 
         self.parent = parent
 
-        self._data = data_views_df
+        fc = FaslrConnection(db_path=self.parent.main_window.db)
+        df = pd.read_sql_table('project_view', con=fc.connection)
+        df = df[['view_id', 'name', 'description', 'created', 'modified']]
+        df.columns = ['View Id', 'Name', 'Description', 'Created', 'Modified']
+        self._data = df
 
     def data(
             self,
@@ -878,13 +917,47 @@ class ProjectDataView(FTableView):
         self.open_action.setStatusTip("Open view in new window.")
         self.open_action.triggered.connect(self.open_triangle) # noqa
 
-    def open_triangle(self) -> None:
+    def open_triangle(
+            self,
+            val: QModelIndex
+    ) -> None:
+
+        fc = FaslrConnection(db_path=self.parent.main_window.db)
+
+        view_id = self.model().sibling(val.row(), 0, val).data()
+        query = fc.session.query(
+            ProjectViewData.accident_year,
+            ProjectViewData.calendar_year,
+            ProjectViewData.paid_loss,
+            ProjectViewData.reported_loss
+        ).filter(
+            ProjectViewData.view_id == view_id
+        )
+
+        df = pd.read_sql(query.statement, con=fc.connection)
+
+        df.columns = [
+            'Accident Year',
+            'Calendar Year',
+            'Paid Loss',
+            'Reported Loss'
+        ]
+
+        triangle = Triangle(
+            data=df,
+            origin='Accident Year',
+            development='Calendar Year',
+            columns=['Paid Loss', 'Reported Loss'],
+            cumulative=True
+        )
 
         open_item_tab(
             title="Test Triangle",
             tab_widget=self.parent.main_window.analysis_pane,
-            item_widget=AnalysisTab(triangle=self.parent.triangle)
+            item_widget=AnalysisTab(triangle=triangle)
         )
+
+        fc.connection.close()
 
     def contextMenuEvent(self, event):
 
