@@ -14,7 +14,7 @@ There is currently no roadmap, and as this is a community volunteer effort, I do
 Feel free to volunteer for a ticket by commenting in one, and I will assign it to you. If you'd like new features to be added, you should create your own ticket.
 
 ==================================
-Contributing to the documentation
+Contributing to the Documentation
 ==================================
 
 The documentation source code is located in the `docs folder <https://github.com/casact/FASLR/tree/main/docs>`_. It comprises of .rst files, and you should use Sphinx to render them. Media such as images and videos are stored outside of the repository on a separate server to save space - so any pull requests should not include these types of media.
@@ -27,7 +27,7 @@ Discussion Board
 Topics, and questions that don't fit neatly into a ticket can be discussed on the project's `discussion board <https://github.com/casact/FASLR/discussions>`_.
 
 =================
-Project finances
+Project Finances
 =================
 
 I am currently not accepting funding. Aside from my own free time and that of the volunteers, current costs are $5/month to host this website.
