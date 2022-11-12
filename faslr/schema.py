@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
+    Boolean,
     Column,
     Float,
     DateTime,
@@ -317,6 +318,22 @@ class ProjectViewTable(Base):
 
     modified = Column(
         DateTime
+    )
+
+    origin = Column(
+        String
+    )
+
+    development = Column(
+        String
+    )
+
+    columns = Column(
+        String
+    )
+
+    cumulative = Column(
+        Boolean
     )
 
     project_id = Column(
