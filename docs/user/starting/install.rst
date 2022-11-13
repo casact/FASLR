@@ -1,7 +1,15 @@
 Setup and Installation
 =======================
 
-FASLR is in the early stages of development. As such, rapid implementation of features has been prioritized over the stability of the user experience. There are currently no binary executables available. People who are interested in seeing what FASLR can do as well as potential contributors will, for the time being, need to run FASLR from source.
+FASLR is in the early stages of development. As such, rapid implementation of features has been prioritized over the stability of the user experience (sorry). There are currently no binary executables available. People who are interested in seeing what FASLR can do as well as potential contributors will, for the time being, need to run FASLR from source.
+
+
+===========================
+Supported Operating Systems
+===========================
+FASLR is developed on Linux, specifically Ubuntu 22.04, which is probably what you want to use if you want to capture the same look and feel that you see in the documentation and in the development blog.
+
+However, Python and Qt are cross-platform, which means that you may try it on other systems, but there are no guarantees on my end that it'll work as well as it does on Linux.
 
 =======================
 Cloning the Repository
@@ -46,4 +54,4 @@ Alternatively, if you have a virtual environment set up:
 Demo files
 ===========
 
-In addition to the main program, you can run test out individual widgets by running the files in the `demos <https://github.com/casact/FASLR/tree/main/faslr/demos>`_ folder.
+In addition to the main program, you can test out individual widgets by running the files in the `demos <https://github.com/casact/FASLR/tree/main/faslr/demos>`_ folder.

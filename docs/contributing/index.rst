@@ -1,7 +1,7 @@
 Contributing
 =============
 
-There are two main ways to contribute
+There are two main ways to contribute.
 
 ======================
 Contributing to FASLR
@@ -9,7 +9,7 @@ Contributing to FASLR
 
 Users who are interested in contributing to FASLR are free to open pull requests on the `project GitHub <https://github.com/casact/FASLR/pulls>`_.
 
-There is currently no roadmap, and as this is a community volunteer effort, I don't feel comfortable telling people exactly what to do. The closest thing to a roadmap would be the `issues <https://github.com/casact/FASLR/issues>`_ page that lists the open tickets.
+There is currently no roadmap, and as this is an unpaid community volunteer effort, I don't feel comfortable telling people exactly what to do. The closest thing to a roadmap would be the `issues <https://github.com/casact/FASLR/issues>`_ page that lists the open tickets.
 
 Feel free to volunteer for a ticket by commenting in one, and I will assign it to you. If you'd like new features to be added, you should create your own ticket.
 

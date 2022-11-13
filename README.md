@@ -48,4 +48,6 @@ To learn more about the current structure of the repository, read [ARCHITECTURE.
 
 ## Supported Operating Systems
 
-FASLR is currently supported on Linux. However, I recognize that almost all actuarial work is done on Windows machines, so there may be plans in the future to make things compatible with that operating system. 
+FASLR is developed on Linux, specifically Ubuntu 22.04, which is probably what you want to use if you want to capture the same look and feel that you see in the documentation and in the development blog.
+
+However, Python and Qt are cross-platform, which means that you may try it on other systems, but there are no guarantees on my end that it'll work as well as it does on Linux. 
