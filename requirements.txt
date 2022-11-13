@@ -7,4 +7,5 @@ pydata-sphinx-theme
 pytest
 PyQt5
 PyQt6
+sphinx_design
 sqlalchemy
