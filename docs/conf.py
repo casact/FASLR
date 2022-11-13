@@ -14,13 +14,13 @@
 
 import sys
 sys.path.append('..')
-from faslr.constants.general import BUILD_VERSION
+from faslr.constants.general import BUILD_VERSION # noqa
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'FASLR'
-copyright = '2022, Gene Dan'
+copyright = '2022' # noqa
 author = 'Gene Dan'
 
 # The short X.Y version
