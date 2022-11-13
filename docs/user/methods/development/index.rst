@@ -6,3 +6,4 @@ Development Method
    :maxdepth: 1
 
    diagnostics
+   development
