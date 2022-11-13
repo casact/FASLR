@@ -87,6 +87,13 @@ html_theme_options = {
             "type": "fontawesome",
         }
     ],
+    "favicons": [
+        {
+            "rel": "icon",
+            "sizes": "32x32",
+            "href": "favicon-32x32.png"
+        }
+    ],
     "external_links": [
         {
             "url": "https://genedan.com",
