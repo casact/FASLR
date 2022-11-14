@@ -313,11 +313,13 @@ class ProjectViewTable(Base):
     )
 
     created = Column(
-        DateTime
+        DateTime,
+        default=datetime.now
     )
 
     modified = Column(
-        DateTime
+        DateTime,
+        default=datetime.now
     )
 
     origin = Column(
