@@ -1,9 +1,12 @@
 # Generates the example database (used for tutorials, testing)
 
 import os
+import faslr.utilities # noqa
+import pandas as pd
 import sqlalchemy as sa
 
 from faslr import schema
+from faslr.utilities.queries import delete_country
 
 from faslr.schema import (
     UserTable,
@@ -11,11 +14,11 @@ from faslr.schema import (
     LocationTable,
     StateTable,
     LOBTable,
-    ProjectTable
+    ProjectTable,
+    ProjectViewTable,
+    ProjectViewData
 )
 
-from sqlalchemy import event
-from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from uuid import uuid4
 
@@ -33,13 +36,6 @@ engine = sa.create_engine(
         'check_same_thread': False
     }
 )
-
-
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
 
 
 schema.Base.metadata.create_all(engine)
@@ -86,9 +82,41 @@ new_lob = LOBTable(
     project_id=new_lob_project.project_id
 )
 
+path = os.path.dirname(os.path.abspath(__file__))
+df_steady_state = pd.read_csv(os.path.join(path, "friedland_us_auto_steady_state.csv"))
+
+project_view = ProjectViewTable(
+    name="Auto",
+    description="Auto Steady State",
+    origin="Accident Year",
+    development="Calendar Year",
+    columns="Paid Claims;Reported Claims",
+    cumulative=True,
+    project_id=new_lob_project.project_id
+)
 
 session.add(new_state)
 session.add(new_lob)
+session.add(project_view)
+session.flush()
+
+df_steady_state.columns = [
+            'accident_year',
+            'calendar_year',
+            'paid_loss',
+            'reported_loss'
+]
+
+df_steady_state['view_id'] = project_view.view_id
+
+data_list = df_steady_state.to_dict('records')
+
+obj_list = []
+for record in data_list:
+    data_obj = ProjectViewData(**record)
+    obj_list.append(data_obj)
+
+session.add_all(obj_list)
 
 session.commit()
 session.close()
