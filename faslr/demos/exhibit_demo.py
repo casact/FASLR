@@ -3,6 +3,10 @@ import pandas as pd
 
 from faslr.utilities.sample import load_sample
 
+from PyQt6.QtWidgets import (
+    QWidget
+)
+
 tri_auto = load_sample('us_industry_auto')
 
 # Determine tail factor
@@ -87,3 +91,5 @@ columns = [
 ]
 
 ultimate_exhibit.columns = columns
+
+exhibit_pane = QWidget()
