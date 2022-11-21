@@ -23,7 +23,7 @@ paid_res = cl.TailConstant(paid_tail).fit_transform(
     )
 )
 
-paid_ultimate = cl.Chainladder().fit(paid_res).ultimate_.to_frame(origin_as_datetime=True)
+paid_ultimate = cl.Chainladder().fit(paid_res).ultimate_.to_frame(origin_as_datetime=True) # noqa
 
 ay = paid_res.origin.to_series()
 
