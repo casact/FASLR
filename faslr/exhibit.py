@@ -1,3 +1,6 @@
+"""
+Model-view classes for displaying the results of reserve studies.
+"""
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
