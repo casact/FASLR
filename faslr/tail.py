@@ -1,4 +1,8 @@
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import (
+    QLabel,
+    QPushButton,
+    QWidget
+)
 
 
 class TailPane(QWidget):
