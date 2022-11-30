@@ -1,3 +1,5 @@
+from chainladder import Triangle
+
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
@@ -11,7 +13,10 @@ from PyQt6.QtWidgets import (
 
 
 class TailPane(QWidget):
-    def __init__(self):
+    def __init__(
+            self,
+            triangle: Triangle
+    ):
         super().__init__()
 
 
