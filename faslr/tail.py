@@ -8,7 +8,10 @@ from faslr.base_table import (
     FTableView
 )
 
-from faslr.base_classes import FDoubleSpinBox
+from faslr.base_classes import (
+    FDoubleSpinBox,
+    FSpinBox
+)
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg,
@@ -62,6 +65,8 @@ class TailPane(QWidget):
             triangle: Triangle = None
     ):
         super().__init__()
+
+        self.setWindowTitle("Tail Analysis")
 
         sc = MplCanvas(
             self,
@@ -126,8 +131,22 @@ class TailPane(QWidget):
             single_step=.01
         )
 
+        sb_attach = FSpinBox(
+            label='Attachment Age: ',
+            value=120,
+            single_step=1
+        )
+
+        sb_project = FSpinBox(
+            label='Projection Period: ',
+            value=12,
+            single_step=1
+        )
+
         ly_tail_params.addWidget(sb_tail_constant)
         ly_tail_params.addWidget(sb_decay)
+        ly_tail_params.addWidget(sb_attach)
+        ly_tail_params.addWidget(sb_project)
 
         ly_tail_config.addWidget(gb_tail_type)
         ly_tail_config.addWidget(gb_tail_params)
