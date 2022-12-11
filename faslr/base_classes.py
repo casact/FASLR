@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import (
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QDoubleSpinBox,
@@ -47,3 +48,21 @@ class FSpinBox(QWidget):
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.spin_box)
         self.setLayout(self.layout)
+
+
+class FComboBox(QWidget):
+    def __init__(
+            self,
+            label: str = None
+    ):
+        super().__init__()
+
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+
+        self.label = QLabel(label)
+
+        self.combo_box = QComboBox()
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.combo_box)
