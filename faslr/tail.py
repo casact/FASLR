@@ -9,6 +9,7 @@ from faslr.base_table import (
 )
 
 from faslr.base_classes import (
+    FComboBox,
     FDoubleSpinBox,
     FSpinBox
 )
@@ -21,10 +22,12 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 
 from PyQt6.QtWidgets import (
+    QComboBox,
     QGroupBox,
     QHBoxLayout,
     QRadioButton,
     QWidget,
+    QStackedWidget,
     QVBoxLayout
 )
 
@@ -87,25 +90,25 @@ class TailPane(QWidget):
 
         gb_tail_type = QGroupBox("Tail Type")
         ly_tail_type = QHBoxLayout()
-        constant_btn = QRadioButton('Constant')
-        curve_btn = QRadioButton('Curve')
-        bondy_btn = QRadioButton('Bondy')
-        clark_btn = QRadioButton('Clark')
+        self.constant_btn = QRadioButton('Constant')
+        self.curve_btn = QRadioButton('Curve')
+        self.bondy_btn = QRadioButton('Bondy')
+        self.clark_btn = QRadioButton('Clark')
 
         ly_tail_type.addWidget(
-            constant_btn
+            self.constant_btn
         )
 
         ly_tail_type.addWidget(
-            curve_btn
+            self.curve_btn
         )
 
         ly_tail_type.addWidget(
-            bondy_btn
+            self.bondy_btn
         )
 
         ly_tail_type.addWidget(
-            clark_btn
+            self.clark_btn
         )
 
         gb_tail_type.setLayout(ly_tail_type)
@@ -117,7 +120,55 @@ class TailPane(QWidget):
         ly_tail_params = QVBoxLayout()
         gb_tail_params.setLayout(ly_tail_params)
 
+        self.params_config = QStackedWidget()
+        constant_config = ConstantConfig(parent=self)
+        curve_config = CurveConfig()
+        clark_config = ClarkConfig()
+        bondy_config = BondyConfig()
+
+        self.params_config.addWidget(constant_config)
+        self.params_config.addWidget(curve_config)
+        self.params_config.addWidget(clark_config)
+        self.params_config.addWidget(bondy_config)
+
+        ly_tail_params.addWidget(self.params_config)
         gb_tail_params.setFixedWidth(config_width)
+
+        ly_tail_config.addWidget(gb_tail_type)
+        ly_tail_config.addWidget(gb_tail_params)
+
+        layout.addWidget(
+            tail_config,
+            stretch=0
+        )
+
+        layout.addWidget(
+            sc,
+            stretch=1
+        )
+
+        self.setLayout(layout)
+        self.constant_btn.setChecked(True)
+        self.constant_btn.toggled.connect(self.set_config)
+        self.curve_btn.toggled.connect(self.set_config)
+
+    def set_config(self):
+        if self.constant_btn.isChecked():
+            self.params_config.setCurrentIndex(0)
+        else:
+            self.params_config.setCurrentIndex(1)
+
+
+class ConstantConfig(QWidget):
+    def __init__(
+            self,
+            parent: TailPane = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
 
         sb_tail_constant = FDoubleSpinBox(
             label='Tail Constant: ',
@@ -137,24 +188,44 @@ class TailPane(QWidget):
             single_step=1
         )
 
-        sb_project = FSpinBox(
+        sb_projection = FSpinBox(
             label='Projection Period: ',
             value=12,
             single_step=1
         )
 
-        ly_tail_params.addWidget(sb_tail_constant)
-        ly_tail_params.addWidget(sb_decay)
-        ly_tail_params.addWidget(sb_attach)
-        ly_tail_params.addWidget(sb_project)
+        self.layout.addWidget(sb_tail_constant)
+        self.layout.addWidget(sb_decay)
+        self.layout.addWidget(sb_attach)
+        self.layout.addWidget(sb_projection)
 
-        ly_tail_config.addWidget(gb_tail_type)
-        ly_tail_config.addWidget(gb_tail_params)
 
-        layout.addWidget(tail_config, stretch=0)
-        layout.addWidget(sc, stretch=1)
+class CurveConfig(QWidget):
+    def __init__(self):
+        super().__init__()
 
+        layout = QVBoxLayout()
         self.setLayout(layout)
+
+        curve_type = FComboBox(label="Curve Type:")
+        curve_type.combo_box.addItems([
+            "Inverse Power",
+            "Exponential"
+        ])
+
+        curve_type.combo_box.setCurrentText("Exponential")
+
+        layout.addWidget(curve_type)
+
+
+class ClarkConfig(QWidget):
+    def __init__(self):
+        super().__init__()
+
+
+class BondyConfig(QWidget):
+    def __init__(self):
+        super().__init__()
 
 
 class TailTableModel(FAbstractTableModel):
