@@ -17,3 +17,5 @@ CONFIG_PATH = os.path.join(ROOT_PATH, 'faslr.ini')
 TEMPLATES_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'templates')
 
 ICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/')
+
+DOCUMENTATION_URL = 'https://faslr.com'
