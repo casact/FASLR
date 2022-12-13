@@ -42,6 +42,7 @@ class FSpinBox(QWidget):
 
         self.label = QLabel(label)
         self.spin_box = QSpinBox()
+        self.spin_box.setMaximum(999)
         self.spin_box.setValue(value)
         self.spin_box.setSingleStep(single_step)
 
@@ -66,3 +67,10 @@ class FComboBox(QWidget):
 
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.combo_box)
+
+
+class FHContainer(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
