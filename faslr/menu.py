@@ -3,11 +3,17 @@ Contains the menu bar of the main window i.e., the horizontal bar that has stuff
 """
 from __future__ import annotations
 
+import webbrowser
+
 from faslr.about import AboutDialog
 
 from faslr.connection import ConnectionDialog
 
-from faslr.constants import CONFIG_PATH
+from faslr.constants import (
+    CONFIG_PATH,
+    DOCUMENTATION_URL,
+    ICONS_PATH
+)
 
 from faslr.project import ProjectDialog
 
@@ -15,6 +21,7 @@ from faslr.settings import SettingsDialog
 
 from PyQt6.QtGui import (
     QAction,
+    QIcon,
     QKeySequence
 )
 
@@ -68,6 +75,11 @@ class MainMenuBar(QMenuBar):
         # noinspection PyUnresolvedReferences
         self.about_action.triggered.connect(self.display_about)
 
+        self.documentation_action = QAction(QIcon(ICONS_PATH + "open-in-browser.svg"), "&Documentation", self)
+        self.documentation_action.setStatusTip("Go to the documentation website.")
+        self.documentation_action.setShortcut("F1")
+        self.documentation_action.triggered.connect(open_documentation)
+
         file_menu = QMenu("&File", self)
         self.addMenu(file_menu)
         self.addMenu("&Edit")
@@ -81,6 +93,7 @@ class MainMenuBar(QMenuBar):
 
         tools_menu.addAction(self.engine_action)
 
+        help_menu.addAction(self.documentation_action)
         help_menu.addAction(self.about_action)
 
     def edit_connection(self) -> None:
@@ -114,3 +127,13 @@ class MainMenuBar(QMenuBar):
 
         else:
             self.new_action.setEnabled(False)
+
+
+def open_documentation(self) -> None:
+    # Open the documentation website in the browser
+
+    webbrowser.open(
+        url=DOCUMENTATION_URL,
+        new=0,
+        autoraise=True
+    )
