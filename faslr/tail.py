@@ -11,6 +11,7 @@ from faslr.base_table import (
 from faslr.base_classes import (
     FComboBox,
     FDoubleSpinBox,
+    FHContainer,
     FSpinBox
 )
 
@@ -22,9 +23,11 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 
 from PyQt6.QtWidgets import (
+    QButtonGroup,
     QComboBox,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QRadioButton,
     QWidget,
     QStackedWidget,
@@ -90,11 +93,16 @@ class TailPane(QWidget):
 
         gb_tail_type = QGroupBox("Tail Type")
         ly_tail_type = QHBoxLayout()
+        self.bg_tail_type = QButtonGroup()
         self.constant_btn = QRadioButton('Constant')
         self.curve_btn = QRadioButton('Curve')
         self.bondy_btn = QRadioButton('Bondy')
         self.clark_btn = QRadioButton('Clark')
 
+        self.bg_tail_type.addButton(self.constant_btn)
+        self.bg_tail_type.addButton(self.curve_btn)
+        self.bg_tail_type.addButton(self.bondy_btn)
+        self.bg_tail_type.addButton(self.clark_btn)
         ly_tail_type.addWidget(
             self.constant_btn
         )
@@ -110,6 +118,8 @@ class TailPane(QWidget):
         ly_tail_type.addWidget(
             self.clark_btn
         )
+
+        # ly_tail_type.addWidget(bg_tail_type)
 
         gb_tail_type.setLayout(ly_tail_type)
 
@@ -128,14 +138,17 @@ class TailPane(QWidget):
 
         self.params_config.addWidget(constant_config)
         self.params_config.addWidget(curve_config)
-        self.params_config.addWidget(clark_config)
         self.params_config.addWidget(bondy_config)
+        self.params_config.addWidget(clark_config)
+
 
         ly_tail_params.addWidget(self.params_config)
         gb_tail_params.setFixedWidth(config_width)
 
         ly_tail_config.addWidget(gb_tail_type)
         ly_tail_config.addWidget(gb_tail_params)
+
+        print(gb_tail_params.minimumHeight())
 
         layout.addWidget(
             tail_config,
@@ -149,14 +162,19 @@ class TailPane(QWidget):
 
         self.setLayout(layout)
         self.constant_btn.setChecked(True)
-        self.constant_btn.toggled.connect(self.set_config)
-        self.curve_btn.toggled.connect(self.set_config)
+        # self.constant_btn.toggled.connect(self.set_config)
+        # self.curve_btn.toggled.connect(self.set_config)
+        self.bg_tail_type.buttonToggled.connect(self.set_config)
 
     def set_config(self):
         if self.constant_btn.isChecked():
             self.params_config.setCurrentIndex(0)
-        else:
+        elif self.curve_btn.isChecked():
             self.params_config.setCurrentIndex(1)
+        elif self.bondy_btn.isChecked():
+            self.params_config.setCurrentIndex(2)
+        elif self.clark_btn.isChecked():
+            self.params_config.setCurrentIndex(3)
 
 
 class ConstantConfig(QWidget):
@@ -213,19 +231,121 @@ class CurveConfig(QWidget):
             "Exponential"
         ])
 
+        fit_period = FHContainer()
+        fit_period_label = QLabel("Fit Period: ")
+        fit_from = FSpinBox(
+            label="From: ",
+            value=12,
+            single_step=12
+        )
+        fit_to = FSpinBox(
+            label="To: ",
+            value=120,
+            single_step=12
+        )
+        fit_period.layout.addWidget(fit_period_label)
+        fit_period.layout.addWidget(fit_from)
+        fit_period.layout.addWidget(fit_to)
+
+        extrap_periods = FSpinBox(
+            label="Extrapolation Periods: ",
+            value=100,
+            single_step=1
+        )
+
+        errors = FHContainer()
+        errors_label = QLabel("Errors: ")
+        errors_ignore = QRadioButton("Ignore")
+        errors_raise = QRadioButton("Raise")
+        errors_ignore.setChecked(True)
+
+        errors.layout.addWidget(errors_label)
+        errors.layout.addWidget(errors_ignore)
+        errors.layout.addWidget(errors_raise)
+
+        attachment_age = FSpinBox(
+            label='Attachment Age: ',
+            value=120,
+            single_step=1
+        )
+
+        projection = FSpinBox(
+            label='Projection Period: ',
+            value=12,
+            single_step=1
+        )
+
         curve_type.combo_box.setCurrentText("Exponential")
 
         layout.addWidget(curve_type)
+        layout.addWidget(fit_period)
+        layout.addWidget(extrap_periods)
+        layout.addWidget(errors)
+        layout.addWidget(attachment_age)
+        layout.addWidget(projection)
 
 
 class ClarkConfig(QWidget):
     def __init__(self):
         super().__init__()
 
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        growth = FComboBox(
+            label="Growth: "
+        )
+
+        truncation_age = FSpinBox(
+            label="Truncation Age: ",
+            value=120,
+            single_step=12
+        )
+
+        attachment_age = FSpinBox(
+            label="Attachment Age: ",
+            value=120,
+            single_step=12
+        )
+
+        projection = FSpinBox(
+            label='Projection Period: ',
+            value=12,
+            single_step=1
+        )
+
+        growth.combo_box.addItems([
+            'Loglogistic',
+            'Weibull'
+        ])
+
+        layout.addWidget(growth)
+        layout.addWidget(truncation_age)
+        layout.addWidget(attachment_age)
+        layout.addWidget(projection)
+
 
 class BondyConfig(QWidget):
     def __init__(self):
         super().__init__()
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        earliest_age = FSpinBox(
+            label="Earliest Age: ",
+            value=120,
+            single_step=12
+        )
+
+        attachment_age = FSpinBox(
+            label="Attachment Age: ",
+            value=120,
+            single_step=12
+        )
+
+        layout.addWidget(earliest_age)
+        layout.addWidget(attachment_age)
 
 
 class TailTableModel(FAbstractTableModel):
