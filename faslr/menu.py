@@ -11,8 +11,11 @@ from faslr.connection import ConnectionDialog
 
 from faslr.constants import (
     CONFIG_PATH,
+    DISCUSSIONS_URL,
     DOCUMENTATION_URL,
-    ICONS_PATH
+    GITHUB_URL,
+    ICONS_PATH,
+    ISSUES_URL
 )
 
 from faslr.project import ProjectDialog
@@ -44,7 +47,7 @@ class MainMenuBar(QMenuBar):
 
         self.parent = parent
 
-        self.connection_action = QAction("&Connection", self)
+        self.connection_action = QAction(QIcon(ICONS_PATH + "db.svg"), "&Connection", self)
         self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
         self.connection_action.setStatusTip("Edit database connection.")
         # noinspection PyUnresolvedReferences
@@ -78,7 +81,19 @@ class MainMenuBar(QMenuBar):
         self.documentation_action = QAction(QIcon(ICONS_PATH + "open-in-browser.svg"), "&Documentation", self)
         self.documentation_action.setStatusTip("Go to the documentation website.")
         self.documentation_action.setShortcut("F1")
-        self.documentation_action.triggered.connect(open_documentation)
+        self.documentation_action.triggered.connect(open_documentation) # noqa
+
+        self.github_action = QAction(QIcon(ICONS_PATH + "github.svg"), "&GitHub Repo", self)
+        self.github_action.setStatusTip("Go to the GitHub Repo.")
+        self.github_action.triggered.connect(open_github) # noqa
+
+        self.discussions_action = QAction(QIcon(ICONS_PATH + "message-text.svg"), "&Discussion Board")
+        self.discussions_action.setStatusTip("Go to the discussion board.")
+        self.discussions_action.triggered.connect(open_discussions) # noqa
+
+        self.issues_action = QAction(QIcon(ICONS_PATH + "kanban-board.svg"), "&Open an Issue")
+        self.issues_action.setStatusTip("Open an issue on GitHub.")
+        self.issues_action.triggered.connect(open_issue) # noqa
 
         file_menu = QMenu("&File", self)
         self.addMenu(file_menu)
@@ -87,13 +102,20 @@ class MainMenuBar(QMenuBar):
         help_menu = self.addMenu("&Help")
 
         file_menu.addAction(self.connection_action)
+        file_menu.addSeparator()
         file_menu.addAction(self.new_action)
         file_menu.addAction(self.import_action)
+        file_menu.addSeparator()
         file_menu.addAction(self.settings_action)
 
         tools_menu.addAction(self.engine_action)
 
         help_menu.addAction(self.documentation_action)
+        help_menu.addSeparator()
+        help_menu.addAction(self.github_action)
+        help_menu.addAction(self.discussions_action)
+        help_menu.addAction(self.issues_action)
+        help_menu.addSeparator()
         help_menu.addAction(self.about_action)
 
     def edit_connection(self) -> None:
@@ -129,11 +151,36 @@ class MainMenuBar(QMenuBar):
             self.new_action.setEnabled(False)
 
 
-def open_documentation(self) -> None:
+def open_documentation() -> None:
     # Open the documentation website in the browser
 
     webbrowser.open(
         url=DOCUMENTATION_URL,
+        new=0,
+        autoraise=True
+    )
+
+
+def open_github() -> None:
+
+    webbrowser.open(
+        url=GITHUB_URL,
+        new=0,
+        autoraise=True
+    )
+
+
+def open_discussions() -> None:
+    webbrowser.open(
+        url=DISCUSSIONS_URL,
+        new=0,
+        autoraise=True
+    )
+
+
+def open_issue() -> None:
+    webbrowser.open(
+        url=ISSUES_URL,
         new=0,
         autoraise=True
     )
