@@ -19,3 +19,9 @@ TEMPLATES_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'tem
 ICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/')
 
 DOCUMENTATION_URL = 'https://faslr.com'
+
+GITHUB_URL = 'https://github.com/casact/faslr'
+
+DISCUSSIONS_URL = 'https://github.com/casact/FASLR/discussions'
+
+ISSUES_URL = 'https://github.com/casact/FASLR/issues'

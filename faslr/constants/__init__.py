@@ -21,8 +21,11 @@ from faslr.constants.settings import (
 from faslr.constants.general import (
     BUILD_VERSION,
     CONFIG_PATH,
+    DISCUSSIONS_URL,
     DOCUMENTATION_URL,
+    GITHUB_URL,
     ICONS_PATH,
+    ISSUES_URL,
     QT_FILEPATH_OPTION,
     ROOT_PATH,
     TEMPLATES_PATH
