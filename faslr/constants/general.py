@@ -1,8 +1,10 @@
+import git
 import os
 from os.path import dirname
 from PyQt6.QtWidgets import QFileDialog
 
-BUILD_VERSION = "0.0.3"
+
+BUILD_VERSION = "0.0.4"
 
 if "PYCHARM_HOSTED" in os.environ:
     QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
@@ -25,3 +27,17 @@ GITHUB_URL = 'https://github.com/casact/faslr'
 DISCUSSIONS_URL = 'https://github.com/casact/FASLR/discussions'
 
 ISSUES_URL = 'https://github.com/casact/FASLR/issues'
+
+OCTICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/octicons/')
+
+
+repo = git.Repo(search_parent_directories=True)
+
+CURRENT_BRANCH = repo.active_branch.name
+
+sha = repo.head.commit.hexsha
+
+CURRENT_COMMIT = repo.git.rev_parse(
+    sha,
+    short=6
+)
