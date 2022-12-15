@@ -127,7 +127,7 @@ class MainMenuBar(QMenuBar):
     def display_about(self) -> None:
         # function to display about dialog box
         dlg = AboutDialog(self)
-        dlg.exec()
+        dlg.show()
 
     def new_project(self) -> None:
         # function to display new project dialog box
