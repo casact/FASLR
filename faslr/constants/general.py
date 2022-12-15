@@ -33,11 +33,18 @@ OCTICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'styl
 
 repo = git.Repo(search_parent_directories=True)
 
-CURRENT_BRANCH = repo.active_branch.name
+branch = repo.active_branch
+
+CURRENT_BRANCH = branch.name
 
 sha = repo.head.commit.hexsha
 
 CURRENT_COMMIT = repo.git.rev_parse(
     sha,
+    short=6
+)
+
+BRANCH_SHA = repo.git.rev_parse(
+    branch,
     short=6
 )
