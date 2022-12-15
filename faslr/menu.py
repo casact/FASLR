@@ -15,7 +15,8 @@ from faslr.constants import (
     DOCUMENTATION_URL,
     GITHUB_URL,
     ICONS_PATH,
-    ISSUES_URL
+    ISSUES_URL,
+    OCTICONS_PATH
 )
 
 from faslr.project import ProjectDialog
@@ -87,7 +88,7 @@ class MainMenuBar(QMenuBar):
         self.github_action.setStatusTip("Go to the GitHub Repo.")
         self.github_action.triggered.connect(open_github) # noqa
 
-        self.discussions_action = QAction(QIcon(ICONS_PATH + "message-text.svg"), "&Discussion Board")
+        self.discussions_action = QAction(QIcon(OCTICONS_PATH + "comment-discussion-24.svg"), "&Discussion Board")
         self.discussions_action.setStatusTip("Go to the discussion board.")
         self.discussions_action.triggered.connect(open_discussions) # noqa
 
