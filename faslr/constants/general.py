@@ -39,6 +39,8 @@ CURRENT_BRANCH = branch.name
 
 sha = repo.head.commit.hexsha
 
+CURRENT_COMMIT_LONG = sha
+
 CURRENT_COMMIT = repo.git.rev_parse(
     sha,
     short=6
