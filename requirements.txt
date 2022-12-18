@@ -6,6 +6,7 @@ numpy
 pandas
 pydata-sphinx-theme
 pytest
+pytest-cov
 PyQt5
 PyQt6
 sphinx_design
