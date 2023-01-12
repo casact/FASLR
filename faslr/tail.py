@@ -80,8 +80,18 @@ class TailPane(QWidget):
             # height=4,
             dpi=100
         )
-        sc.axes.plot(unsmoothed.development, unsmoothed.T.iloc[:, 0], label='Unsmoothed')
-        sc.axes.plot(unsmoothed.development, smoothed.T.iloc[:, 0], label='Age 24+ Smoothed')
+        sc.axes.plot(
+            unsmoothed.development,
+            unsmoothed.T.iloc[:, 0],
+            label='Unsmoothed'
+        )
+
+        sc.axes.plot(
+            unsmoothed.development,
+            smoothed.T.iloc[:, 0],
+            label='Age 24+ Smoothed'
+        )
+
         sc.axes.set_title("Selected Link Ratio")
 
         # main layout
@@ -123,9 +133,9 @@ class TailPane(QWidget):
 
         gb_tail_type.setLayout(ly_tail_type)
 
-        config_width = gb_tail_type.sizeHint().width()
+        # config_width = gb_tail_type.sizeHint().width()
 
-        gb_tail_type.setFixedWidth(config_width)
+        # gb_tail_type.setFixedWidth(config_width)
         gb_tail_params = QGroupBox("Tail Parameters")
         ly_tail_params = QVBoxLayout()
         gb_tail_params.setLayout(ly_tail_params)
@@ -141,6 +151,7 @@ class TailPane(QWidget):
         self.params_config.addWidget(bondy_config)
         self.params_config.addWidget(clark_config)
 
+        config_width = curve_config.sizeHint().width()
 
         ly_tail_params.addWidget(self.params_config)
         gb_tail_params.setFixedWidth(config_width)
