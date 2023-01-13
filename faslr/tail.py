@@ -38,8 +38,10 @@ matplotlib.use('Qt5Agg')
 
 
 triangle = cl.load_sample('genins')
-unsmoothed = cl.TailCurve().fit(triangle).ldf_
-smoothed = cl.TailCurve(attachment_age=24).fit(triangle).ldf_
+# unsmoothed = cl.TailCurve().fit(triangle).ldf_
+# smoothed = cl.TailCurve(attachment_age=24).fit(triangle).ldf_
+
+tc = cl.TailConstant(5.10).fit_transform(triangle)
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -74,25 +76,31 @@ class TailPane(QWidget):
 
         self.setWindowTitle("Tail Analysis")
 
-        sc = MplCanvas(
+        self.sc = MplCanvas(
             self,
             # width=5,
             # height=4,
             dpi=100
         )
-        sc.axes.plot(
-            unsmoothed.development,
-            unsmoothed.T.iloc[:, 0],
-            label='Unsmoothed'
+        # sc.axes.plot(
+        #     unsmoothed.development,
+        #     unsmoothed.T.iloc[:, 0],
+        #     label='Unsmoothed'
+        # )
+        #
+        # sc.axes.plot(
+        #     unsmoothed.development,
+        #     smoothed.T.iloc[:, 0],
+        #     label='Age 24+ Smoothed'
+        # )
+
+        self.sc.axes.plot(
+            tc.development,
+            tc.cdf_.T.iloc[:len(tc.development), 0],
+            label='Tail Constant'
         )
 
-        sc.axes.plot(
-            unsmoothed.development,
-            smoothed.T.iloc[:, 0],
-            label='Age 24+ Smoothed'
-        )
-
-        sc.axes.set_title("Selected Link Ratio")
+        self.sc.axes.set_title("Selected Link Ratio")
 
         # main layout
         layout = QHBoxLayout()
@@ -167,7 +175,7 @@ class TailPane(QWidget):
         )
 
         layout.addWidget(
-            sc,
+            self.sc,
             stretch=1
         )
 
@@ -187,6 +195,16 @@ class TailPane(QWidget):
         elif self.clark_btn.isChecked():
             self.params_config.setCurrentIndex(3)
 
+    def update_plot(self, tail_constant: float) -> None:
+
+        tc = cl.TailConstant(tail_constant).fit_transform(triangle)
+        self.sc.axes.cla()
+        self.sc.axes.plot(
+            tc.development,
+            tc.cdf_.T.iloc[:len(tc.development), 0],
+            label='Tail Constant'
+        )
+        self.sc.draw()
 
 class ConstantConfig(QWidget):
     def __init__(
@@ -228,6 +246,8 @@ class ConstantConfig(QWidget):
         self.layout.addWidget(sb_attach)
         self.layout.addWidget(sb_projection)
 
+        sb_tail_constant.spin_box.valueChanged.connect(
+            lambda tail_constant=sb_tail_constant.spin_box.value: parent.update_plot(tail_constant))
 
 class CurveConfig(QWidget):
     def __init__(self):
