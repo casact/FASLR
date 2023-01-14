@@ -59,12 +59,15 @@ class MplCanvas(FigureCanvasQTAgg):
                 width,
                 height
             ),
-            dpi=dpi
+            dpi=dpi,
+            linewidth=2,
+            edgecolor='#dbdbdb'
         )
 
         self.axes = fig.add_subplot(111)
 
         super(MplCanvas, self).__init__(fig)
+
 
 
 class TailPane(QWidget):
@@ -94,16 +97,24 @@ class TailPane(QWidget):
         #     label='Age 24+ Smoothed'
         # )
 
-        self.sc.axes.plot(
-            tc.development,
-            tc.cdf_.T.iloc[:len(tc.development), 0],
-            label='Tail Constant'
-        )
+        # self.sc.axes.plot(
+        #     tc.development,
+        #     tc.cdf_.T.iloc[:len(tc.development), 0],
+        #     label='Tail Constant',
+        # )
+        #
+        # self.sc.axes.patch.set_edgecolor('black')
+        # self.sc.axes.patch.set_linewidth(1)
 
-        self.sc.axes.set_title("Selected Link Ratio")
+        # self.sc.axes.set_title("Selected Link Ratio")
 
         # main layout
         layout = QHBoxLayout()
+
+        # canvas layout to enable margin adjustments
+        canvas_layout = QVBoxLayout()
+        canvas_container = QWidget()
+        canvas_container.setLayout(canvas_layout)
 
         tail_config = QWidget()
         ly_tail_config = QVBoxLayout()
@@ -167,20 +178,30 @@ class TailPane(QWidget):
         ly_tail_config.addWidget(gb_tail_type)
         ly_tail_config.addWidget(gb_tail_params)
 
-        print(gb_tail_params.minimumHeight())
-
         layout.addWidget(
             tail_config,
             stretch=0
         )
 
+        canvas_layout.addWidget(self.sc)
+
+        # The goal for setting these margins is to align the chart position with the group boxes on the left
+        canvas_layout.setContentsMargins(
+            11,
+            30,
+            11,
+            8
+        )
+
         layout.addWidget(
-            self.sc,
+            canvas_container,
             stretch=1
         )
 
         self.setLayout(layout)
         self.constant_btn.setChecked(True)
+
+        self.update_plot(tail_constant=1)
         # self.constant_btn.toggled.connect(self.set_config)
         # self.curve_btn.toggled.connect(self.set_config)
         self.bg_tail_type.buttonToggled.connect(self.set_config)
@@ -204,7 +225,13 @@ class TailPane(QWidget):
             tc.cdf_.T.iloc[:len(tc.development), 0],
             label='Tail Constant'
         )
+
+        self.sc.axes.spines['bottom'].set_color('0')
+
+        self.sc.axes.set_title("Selected Link Ratio")
+
         self.sc.draw()
+
 
 class ConstantConfig(QWidget):
     def __init__(
@@ -248,6 +275,7 @@ class ConstantConfig(QWidget):
 
         sb_tail_constant.spin_box.valueChanged.connect(
             lambda tail_constant=sb_tail_constant.spin_box.value: parent.update_plot(tail_constant))
+
 
 class CurveConfig(QWidget):
     def __init__(self):
