@@ -1,3 +1,4 @@
+# from random import sample
 import chainladder as cl
 import matplotlib
 
@@ -42,6 +43,11 @@ triangle = cl.load_sample('genins')
 # smoothed = cl.TailCurve(attachment_age=24).fit(triangle).ldf_
 
 tc = cl.TailConstant(5.10).fit_transform(triangle)
+
+curve_alias = {
+    'Exponential': 'exponential',
+    'Inverse Power': 'inverse_power'
+}
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -160,17 +166,17 @@ class TailPane(QWidget):
         gb_tail_params.setLayout(ly_tail_params)
 
         self.params_config = QStackedWidget()
-        constant_config = ConstantConfig(parent=self)
-        curve_config = CurveConfig()
+        self.constant_config = ConstantConfig(parent=self)
+        self.curve_config = CurveConfig(parent=self)
         clark_config = ClarkConfig()
         bondy_config = BondyConfig()
 
-        self.params_config.addWidget(constant_config)
-        self.params_config.addWidget(curve_config)
+        self.params_config.addWidget(self.constant_config)
+        self.params_config.addWidget(self.curve_config)
         self.params_config.addWidget(bondy_config)
         self.params_config.addWidget(clark_config)
 
-        config_width = curve_config.sizeHint().width()
+        config_width = self.curve_config.sizeHint().width()
 
         ly_tail_params.addWidget(self.params_config)
         gb_tail_params.setFixedWidth(config_width)
@@ -201,7 +207,7 @@ class TailPane(QWidget):
         self.setLayout(layout)
         self.constant_btn.setChecked(True)
 
-        self.update_plot(tail_constant=1)
+        self.update_plot()
         # self.constant_btn.toggled.connect(self.set_config)
         # self.curve_btn.toggled.connect(self.set_config)
         self.bg_tail_type.buttonToggled.connect(self.set_config)
@@ -216,13 +222,36 @@ class TailPane(QWidget):
         elif self.clark_btn.isChecked():
             self.params_config.setCurrentIndex(3)
 
-    def update_plot(self, tail_constant: float) -> None:
+    def update_plot(self) -> None:
 
-        tc = cl.TailConstant(tail_constant).fit_transform(triangle)
+        if self.constant_btn.isChecked():
+            tail_constant = self.constant_config.sb_tail_constant.spin_box.value()
+            decay = self.constant_config.sb_decay.spin_box.value()
+            attach = self.constant_config.sb_attach.spin_box.value()
+            projection = self.constant_config.sb_projection.spin_box.value()
+
+            tc = cl.TailConstant(
+                tail=tail_constant,
+                decay=decay,
+                attachment_age=attach,
+                projection_period=projection
+            ).fit_transform(triangle)
+
+        elif self.curve_btn.isChecked():
+            curve = curve_alias[self.curve_config.curve_type.combo_box.currentText()]
+
+            tc = cl.TailCurve(
+                curve=curve
+            ).fit_transform(triangle)
+
+        print(tc.cdf_)
+        print(len(tc.development))
+
         self.sc.axes.cla()
         self.sc.axes.plot(
             tc.development,
             tc.cdf_.T.iloc[:len(tc.development), 0],
+            # sample(range(1, 20), len(tc.development)),
             label='Tail Constant'
         )
 
@@ -244,48 +273,53 @@ class ConstantConfig(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        sb_tail_constant = FDoubleSpinBox(
+        self.sb_tail_constant = FDoubleSpinBox(
             label='Tail Constant: ',
             value=1.00,
             single_step=.01
         )
 
-        sb_decay = FDoubleSpinBox(
+        self.sb_decay = FDoubleSpinBox(
             label='Decay: ',
             value=0.5,
             single_step=.01
         )
 
-        sb_attach = FSpinBox(
+        self.sb_attach = FSpinBox(
             label='Attachment Age: ',
             value=120,
             single_step=1
         )
 
-        sb_projection = FSpinBox(
+        self.sb_projection = FSpinBox(
             label='Projection Period: ',
             value=12,
             single_step=1
         )
 
-        self.layout.addWidget(sb_tail_constant)
-        self.layout.addWidget(sb_decay)
-        self.layout.addWidget(sb_attach)
-        self.layout.addWidget(sb_projection)
+        self.layout.addWidget(self.sb_tail_constant)
+        self.layout.addWidget(self.sb_decay)
+        self.layout.addWidget(self.sb_attach)
+        self.layout.addWidget(self.sb_projection)
 
-        sb_tail_constant.spin_box.valueChanged.connect(
-            lambda tail_constant=sb_tail_constant.spin_box.value: parent.update_plot(tail_constant))
+        self.sb_tail_constant.spin_box.valueChanged.connect(parent.update_plot)
+        self.sb_decay.spin_box.valueChanged.connect(parent.update_plot)
+        self.sb_attach.spin_box.valueChanged.connect(parent.update_plot)
+        self.sb_projection.spin_box.valueChanged.connect(parent.update_plot)
 
 
 class CurveConfig(QWidget):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: TailPane = None
+    ):
         super().__init__()
 
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        curve_type = FComboBox(label="Curve Type:")
-        curve_type.combo_box.addItems([
+        self.curve_type = FComboBox(label="Curve Type:")
+        self.curve_type.combo_box.addItems([
             "Inverse Power",
             "Exponential"
         ])
@@ -334,14 +368,16 @@ class CurveConfig(QWidget):
             single_step=1
         )
 
-        curve_type.combo_box.setCurrentText("Exponential")
+        self.curve_type.combo_box.setCurrentText("Exponential")
 
-        layout.addWidget(curve_type)
+        layout.addWidget(self.curve_type)
         layout.addWidget(fit_period)
         layout.addWidget(extrap_periods)
         layout.addWidget(errors)
         layout.addWidget(attachment_age)
         layout.addWidget(projection)
+
+        self.curve_type.combo_box.currentTextChanged.connect(parent.update_plot)
 
 
 class ClarkConfig(QWidget):
