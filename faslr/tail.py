@@ -213,6 +213,7 @@ class TailPane(QWidget):
         self.bg_tail_type.buttonToggled.connect(self.set_config)
 
     def set_config(self):
+
         if self.constant_btn.isChecked():
             self.params_config.setCurrentIndex(0)
         elif self.curve_btn.isChecked():
@@ -221,6 +222,8 @@ class TailPane(QWidget):
             self.params_config.setCurrentIndex(2)
         elif self.clark_btn.isChecked():
             self.params_config.setCurrentIndex(3)
+
+        self.update_plot()
 
     def update_plot(self) -> None:
 
