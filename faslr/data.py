@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from chainladder import Triangle
 import datetime as dt
 import numpy as np
 import pandas as pd
@@ -16,20 +17,15 @@ from faslr.connection import (
 )
 
 from faslr.constants import (
-    GRAINS,
-    ICONS_PATH
-)
-
-from faslr.utilities import open_item_tab
-
-from chainladder import Triangle
-
-from faslr.constants import (
     DEVELOPMENT_FIELDS,
+    GRAINS,
+    ICONS_PATH,
     LOSS_FIELDS,
     ORIGIN_FIELDS,
     QT_FILEPATH_OPTION
 )
+
+from faslr.utilities import open_item_tab
 
 from faslr.schema import (
     ProjectViewTable,
