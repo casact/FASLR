@@ -1,8 +1,8 @@
+from __future__ import annotations
 # from random import sample
 import chainladder as cl
 import matplotlib
 
-from chainladder import Triangle
 
 from faslr.base_table import (
     FAbstractTableModel,
@@ -17,63 +17,36 @@ from faslr.base_classes import (
 )
 
 from matplotlib.backends.backend_qt5agg import (
-    FigureCanvasQTAgg,
-    NavigationToolbar2QT as NavigationToolbar
+    FigureCanvasQTAgg
 )
 
 from matplotlib.figure import Figure
 
 from PyQt6.QtWidgets import (
     QButtonGroup,
-    QComboBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QRadioButton,
     QWidget,
     QStackedWidget,
+    QTabWidget,
     QVBoxLayout
 )
 
+from typing import (
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from chainladder import Triangle
+
 matplotlib.use('Qt5Agg')
-
-
-triangle = cl.load_sample('genins')
-# unsmoothed = cl.TailCurve().fit(triangle).ldf_
-# smoothed = cl.TailCurve(attachment_age=24).fit(triangle).ldf_
-
-tc = cl.TailConstant(5.10).fit_transform(triangle)
 
 curve_alias = {
     'Exponential': 'exponential',
     'Inverse Power': 'inverse_power'
 }
-
-
-class MplCanvas(FigureCanvasQTAgg):
-
-    def __init__(
-            self,
-            parent=None,
-            width=5,
-            height=4,
-            dpi=100
-    ):
-
-        fig = Figure(
-            figsize=(
-                width,
-                height
-            ),
-            dpi=dpi,
-            linewidth=2,
-            edgecolor='#dbdbdb'
-        )
-
-        self.axes = fig.add_subplot(111)
-
-        super(MplCanvas, self).__init__(fig)
-
 
 
 class TailPane(QWidget):
@@ -82,6 +55,8 @@ class TailPane(QWidget):
             triangle: Triangle = None
     ):
         super().__init__()
+
+        self.triangle = triangle
 
         self.setWindowTitle("Tail Analysis")
 
@@ -208,9 +183,7 @@ class TailPane(QWidget):
         self.constant_btn.setChecked(True)
 
         self.update_plot()
-        # self.constant_btn.toggled.connect(self.set_config)
-        # self.curve_btn.toggled.connect(self.set_config)
-        self.bg_tail_type.buttonToggled.connect(self.set_config)
+        self.bg_tail_type.buttonToggled.connect(self.set_config) # noqa
 
     def set_config(self):
 
@@ -238,7 +211,7 @@ class TailPane(QWidget):
                 decay=decay,
                 attachment_age=attach,
                 projection_period=projection
-            ).fit_transform(triangle)
+            ).fit_transform(self.triangle)
 
         elif self.curve_btn.isChecked():
             curve = curve_alias[self.curve_config.curve_type.combo_box.currentText()]
@@ -251,7 +224,7 @@ class TailPane(QWidget):
                     fit_from,
                     fit_to
                 )
-            ).fit_transform(triangle)
+            ).fit_transform(self.triangle)
 
         print(tc.cdf_)
         print(len(tc.development))
@@ -269,6 +242,32 @@ class TailPane(QWidget):
         self.sc.axes.set_title("Selected Link Ratio")
 
         self.sc.draw()
+
+
+class MplCanvas(FigureCanvasQTAgg):
+
+    def __init__(
+            self,
+            parent: TailPane = None,
+            width=5,
+            height=4,
+            dpi=100
+    ):
+        self.parent = parent
+
+        fig = Figure(
+            figsize=(
+                width,
+                height
+            ),
+            dpi=dpi,
+            linewidth=2,
+            edgecolor='#dbdbdb'
+        )
+
+        self.axes = fig.add_subplot(111)
+
+        super(MplCanvas, self).__init__(fig)
 
 
 class ConstantConfig(QWidget):
