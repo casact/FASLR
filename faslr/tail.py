@@ -58,6 +58,8 @@ class TailPane(QWidget):
 
         self.triangle = triangle
 
+        # list to hold each tail candidate
+        self.tail_candidates = []
         self.setWindowTitle("Tail Analysis")
 
         self.sc = MplCanvas(
@@ -97,70 +99,16 @@ class TailPane(QWidget):
         canvas_container = QWidget()
         canvas_container.setLayout(canvas_layout)
 
-        tail_config = QWidget()
-        ly_tail_config = QVBoxLayout()
-        tail_config.setLayout(ly_tail_config)
+        # Tabs to hold each tail candidate
+        config_tabs = QTabWidget()
 
-        gb_tail_type = QGroupBox("Tail Type")
-        ly_tail_type = QHBoxLayout()
-        self.bg_tail_type = QButtonGroup()
-        self.constant_btn = QRadioButton('Constant')
-        self.curve_btn = QRadioButton('Curve')
-        self.bondy_btn = QRadioButton('Bondy')
-        self.clark_btn = QRadioButton('Clark')
+        tail_config = TailConfig(parent=self)
+        self.tail_candidates.append(tail_config)
 
-        self.bg_tail_type.addButton(self.constant_btn)
-        self.bg_tail_type.addButton(self.curve_btn)
-        self.bg_tail_type.addButton(self.bondy_btn)
-        self.bg_tail_type.addButton(self.clark_btn)
-        ly_tail_type.addWidget(
-            self.constant_btn
-        )
-
-        ly_tail_type.addWidget(
-            self.curve_btn
-        )
-
-        ly_tail_type.addWidget(
-            self.bondy_btn
-        )
-
-        ly_tail_type.addWidget(
-            self.clark_btn
-        )
-
-        # ly_tail_type.addWidget(bg_tail_type)
-
-        gb_tail_type.setLayout(ly_tail_type)
-
-        # config_width = gb_tail_type.sizeHint().width()
-
-        # gb_tail_type.setFixedWidth(config_width)
-        gb_tail_params = QGroupBox("Tail Parameters")
-        ly_tail_params = QVBoxLayout()
-        gb_tail_params.setLayout(ly_tail_params)
-
-        self.params_config = QStackedWidget()
-        self.constant_config = ConstantConfig(parent=self)
-        self.curve_config = CurveConfig(parent=self)
-        clark_config = ClarkConfig()
-        bondy_config = BondyConfig()
-
-        self.params_config.addWidget(self.constant_config)
-        self.params_config.addWidget(self.curve_config)
-        self.params_config.addWidget(bondy_config)
-        self.params_config.addWidget(clark_config)
-
-        config_width = self.curve_config.sizeHint().width()
-
-        ly_tail_params.addWidget(self.params_config)
-        gb_tail_params.setFixedWidth(config_width)
-
-        ly_tail_config.addWidget(gb_tail_type)
-        ly_tail_config.addWidget(gb_tail_params)
+        config_tabs.addTab(tail_config, "Tail 1")
 
         layout.addWidget(
-            tail_config,
+            config_tabs,
             stretch=0
         )
 
@@ -180,31 +128,16 @@ class TailPane(QWidget):
         )
 
         self.setLayout(layout)
-        self.constant_btn.setChecked(True)
-
-        self.update_plot()
-        self.bg_tail_type.buttonToggled.connect(self.set_config) # noqa
-
-    def set_config(self):
-
-        if self.constant_btn.isChecked():
-            self.params_config.setCurrentIndex(0)
-        elif self.curve_btn.isChecked():
-            self.params_config.setCurrentIndex(1)
-        elif self.bondy_btn.isChecked():
-            self.params_config.setCurrentIndex(2)
-        elif self.clark_btn.isChecked():
-            self.params_config.setCurrentIndex(3)
 
         self.update_plot()
 
     def update_plot(self) -> None:
-
-        if self.constant_btn.isChecked():
-            tail_constant = self.constant_config.sb_tail_constant.spin_box.value()
-            decay = self.constant_config.sb_decay.spin_box.value()
-            attach = self.constant_config.sb_attach.spin_box.value()
-            projection = self.constant_config.sb_projection.spin_box.value()
+        config = self.tail_candidates[0]
+        if config.constant_btn.isChecked():
+            tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
+            decay = config.constant_config.sb_decay.spin_box.value()
+            attach = config.constant_config.sb_attach.spin_box.value()
+            projection = config.constant_config.sb_projection.spin_box.value()
 
             tc = cl.TailConstant(
                 tail=tail_constant,
@@ -213,10 +146,10 @@ class TailPane(QWidget):
                 projection_period=projection
             ).fit_transform(self.triangle)
 
-        elif self.curve_btn.isChecked():
-            curve = curve_alias[self.curve_config.curve_type.combo_box.currentText()]
-            fit_from = self.curve_config.fit_from.spin_box.value()
-            fit_to = self.curve_config.fit_to.spin_box.value()
+        elif config.curve_btn.isChecked():
+            curve = curve_alias[config.curve_config.curve_type.combo_box.currentText()]
+            fit_from = config.curve_config.fit_from.spin_box.value()
+            fit_to = config.curve_config.fit_to.spin_box.value()
 
             tc = cl.TailCurve(
                 curve=curve,
@@ -273,7 +206,7 @@ class MplCanvas(FigureCanvasQTAgg):
 class ConstantConfig(QWidget):
     def __init__(
             self,
-            parent: TailPane = None
+            parent: TailConfig = None
     ):
         super().__init__()
 
@@ -310,16 +243,16 @@ class ConstantConfig(QWidget):
         self.layout.addWidget(self.sb_attach)
         self.layout.addWidget(self.sb_projection)
 
-        self.sb_tail_constant.spin_box.valueChanged.connect(parent.update_plot)
-        self.sb_decay.spin_box.valueChanged.connect(parent.update_plot)
-        self.sb_attach.spin_box.valueChanged.connect(parent.update_plot)
-        self.sb_projection.spin_box.valueChanged.connect(parent.update_plot)
+        self.sb_tail_constant.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.sb_decay.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.sb_attach.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.sb_projection.spin_box.valueChanged.connect(parent.parent.update_plot)
 
 
 class CurveConfig(QWidget):
     def __init__(
             self,
-            parent: TailPane = None
+            parent: TailConfig = None
     ):
         super().__init__()
 
@@ -385,9 +318,9 @@ class CurveConfig(QWidget):
         layout.addWidget(attachment_age)
         layout.addWidget(projection)
 
-        self.curve_type.combo_box.currentTextChanged.connect(parent.update_plot)
-        self.fit_from.spin_box.valueChanged.connect(parent.update_plot)
-        self.fit_to.spin_box.valueChanged.connect(parent.update_plot)
+        self.curve_type.combo_box.currentTextChanged.connect(parent.parent.update_plot)
+        self.fit_from.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.fit_to.spin_box.valueChanged.connect(parent.parent.update_plot)
 
 
 class ClarkConfig(QWidget):
@@ -449,8 +382,84 @@ class BondyConfig(QWidget):
             single_step=12
         )
 
-        layout.addWidget(earliest_age)
-        layout.addWidget(attachment_age)
+
+class TailConfig(QWidget):
+    def __init__(
+            self,
+            parent: TailPane = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        self.gb_tail_type = QGroupBox("Tail Type")
+
+        self.ly_tail_type = QHBoxLayout()
+
+        self.bg_tail_type = QButtonGroup()
+        self.constant_btn = QRadioButton('Constant')
+        self.curve_btn = QRadioButton('Curve')
+        self.bondy_btn = QRadioButton('Bondy')
+        self.clark_btn = QRadioButton('Clark')
+
+        buttons = [
+            self.constant_btn,
+            self.curve_btn,
+            self.bondy_btn,
+            self.clark_btn
+        ]
+
+        for button in buttons:
+            self.bg_tail_type.addButton(button)
+            self.ly_tail_type.addWidget(button)
+
+        self.gb_tail_type.setLayout(self.ly_tail_type)
+
+        self.gb_tail_params = QGroupBox("Tail Parameters")
+        self.ly_tail_params = QVBoxLayout()
+        self.gb_tail_params.setLayout(self.ly_tail_params)
+
+        self.params_config = QStackedWidget()
+
+        self.constant_config = ConstantConfig(parent=self)
+        self.curve_config = CurveConfig(parent=self)
+        self.clark_config = ClarkConfig()
+        self.bondy_config = BondyConfig()
+
+        configs = [
+            self.constant_config,
+            self.curve_config,
+            self.clark_config,
+            self.bondy_config
+        ]
+
+        for config in configs:
+            self.params_config.addWidget(config)
+
+        self.ly_tail_params.addWidget(self.params_config)
+        # self.gb_tail_params.setFixedWidth(config_width)
+
+        self.layout.addWidget(self.gb_tail_type)
+        self.layout.addWidget(self.gb_tail_params)
+
+        self.constant_btn.setChecked(True)
+        self.bg_tail_type.buttonToggled.connect(self.set_config)  # noqa
+
+    def set_config(self):
+
+        if self.constant_btn.isChecked():
+            self.params_config.setCurrentIndex(0)
+        elif self.curve_btn.isChecked():
+            self.params_config.setCurrentIndex(1)
+        elif self.bondy_btn.isChecked():
+            self.params_config.setCurrentIndex(2)
+        elif self.clark_btn.isChecked():
+            self.params_config.setCurrentIndex(3)
+
+        self.parent.update_plot()
 
 
 class TailTableModel(FAbstractTableModel):
