@@ -36,6 +36,7 @@ from PyQt6.QtGui import (
 
 from PyQt6.QtWidgets import (
     QButtonGroup,
+    QCheckBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -498,6 +499,8 @@ class TailConfig(QWidget):
 
         self.gb_tail_type.setLayout(self.ly_tail_type)
 
+        self.cb_mark_selected = QCheckBox('Mark as selected')
+
         self.gb_tail_params = QGroupBox("Tail Parameters")
         self.ly_tail_params = QVBoxLayout()
         self.gb_tail_params.setLayout(self.ly_tail_params)
@@ -524,6 +527,7 @@ class TailConfig(QWidget):
 
         self.layout.addWidget(self.gb_tail_type)
         self.layout.addWidget(self.gb_tail_params)
+        self.layout.addWidget(self.cb_mark_selected)
 
         self.constant_btn.setChecked(True)
         self.bg_tail_type.buttonToggled.connect(self.set_config)  # noqa
