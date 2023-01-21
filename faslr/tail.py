@@ -16,6 +16,10 @@ from faslr.base_classes import (
     FSpinBox
 )
 
+from faslr.constants import (
+    ICONS_PATH
+)
+
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg
 )
@@ -26,11 +30,16 @@ from PyQt6.QtCore import (
     Qt
 )
 
+from PyQt6.QtGui import (
+    QIcon
+)
+
 from PyQt6.QtWidgets import (
     QButtonGroup,
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QRadioButton,
     QToolButton,
     QWidget,
@@ -104,6 +113,33 @@ class TailPane(QWidget):
         canvas_container = QWidget()
         canvas_container.setLayout(canvas_layout)
 
+        # layout to toggle between charts
+        ly_graph_toggle = QVBoxLayout()
+        ly_graph_toggle.setAlignment(Qt.AlignmentFlag.AlignTop)
+        graph_toggle_btns = QWidget()
+        graph_toggle_btns.setLayout(ly_graph_toggle)
+
+        curve_btn = QPushButton('')
+        curve_btn.setIcon(QIcon(ICONS_PATH + 'graph-down.svg'))
+
+        tail_comps_btn = QPushButton('')
+        tail_comps_btn.setIcon(QIcon(ICONS_PATH + 'bar-chart-2.svg'))
+
+        extrap_btn = QPushButton('')
+        extrap_btn.setIcon(QIcon(ICONS_PATH + 'noun-curve-graph-1476204.svg'))
+
+        reg_btn = QPushButton('')
+        reg_btn.setIcon(QIcon(ICONS_PATH + 'noun-scatter-plot-4489619.svg'))
+
+        ly_graph_toggle.addWidget(curve_btn)
+        ly_graph_toggle.addWidget(tail_comps_btn)
+        ly_graph_toggle.addWidget(extrap_btn)
+        ly_graph_toggle.addWidget(reg_btn)
+
+        ly_graph_toggle.setContentsMargins(
+            0,40,0,0
+        )
+
         # Tabs to hold each tail candidate
         self.config_tabs = QTabWidget()
         add_tab_btn = QToolButton()
@@ -154,6 +190,10 @@ class TailPane(QWidget):
         layout.addWidget(
             canvas_container,
             stretch=1
+        )
+
+        layout.addWidget(
+            graph_toggle_btns
         )
 
         self.setLayout(layout)
