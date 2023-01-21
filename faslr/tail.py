@@ -22,12 +22,17 @@ from matplotlib.backends.backend_qt5agg import (
 
 from matplotlib.figure import Figure
 
+from PyQt6.QtCore import (
+    Qt
+)
+
 from PyQt6.QtWidgets import (
     QButtonGroup,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QRadioButton,
+    QToolButton,
     QWidget,
     QStackedWidget,
     QTabWidget,
@@ -100,15 +105,39 @@ class TailPane(QWidget):
         canvas_container.setLayout(canvas_layout)
 
         # Tabs to hold each tail candidate
-        config_tabs = QTabWidget()
+        self.config_tabs = QTabWidget()
+        add_tab_btn = QToolButton()
+        add_tab_btn.setText('+')
+        add_tab_btn.setFixedHeight(22)
+        add_tab_btn.setFixedWidth(22)
+        remove_tab_btn = QToolButton()
+        remove_tab_btn.setText('-')
+        remove_tab_btn.setFixedWidth(add_tab_btn.width())
+        remove_tab_btn.setFixedHeight(add_tab_btn.height())
+        ly_tab_btn = QHBoxLayout()
+        ly_tab_btn.setContentsMargins(0,0,0,2)
+        ly_tab_btn.setSpacing(2)
+        tab_btn_container = QWidget()
+        tab_btn_container.setContentsMargins(0,0,0,0)
+        tab_btn_container.setLayout(ly_tab_btn)
+        ly_tab_btn.addWidget(add_tab_btn)
+        ly_tab_btn.addWidget(remove_tab_btn)
+        print(add_tab_btn.height())
+        # add_tab_btn.setFixedWidth(30)
+        self.config_tabs.setCornerWidget(
+            tab_btn_container,
+            Qt.Corner.TopRightCorner
+        )
+
+        add_tab_btn.pressed.connect(self.add_tab)
 
         tail_config = TailConfig(parent=self)
         self.tail_candidates.append(tail_config)
 
-        config_tabs.addTab(tail_config, "Tail 1")
+        self.config_tabs.addTab(tail_config, "Tail 1")
 
         layout.addWidget(
-            config_tabs,
+            self.config_tabs,
             stretch=0
         )
 
@@ -130,6 +159,17 @@ class TailPane(QWidget):
         self.setLayout(layout)
 
         self.update_plot()
+
+    def add_tab(self) -> None:
+
+        new_tab = TailConfig(parent=self)
+
+        self.tail_candidates.append(new_tab)
+
+        self.config_tabs.addTab(
+            new_tab,
+            'test'
+        )
 
     def update_plot(self) -> None:
         config = self.tail_candidates[0]
