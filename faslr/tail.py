@@ -242,9 +242,15 @@ class TailPane(QWidget):
 
         elif self.curve_btn.isChecked():
             curve = curve_alias[self.curve_config.curve_type.combo_box.currentText()]
+            fit_from = self.curve_config.fit_from.spin_box.value()
+            fit_to = self.curve_config.fit_to.spin_box.value()
 
             tc = cl.TailCurve(
-                curve=curve
+                curve=curve,
+                fit_period=(
+                    fit_from,
+                    fit_to
+                )
             ).fit_transform(triangle)
 
         print(tc.cdf_)
@@ -329,19 +335,19 @@ class CurveConfig(QWidget):
 
         fit_period = FHContainer()
         fit_period_label = QLabel("Fit Period: ")
-        fit_from = FSpinBox(
+        self.fit_from = FSpinBox(
             label="From: ",
             value=12,
             single_step=12
         )
-        fit_to = FSpinBox(
+        self.fit_to = FSpinBox(
             label="To: ",
             value=120,
             single_step=12
         )
         fit_period.layout.addWidget(fit_period_label)
-        fit_period.layout.addWidget(fit_from)
-        fit_period.layout.addWidget(fit_to)
+        fit_period.layout.addWidget(self.fit_from)
+        fit_period.layout.addWidget(self.fit_to)
 
         extrap_periods = FSpinBox(
             label="Extrapolation Periods: ",
@@ -381,6 +387,8 @@ class CurveConfig(QWidget):
         layout.addWidget(projection)
 
         self.curve_type.combo_box.currentTextChanged.connect(parent.update_plot)
+        self.fit_from.spin_box.valueChanged.connect(parent.update_plot)
+        self.fit_to.spin_box.valueChanged.connect(parent.update_plot)
 
 
 class ClarkConfig(QWidget):
