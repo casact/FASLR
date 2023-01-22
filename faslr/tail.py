@@ -37,6 +37,7 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import (
     QButtonGroup,
     QCheckBox,
+    QDialogButtonBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -107,7 +108,14 @@ class TailPane(QWidget):
         # self.sc.axes.set_title("Selected Link Ratio")
 
         # main layout
-        layout = QHBoxLayout()
+        vlayout = QVBoxLayout()
+        hlayout = QHBoxLayout()
+        main_container = QWidget()
+        main_container.setLayout(hlayout)
+        # hlayout.setContentsMargins(0,0,0,0)
+        main_container.setContentsMargins(0,0,0,0)
+        # vlayout.setContentsMargins(0,0,0,0)
+        vlayout.addWidget(main_container)
 
         # canvas layout to enable margin adjustments
         canvas_layout = QVBoxLayout()
@@ -122,15 +130,19 @@ class TailPane(QWidget):
 
         curve_btn = QPushButton('')
         curve_btn.setIcon(QIcon(ICONS_PATH + 'graph-down.svg'))
+        curve_btn.setToolTip('Development factor comparison')
 
         tail_comps_btn = QPushButton('')
         tail_comps_btn.setIcon(QIcon(ICONS_PATH + 'bar-chart-2.svg'))
+        tail_comps_btn.setToolTip('Tail factor comparison')
 
         extrap_btn = QPushButton('')
         extrap_btn.setIcon(QIcon(ICONS_PATH + 'noun-curve-graph-1476204.svg'))
+        extrap_btn.setToolTip('Extrapolation')
 
         reg_btn = QPushButton('')
         reg_btn.setIcon(QIcon(ICONS_PATH + 'noun-scatter-plot-4489619.svg'))
+        reg_btn.setToolTip('Fit period comparison')
 
         ly_graph_toggle.addWidget(curve_btn)
         ly_graph_toggle.addWidget(tail_comps_btn)
@@ -147,15 +159,27 @@ class TailPane(QWidget):
         add_tab_btn.setText('+')
         add_tab_btn.setFixedHeight(22)
         add_tab_btn.setFixedWidth(22)
+        add_tab_btn.setToolTip('Add tail candidate')
         remove_tab_btn = QToolButton()
         remove_tab_btn.setText('-')
+        remove_tab_btn.setToolTip('Remove tail candidate')
         remove_tab_btn.setFixedWidth(add_tab_btn.width())
         remove_tab_btn.setFixedHeight(add_tab_btn.height())
         ly_tab_btn = QHBoxLayout()
-        ly_tab_btn.setContentsMargins(0,0,0,2)
+        ly_tab_btn.setContentsMargins(
+            0,
+            0,
+            0,
+            2
+        )
         ly_tab_btn.setSpacing(2)
         tab_btn_container = QWidget()
-        tab_btn_container.setContentsMargins(0,0,0,0)
+        tab_btn_container.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
         tab_btn_container.setLayout(ly_tab_btn)
         ly_tab_btn.addWidget(add_tab_btn)
         ly_tab_btn.addWidget(remove_tab_btn)
@@ -173,7 +197,7 @@ class TailPane(QWidget):
 
         self.config_tabs.addTab(tail_config, "Tail 1")
 
-        layout.addWidget(
+        hlayout.addWidget(
             self.config_tabs,
             stretch=0
         )
@@ -183,22 +207,28 @@ class TailPane(QWidget):
         # The goal for setting these margins is to align the chart position with the group boxes on the left
         canvas_layout.setContentsMargins(
             11,
-            30,
+            26,
             11,
-            8
+            0
         )
 
-        layout.addWidget(
+        hlayout.addWidget(
             canvas_container,
             stretch=1
         )
 
-        layout.addWidget(
+        hlayout.addWidget(
             graph_toggle_btns
         )
 
-        self.setLayout(layout)
+        self.setLayout(vlayout)
 
+        self.ok_btn = QDialogButtonBox.StandardButton.Ok
+        self.button_layout = self.ok_btn
+        self.button_box = QDialogButtonBox(self.button_layout)
+        self.button_box.accepted.connect(self.close) # noqa
+
+        vlayout.addWidget(self.button_box)
         self.update_plot()
 
     def add_tab(self) -> None:
@@ -275,8 +305,8 @@ class MplCanvas(FigureCanvasQTAgg):
                 height
             ),
             dpi=dpi,
-            linewidth=2,
-            edgecolor='#dbdbdb'
+            linewidth=1,
+            edgecolor='#ababab'
         )
 
         self.axes = fig.add_subplot(111)
