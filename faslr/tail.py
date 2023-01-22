@@ -2,7 +2,10 @@ from __future__ import annotations
 # from random import sample
 import chainladder as cl
 import matplotlib
+import numpy as np
+import pandas as pd
 
+import matplotlib.pyplot as plt
 
 from faslr.base_table import (
     FAbstractTableModel,
@@ -19,6 +22,8 @@ from faslr.base_classes import (
 from faslr.constants import (
     ICONS_PATH
 )
+
+from functools import partial
 
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg
@@ -73,6 +78,7 @@ class TailPane(QWidget):
         super().__init__()
 
         self.triangle = triangle
+        self.toggled_chart = 'curve_btn'
 
         # list to hold each tail candidate
         self.tail_candidates = []
@@ -80,32 +86,8 @@ class TailPane(QWidget):
 
         self.sc = MplCanvas(
             self,
-            # width=5,
-            # height=4,
             dpi=100
         )
-        # sc.axes.plot(
-        #     unsmoothed.development,
-        #     unsmoothed.T.iloc[:, 0],
-        #     label='Unsmoothed'
-        # )
-        #
-        # sc.axes.plot(
-        #     unsmoothed.development,
-        #     smoothed.T.iloc[:, 0],
-        #     label='Age 24+ Smoothed'
-        # )
-
-        # self.sc.axes.plot(
-        #     tc.development,
-        #     tc.cdf_.T.iloc[:len(tc.development), 0],
-        #     label='Tail Constant',
-        # )
-        #
-        # self.sc.axes.patch.set_edgecolor('black')
-        # self.sc.axes.patch.set_linewidth(1)
-
-        # self.sc.axes.set_title("Selected Link Ratio")
 
         # main layout
         vlayout = QVBoxLayout()
@@ -113,7 +95,12 @@ class TailPane(QWidget):
         main_container = QWidget()
         main_container.setLayout(hlayout)
         # hlayout.setContentsMargins(0,0,0,0)
-        main_container.setContentsMargins(0,0,0,0)
+        main_container.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
         # vlayout.setContentsMargins(0,0,0,0)
         vlayout.addWidget(main_container)
 
@@ -131,18 +118,22 @@ class TailPane(QWidget):
         curve_btn = QPushButton('')
         curve_btn.setIcon(QIcon(ICONS_PATH + 'graph-down.svg'))
         curve_btn.setToolTip('Development factor comparison')
+        curve_btn.clicked.connect(partial(self.toggle_chart, 'curve_btn')) # noqa
 
         tail_comps_btn = QPushButton('')
         tail_comps_btn.setIcon(QIcon(ICONS_PATH + 'bar-chart-2.svg'))
         tail_comps_btn.setToolTip('Tail factor comparison')
+        tail_comps_btn.clicked.connect(partial(self.toggle_chart, 'tail_comps_btn')) # noqa
 
         extrap_btn = QPushButton('')
         extrap_btn.setIcon(QIcon(ICONS_PATH + 'noun-curve-graph-1476204.svg'))
         extrap_btn.setToolTip('Extrapolation')
+        extrap_btn.clicked.connect(partial(self.toggle_chart, 'extrap_btn')) # noqa
 
         reg_btn = QPushButton('')
         reg_btn.setIcon(QIcon(ICONS_PATH + 'noun-scatter-plot-4489619.svg'))
         reg_btn.setToolTip('Fit period comparison')
+        reg_btn.clicked.connect(partial(self.toggle_chart, 'reg_btn')) # noqa
 
         ly_graph_toggle.addWidget(curve_btn)
         ly_graph_toggle.addWidget(tail_comps_btn)
@@ -150,7 +141,10 @@ class TailPane(QWidget):
         ly_graph_toggle.addWidget(reg_btn)
 
         ly_graph_toggle.setContentsMargins(
-            0,40,0,0
+            0,
+            40,
+            0,
+            0
         )
 
         # Tabs to hold each tail candidate
@@ -190,7 +184,7 @@ class TailPane(QWidget):
             Qt.Corner.TopRightCorner
         )
 
-        add_tab_btn.pressed.connect(self.add_tab)
+        add_tab_btn.pressed.connect(self.add_tab) # noqa
 
         tail_config = TailConfig(parent=self)
         self.tail_candidates.append(tail_config)
@@ -244,49 +238,151 @@ class TailPane(QWidget):
 
     def update_plot(self) -> None:
         config = self.tail_candidates[0]
-        if config.constant_btn.isChecked():
-            tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
-            decay = config.constant_config.sb_decay.spin_box.value()
-            attach = config.constant_config.sb_attach.spin_box.value()
-            projection = config.constant_config.sb_projection.spin_box.value()
 
-            tc = cl.TailConstant(
-                tail=tail_constant,
-                decay=decay,
-                attachment_age=attach,
-                projection_period=projection
-            ).fit_transform(self.triangle)
+        if self.toggled_chart == 'curve_btn':
+            if config.constant_btn.isChecked():
+                tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
+                decay = config.constant_config.sb_decay.spin_box.value()
+                attach = config.constant_config.sb_attach.spin_box.value()
+                projection = config.constant_config.sb_projection.spin_box.value()
 
-        elif config.curve_btn.isChecked():
-            curve = curve_alias[config.curve_config.curve_type.combo_box.currentText()]
-            fit_from = config.curve_config.fit_from.spin_box.value()
-            fit_to = config.curve_config.fit_to.spin_box.value()
+                tc = cl.TailConstant(
+                    tail=tail_constant,
+                    decay=decay,
+                    attachment_age=attach,
+                    projection_period=projection
+                ).fit_transform(self.triangle)
 
-            tc = cl.TailCurve(
-                curve=curve,
-                fit_period=(
-                    fit_from,
-                    fit_to
-                )
-            ).fit_transform(self.triangle)
+            else:  # config.curve_btn.isChecked():
+                curve = curve_alias[config.curve_config.curve_type.combo_box.currentText()]
+                fit_from = config.curve_config.fit_from.spin_box.value()
+                fit_to = config.curve_config.fit_to.spin_box.value()
 
-        print(tc.cdf_)
-        print(len(tc.development))
+                tc = cl.TailCurve(
+                    curve=curve,
+                    fit_period=(
+                        fit_from,
+                        fit_to
+                    )
+                ).fit_transform(self.triangle)
 
-        self.sc.axes.cla()
-        self.sc.axes.plot(
-            tc.development,
-            tc.cdf_.T.iloc[:len(tc.development), 0],
-            # sample(range(1, 20), len(tc.development)),
-            label='Tail Constant'
-        )
+            print(tc.cdf_)
+            print(len(tc.development))
 
-        self.sc.axes.spines['bottom'].set_color('0')
+            self.sc.axes.cla()
+            self.sc.axes.plot(
+                tc.development,
+                tc.cdf_.T.iloc[:len(tc.development), 0],
+                # sample(range(1, 20), len(tc.development)),
+                label='Tail Constant'
+            )
 
-        self.sc.axes.set_title("Selected Link Ratio")
+            self.sc.axes.spines['bottom'].set_color('0')
 
-        self.sc.draw()
+            self.sc.axes.set_title("Selected Link Ratio")
 
+            self.sc.draw()
+        elif self.toggled_chart == 'tail_comps_btn':
+
+            clrd = cl.load_sample('clrd').groupby('LOB').sum()['CumPaidLoss']
+            cdf_ip = cl.TailCurve(curve='inverse_power').fit(clrd).tail_ # noqa
+            cdf_xp = cl.TailCurve(curve='exponential').fit(clrd).tail_ # noqa
+
+            labels = list(cdf_ip.rename("Inverse Power").index)
+            x = np.arange(len(labels))
+            y1 = list(cdf_ip.rename("Inverse Power"))
+            y2 = list(cdf_xp.rename("Exponential"))
+
+            width = .4
+            self.sc.axes.cla()
+
+            rects1 = self.sc.axes.bar(x=x - width / 2, width=width, height=y1, label='Inverse Power')
+            rects2 = self.sc.axes.bar(x=x + width / 2, width=width, height=y2, color='lightcoral', label='Exponential')
+            self.sc.axes.set_ylabel('Tail Factor')
+            self.sc.axes.set_title('Curve Fit Comparison')
+            self.sc.axes.set_xticks(x, labels)
+            self.sc.axes.legend()
+
+            self.sc.draw()
+        elif self.toggled_chart == 'extrap_btn':
+
+            tri = cl.load_sample('clrd').groupby('LOB').sum().loc['medmal', 'CumPaidLoss']
+
+            # Create a fuction to grab the scalar tail value.
+            def scoring(model):
+                """ Scoring functions must return a scalar """
+                return model.tail_.iloc[0, 0]
+
+            # Create a grid of scenarios
+            param_grid = dict(
+                extrap_periods=list(range(1, 100, 6)),
+                curve=['inverse_power', 'exponential'])
+
+            # Fit Grid
+            model = cl.GridSearch(cl.TailCurve(), param_grid=param_grid, scoring=scoring).fit(tri)
+
+            # Plot results
+            pvt = model.results_.pivot(columns='curve', index='extrap_periods', values='score')
+
+            x = list(pvt.index)
+            y1 = pvt['exponential']
+            y2 = pvt['inverse_power']
+
+            self.sc.axes.cla()
+
+            self.sc.axes.plot(x, y1, label='Exponential')
+            self.sc.axes.plot(x, y2, label='Inverse Power')
+            self.sc.axes.set_title('Curve Fit Sensitivity to Extrapolation Period')
+            self.sc.axes.set_ylabel('Tail factor')
+            self.sc.axes.set_xlabel('Extrapolation Periods')
+            self.sc.axes.legend()
+
+            self.sc.draw()
+
+        else:
+            dev = cl.Development().fit_transform(cl.load_sample('quarterly')['paid'])
+            fit_all = cl.TailCurve().fit(dev)
+            exclude = cl.TailCurve(fit_period=(36, None)).fit(dev)
+
+            obs = (dev.ldf_ - 1).T.iloc[:, 0]
+            obs[obs < 0] = np.nan
+
+            ax = np.log(obs).rename('Selected LDF')
+
+            x = list(ax.index)
+            y1 = list(np.log(obs).rename('Selected LDF'))
+
+            y2 = list(pd.Series(
+                np.arange(1, dev.ldf_.shape[-1] + 1) * exclude.slope_.sum().values + exclude.intercept_.sum().values,
+                index=dev.ldf_.development,
+                name=f'Ages after 36: {round(exclude.tail_.values[0, 0], 3)}'))
+
+            y3 = list(pd.Series(
+                np.arange(1, dev.ldf_.shape[-1] + 1) * fit_all.slope_.sum().values + fit_all.intercept_.sum().values,
+                index=dev.ldf_.development,
+                name=f'All Periods: {round(fit_all.tail_.values[0, 0], 3)}'))
+
+            self.sc.axes.cla()
+
+            self.sc.axes.scatter(x, y1)
+            self.sc.axes.plot(x, y2, linestyle='--', label='Ages after 36: 1.002')
+            self.sc.axes.plot(x, y3, linestyle='-.', color='darkorchid', label='All Periods: 1.001')
+            self.sc.axes.set_xlabel('Development')
+            self.sc.axes.set_title('Fit Period Affect on Tail Estimate')
+            self.sc.axes.legend()
+
+            # for label in self.sc.axes.xaxis.get_ticklabels()[::2]:
+            #     label.set_visible(False)
+            self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
+            # for label in self.sc.axes.xaxis.get_ticklabels()[::4]:
+            #     label.set_visible(True)
+
+            self.sc.draw()
+    def toggle_chart(self, value) -> None:
+
+        self.toggled_chart = value
+
+        self.update_plot()
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -435,8 +531,13 @@ class CurveConfig(QWidget):
 
 
 class ClarkConfig(QWidget):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: TailConfig = None
+    ):
         super().__init__()
+
+        self.parent = parent
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -475,8 +576,13 @@ class ClarkConfig(QWidget):
 
 
 class BondyConfig(QWidget):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: TailConfig = None
+    ):
         super().__init__()
+
+        self.parent = parent
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -492,6 +598,16 @@ class BondyConfig(QWidget):
             value=120,
             single_step=12
         )
+
+        projection = FSpinBox(
+            label='Projection Period: ',
+            value=12,
+            single_step=1
+        )
+
+        layout.addWidget(earliest_age)
+        layout.addWidget(attachment_age)
+        layout.addWidget(projection)
 
 
 class TailConfig(QWidget):
@@ -539,14 +655,14 @@ class TailConfig(QWidget):
 
         self.constant_config = ConstantConfig(parent=self)
         self.curve_config = CurveConfig(parent=self)
-        self.clark_config = ClarkConfig()
-        self.bondy_config = BondyConfig()
+        self.bondy_config = BondyConfig(parent=self)
+        self.clark_config = ClarkConfig(parent=self)
 
         configs = [
             self.constant_config,
             self.curve_config,
-            self.clark_config,
-            self.bondy_config
+            self.bondy_config,
+            self.clark_config
         ]
 
         for config in configs:
