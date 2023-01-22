@@ -177,7 +177,6 @@ class TailPane(QWidget):
         tab_btn_container.setLayout(ly_tab_btn)
         ly_tab_btn.addWidget(add_tab_btn)
         ly_tab_btn.addWidget(remove_tab_btn)
-        print(add_tab_btn.height())
         # add_tab_btn.setFixedWidth(30)
         self.config_tabs.setCornerWidget(
             tab_btn_container,
@@ -231,55 +230,76 @@ class TailPane(QWidget):
 
         self.tail_candidates.append(new_tab)
 
+        tab_count = self.config_tabs.count()
+
         self.config_tabs.addTab(
             new_tab,
-            'test'
+            'Tail ' + str(tab_count + 1)
         )
 
+        self.config_tabs.setCurrentIndex(tab_count)
+
+        self.update_plot()
+
+
+
     def update_plot(self) -> None:
-        config = self.tail_candidates[0]
+
+        self.sc.axes.cla()
 
         if self.toggled_chart == 'curve_btn':
-            if config.constant_btn.isChecked():
-                tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
-                decay = config.constant_config.sb_decay.spin_box.value()
-                attach = config.constant_config.sb_attach.spin_box.value()
-                projection = config.constant_config.sb_projection.spin_box.value()
-
-                tc = cl.TailConstant(
-                    tail=tail_constant,
-                    decay=decay,
-                    attachment_age=attach,
-                    projection_period=projection
-                ).fit_transform(self.triangle)
-
-            else:  # config.curve_btn.isChecked():
-                curve = curve_alias[config.curve_config.curve_type.combo_box.currentText()]
-                fit_from = config.curve_config.fit_from.spin_box.value()
-                fit_to = config.curve_config.fit_to.spin_box.value()
-
-                tc = cl.TailCurve(
-                    curve=curve,
-                    fit_period=(
-                        fit_from,
-                        fit_to
-                    )
-                ).fit_transform(self.triangle)
-
-            print(tc.cdf_)
-            print(len(tc.development))
 
             self.sc.axes.cla()
-            self.sc.axes.plot(
-                tc.development,
-                tc.cdf_.T.iloc[:len(tc.development), 0],
-                # sample(range(1, 20), len(tc.development)),
-                label='Tail Constant'
-            )
+            # self.sc.axes.get_legend().remove()
+            x = []
+            y = []
+
+            for config in self.tail_candidates:
+
+                if config.constant_btn.isChecked():
+                    tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
+                    decay = config.constant_config.sb_decay.spin_box.value()
+                    attach = config.constant_config.sb_attach.spin_box.value()
+                    projection = config.constant_config.sb_projection.spin_box.value()
+
+                    tc = cl.TailConstant(
+                        tail=tail_constant,
+                        decay=decay,
+                        attachment_age=attach,
+                        projection_period=projection
+                    ).fit_transform(self.triangle)
+
+                    x.append(list(tc.cdf_.to_frame(origin_as_datetime=True)))
+                    y.append(tc.cdf_.iloc[:len(x), 0].values.flatten().tolist())
+
+                else:  # config.curve_btn.isChecked():
+                    curve = curve_alias[config.curve_config.curve_type.combo_box.currentText()]
+                    fit_from = config.curve_config.fit_from.spin_box.value()
+                    fit_to = config.curve_config.fit_to.spin_box.value()
+
+                    tc = cl.TailCurve(
+                        curve=curve,
+                        fit_period=(
+                            fit_from,
+                            fit_to
+                        )
+                    ).fit_transform(self.triangle)
+
+            for i in range(len(x)):
+
+                self.sc.axes.plot(
+                    x[i],
+                    y[i],
+                    label=self.config_tabs.tabText(i)
+                )
+
+            self.sc.axes.legend()
+
+            self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
 
             self.sc.axes.spines['bottom'].set_color('0')
 
-            self.sc.axes.set_title("Selected Link Ratio")
+            self.sc.axes.set_title("Selected Cumulative Development Factor")
 
             self.sc.draw()
         elif self.toggled_chart == 'tail_comps_btn':
@@ -371,18 +391,17 @@ class TailPane(QWidget):
             self.sc.axes.set_title('Fit Period Affect on Tail Estimate')
             self.sc.axes.legend()
 
-            # for label in self.sc.axes.xaxis.get_ticklabels()[::2]:
-            #     label.set_visible(False)
             self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
-            # for label in self.sc.axes.xaxis.get_ticklabels()[::4]:
-            #     label.set_visible(True)
+
 
             self.sc.draw()
+
     def toggle_chart(self, value) -> None:
 
         self.toggled_chart = value
 
         self.update_plot()
+
 
 class MplCanvas(FigureCanvasQTAgg):
 
