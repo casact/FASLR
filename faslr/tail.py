@@ -51,6 +51,7 @@ from PyQt6.QtWidgets import (
     QToolButton,
     QWidget,
     QStackedWidget,
+    QStatusBar,
     QTabWidget,
     QVBoxLayout
 )
@@ -83,6 +84,8 @@ class TailPane(QWidget):
         # list to hold each tail candidate
         self.tail_candidates = []
         self.setWindowTitle("Tail Analysis")
+
+        self.max_tab_idx = 1
 
         self.sc = MplCanvas(
             self,
@@ -184,6 +187,7 @@ class TailPane(QWidget):
         )
 
         add_tab_btn.pressed.connect(self.add_tab) # noqa
+        remove_tab_btn.pressed.connect(self.remove_tab) # noqa
 
         tail_config = TailConfig(parent=self)
         self.tail_candidates.append(tail_config)
@@ -225,7 +229,7 @@ class TailPane(QWidget):
         self.update_plot()
 
     def add_tab(self) -> None:
-
+        print(self.config_tabs.currentIndex())
         new_tab = TailConfig(parent=self)
 
         self.tail_candidates.append(new_tab)
@@ -234,14 +238,27 @@ class TailPane(QWidget):
 
         self.config_tabs.addTab(
             new_tab,
-            'Tail ' + str(tab_count + 1)
+            'Tail ' + str(self.max_tab_idx + 1)
         )
+
+        self.max_tab_idx += 1
 
         self.config_tabs.setCurrentIndex(tab_count)
 
         self.update_plot()
 
+    def remove_tab(self) -> None:
 
+        # do nothing if there is only 1 tab
+        if self.config_tabs.count() == 1:
+            return
+
+        idx = self.config_tabs.currentIndex()
+        self.tail_candidates.remove(self.config_tabs.currentWidget())
+
+        self.config_tabs.removeTab(idx)
+
+        self.update_plot()
 
     def update_plot(self) -> None:
 
