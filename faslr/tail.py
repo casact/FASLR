@@ -188,7 +188,7 @@ class TailPane(QWidget):
         tab_btn_container.setLayout(ly_tab_btn)
         ly_tab_btn.addWidget(add_tab_btn)
         ly_tab_btn.addWidget(remove_tab_btn)
-        # add_tab_btn.setFixedWidth(30)
+
         self.config_tabs.setCornerWidget(
             tab_btn_container,
             Qt.Corner.TopRightCorner
@@ -278,10 +278,12 @@ class TailPane(QWidget):
         for config in self.tail_candidates:
 
             if config.constant_btn.isChecked():
-                tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
-                decay = config.constant_config.sb_decay.spin_box.value()
-                attach = config.constant_config.sb_attach.spin_box.value()
-                projection = config.constant_config.sb_projection.spin_box.value()
+
+                with config.constant_config as c:
+                    tail_constant = c.sb_tail_constant.spin_box.value()
+                    decay = c.sb_decay.spin_box.value()
+                    attach = c.sb_attach.spin_box.value()
+                    projection = c.sb_projection.spin_box.value()
 
                 tc = cl.TailConstant(
                     tail=tail_constant,
@@ -424,7 +426,11 @@ class TailPane(QWidget):
             model = cl.GridSearch(cl.TailCurve(), param_grid=param_grid, scoring=scoring).fit(tri)
 
             # Plot results
-            pvt = model.results_.pivot(columns='curve', index='extrap_periods', values='score')
+            pvt = model.results_.pivot(
+                columns='curve',
+                index='extrap_periods',
+                values='score'
+            )
 
             x = list(pvt.index)
             y1 = pvt['exponential']
@@ -476,42 +482,13 @@ class TailPane(QWidget):
 
             for i in range(len(y)):
 
-                if i == 1:
-                    self.sc.axes.plot(xb, y[i], linestyle='-.', label=self.config_tabs.tabText(i), color='darkorchid')
-                else:
-                    self.sc.axes.plot(xb, y[i], linestyle='--', label=self.config_tabs.tabText(i))
+                self.sc.axes.plot(
+                    xb,
+                    y[i],
+                    linestyle='--',
+                    label=self.config_tabs.tabText(i)
+                )
 
-
-            # dev = cl.Development().fit_transform(cl.load_sample('quarterly')['paid'])
-            # fit_all = cl.TailCurve().fit(dev)
-            # exclude = cl.TailCurve(fit_period=(36, None)).fit(dev)
-            #
-            # obs = (dev.ldf_ - 1).T.iloc[:, 0]
-            # obs[obs < 0] = np.nan
-            #
-            # ax = np.log(obs).rename('Selected LDF')
-            #
-            # x = list(ax.index)
-            # y1 = list(np.log(obs).rename('Selected LDF'))
-            #
-            # y2 = list(pd.Series(
-            #     np.arange(1, dev.ldf_.shape[-1] + 1) *
-            #     exclude.slope_.sum().values +
-            #     exclude.intercept_.sum().values,
-            #     index=dev.ldf_.development,
-            #     name=f'Ages after 36: {round(exclude.tail_.values[0, 0], 3)}'))
-            #
-            # y3 = list(pd.Series(
-            #     np.arange(1, dev.ldf_.shape[-1] + 1) *
-            #     fit_all.slope_.sum().values +
-            #     fit_all.intercept_.sum().values,
-            #     index=dev.ldf_.development,
-            #     name=f'All Periods: {round(fit_all.tail_.values[0, 0], 3)}'))
-
-
-            # self.sc.axes.scatter(x, y1)
-            # self.sc.axes.plot(x, y2, linestyle='--', label='Ages after 36: 1.002')
-            # self.sc.axes.plot(x, y3, linestyle='-.', color='darkorchid', label='All Periods: 1.001')
             self.sc.axes.set_xlabel('Development')
             self.sc.axes.set_title('Fit Period Affect on Tail Estimate')
             self.sc.axes.legend()
