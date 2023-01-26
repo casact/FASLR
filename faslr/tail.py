@@ -159,43 +159,7 @@ class TailPane(QWidget):
         )
 
         # Tabs to hold each tail candidate
-        self.config_tabs = QTabWidget()
-        add_tab_btn = QToolButton()
-        add_tab_btn.setText('+')
-        add_tab_btn.setFixedHeight(22)
-        add_tab_btn.setFixedWidth(22)
-        add_tab_btn.setToolTip('Add tail candidate')
-        remove_tab_btn = QToolButton()
-        remove_tab_btn.setText('-')
-        remove_tab_btn.setToolTip('Remove tail candidate')
-        remove_tab_btn.setFixedWidth(add_tab_btn.width())
-        remove_tab_btn.setFixedHeight(add_tab_btn.height())
-        ly_tab_btn = QHBoxLayout()
-        ly_tab_btn.setContentsMargins(
-            0,
-            0,
-            0,
-            2
-        )
-        ly_tab_btn.setSpacing(2)
-        tab_btn_container = QWidget()
-        tab_btn_container.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-        tab_btn_container.setLayout(ly_tab_btn)
-        ly_tab_btn.addWidget(add_tab_btn)
-        ly_tab_btn.addWidget(remove_tab_btn)
-
-        self.config_tabs.setCornerWidget(
-            tab_btn_container,
-            Qt.Corner.TopRightCorner
-        )
-
-        add_tab_btn.pressed.connect(self.add_tab)  # noqa
-        remove_tab_btn.pressed.connect(self.remove_tab)  # noqa
+        self.config_tabs = ConfigTab(parent=self)
 
         tail_config = TailConfig(parent=self)
         self.tail_candidates.append(tail_config)
@@ -236,38 +200,6 @@ class TailPane(QWidget):
         vlayout.addWidget(self.button_box)
         self.update_plot()
 
-    def add_tab(self) -> None:
-
-        new_tab = TailConfig(parent=self)
-
-        self.tail_candidates.append(new_tab)
-
-        tab_count = self.config_tabs.count()
-
-        self.config_tabs.addTab(
-            new_tab,
-            'Tail ' + str(self.max_tab_idx + 1)
-        )
-
-        self.max_tab_idx += 1
-
-        self.config_tabs.setCurrentIndex(tab_count)
-
-        self.update_plot()
-
-    def remove_tab(self) -> None:
-
-        # do nothing if there is only 1 tab
-        if self.config_tabs.count() == 1:
-            return
-
-        idx = self.config_tabs.currentIndex()
-        self.tail_candidates.remove(self.config_tabs.currentWidget())
-
-        self.config_tabs.removeTab(idx)
-
-        self.update_plot()
-
     def update_plot(self) -> None:
 
         self.sc.axes.cla()
@@ -279,11 +211,10 @@ class TailPane(QWidget):
 
             if config.constant_btn.isChecked():
 
-                with config.constant_config as c:
-                    tail_constant = c.sb_tail_constant.spin_box.value()
-                    decay = c.sb_decay.spin_box.value()
-                    attach = c.sb_attach.spin_box.value()
-                    projection = c.sb_projection.spin_box.value()
+                tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
+                decay = config.constant_config .sb_decay.spin_box.value()
+                attach = config.constant_config .sb_attach.spin_box.value()
+                projection = config.constant_config .sb_projection.spin_box.value()
 
                 tc = cl.TailConstant(
                     tail=tail_constant,
@@ -300,7 +231,7 @@ class TailPane(QWidget):
                 errors = fit_errors[config.curve_config.bg_errors.checkedButton().text()]
                 attachment_age = config.curve_config.attachment_age.spin_box.value()
                 projection_period = config.curve_config.projection.spin_box.value()
-                print(errors)
+
                 tc = cl.TailCurve(
                     curve=curve,
                     fit_period=(
@@ -665,6 +596,7 @@ class ClarkConfig(QWidget):
         super().__init__()
 
         self.parent = parent
+        tail_pane = parent.parent
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -701,10 +633,10 @@ class ClarkConfig(QWidget):
         layout.addWidget(self.attachment_age)
         layout.addWidget(self.projection)
 
-        self.growth.combo_box.currentTextChanged.connect(parent.parent.update_plot)
-        self.truncation_age.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.attachment_age.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.projection.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.growth.combo_box.currentTextChanged.connect(tail_pane.update_plot)
+        self.truncation_age.spin_box.valueChanged.connect(tail_pane.update_plot)
+        self.attachment_age.spin_box.valueChanged.connect(tail_pane.update_plot)
+        self.projection.spin_box.valueChanged.connect(tail_pane.update_plot)
 
 
 class BondyConfig(QWidget):
@@ -713,6 +645,8 @@ class BondyConfig(QWidget):
             parent: TailConfig = None
     ):
         super().__init__()
+
+        tail_pane = parent.parent
 
         self.parent = parent
 
@@ -741,9 +675,9 @@ class BondyConfig(QWidget):
         layout.addWidget(self.attachment_age)
         layout.addWidget(self.projection)
 
-        self.earliest_age.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.attachment_age.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.projection.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.earliest_age.spin_box.valueChanged.connect(tail_pane.update_plot)
+        self.attachment_age.spin_box.valueChanged.connect(tail_pane.update_plot)
+        self.projection.spin_box.valueChanged.connect(tail_pane.update_plot)
 
 
 class TailConfig(QWidget):
@@ -805,7 +739,6 @@ class TailConfig(QWidget):
             self.params_config.addWidget(config)
 
         self.ly_tail_params.addWidget(self.params_config)
-        # self.gb_tail_params.setFixedWidth(config_width)
 
         self.layout.addWidget(self.gb_tail_type)
         self.layout.addWidget(self.gb_tail_params)
@@ -824,6 +757,86 @@ class TailConfig(QWidget):
             self.params_config.setCurrentIndex(2)
         elif self.clark_btn.isChecked():
             self.params_config.setCurrentIndex(3)
+
+        self.parent.update_plot()
+
+
+class ConfigTab(QTabWidget):
+    def __init__(
+            self,
+            parent: TailPane = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        add_tab_btn = QToolButton()
+        add_tab_btn.setText('+')
+        add_tab_btn.setFixedHeight(22)
+        add_tab_btn.setFixedWidth(22)
+        add_tab_btn.setToolTip('Add tail candidate')
+        remove_tab_btn = QToolButton()
+        remove_tab_btn.setText('-')
+        remove_tab_btn.setToolTip('Remove tail candidate')
+        remove_tab_btn.setFixedWidth(add_tab_btn.width())
+        remove_tab_btn.setFixedHeight(add_tab_btn.height())
+
+        ly_tab_btn = QHBoxLayout()
+        ly_tab_btn.setContentsMargins(
+            0,
+            0,
+            0,
+            2
+        )
+        ly_tab_btn.setSpacing(2)
+        tab_btn_container = QWidget()
+        tab_btn_container.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        tab_btn_container.setLayout(ly_tab_btn)
+        ly_tab_btn.addWidget(add_tab_btn)
+        ly_tab_btn.addWidget(remove_tab_btn)
+
+        self.setCornerWidget(
+            tab_btn_container,
+            Qt.Corner.TopRightCorner
+        )
+
+        add_tab_btn.pressed.connect(self.add_tab)  # noqa
+        remove_tab_btn.pressed.connect(self.remove_tab)  # noqa
+
+    def add_tab(self) -> None:
+
+        new_tab = TailConfig(parent=self.parent)
+
+        self.parent.tail_candidates.append(new_tab)
+
+        tab_count = self.parent.config_tabs.count()
+
+        self.addTab(
+            new_tab,
+            'Tail ' + str(self.parent.max_tab_idx + 1)
+        )
+
+        self.parent.max_tab_idx += 1
+
+        self.setCurrentIndex(tab_count)
+
+        self.parent.update_plot()
+
+    def remove_tab(self) -> None:
+
+        # do nothing if there is only 1 tab
+        if self.count() == 1:
+            return
+
+        idx = self.currentIndex()
+        self.parent.tail_candidates.remove(self.currentWidget())
+
+        self.removeTab(idx)
 
         self.parent.update_plot()
 
