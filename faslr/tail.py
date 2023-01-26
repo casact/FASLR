@@ -212,9 +212,9 @@ class TailPane(QWidget):
             if config.constant_btn.isChecked():
 
                 tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
-                decay = config.constant_config .sb_decay.spin_box.value()
-                attach = config.constant_config .sb_attach.spin_box.value()
-                projection = config.constant_config .sb_projection.spin_box.value()
+                decay = config.constant_config.sb_decay.spin_box.value()
+                attach = config.constant_config.sb_attach.spin_box.value()
+                projection = config.constant_config.sb_projection.spin_box.value()
 
                 tc = cl.TailConstant(
                     tail=tail_constant,
@@ -766,28 +766,34 @@ class ConfigTab(QTabWidget):
             self,
             parent: TailPane = None
     ):
+
         super().__init__()
 
         self.parent = parent
 
-        add_tab_btn = QToolButton()
-        add_tab_btn.setText('+')
-        add_tab_btn.setFixedHeight(22)
-        add_tab_btn.setFixedWidth(22)
-        add_tab_btn.setToolTip('Add tail candidate')
-        remove_tab_btn = QToolButton()
-        remove_tab_btn.setText('-')
-        remove_tab_btn.setToolTip('Remove tail candidate')
-        remove_tab_btn.setFixedWidth(add_tab_btn.width())
-        remove_tab_btn.setFixedHeight(add_tab_btn.height())
+        add_tab_btn = make_corner_button(
+            text='+',
+            width=22,
+            height=22,
+            tool_tip='Add tail candidate'
+        )
+
+        remove_tab_btn = make_corner_button(
+            text='-',
+            width=add_tab_btn.width(),
+            height=add_tab_btn.height(),
+            tool_tip='Remove tail candidate'
+        )
 
         ly_tab_btn = QHBoxLayout()
+
         ly_tab_btn.setContentsMargins(
             0,
             0,
             0,
             2
         )
+
         ly_tab_btn.setSpacing(2)
         tab_btn_container = QWidget()
         tab_btn_container.setContentsMargins(
@@ -805,10 +811,10 @@ class ConfigTab(QTabWidget):
             Qt.Corner.TopRightCorner
         )
 
-        add_tab_btn.pressed.connect(self.add_tab)  # noqa
-        remove_tab_btn.pressed.connect(self.remove_tab)  # noqa
+        add_tab_btn.pressed.connect(self.add_candidate) # noqa
+        remove_tab_btn.pressed.connect(self.remove_candidate)  # noqa
 
-    def add_tab(self) -> None:
+    def add_candidate(self) -> None:
 
         new_tab = TailConfig(parent=self.parent)
 
@@ -827,14 +833,14 @@ class ConfigTab(QTabWidget):
 
         self.parent.update_plot()
 
-    def remove_tab(self) -> None:
+    def remove_candidate(self) -> None:
 
         # do nothing if there is only 1 tab
         if self.count() == 1:
             return
 
         idx = self.currentIndex()
-        self.parent.tail_candidates.remove(self.currentWidget())
+        self.parent.tail_candidates.remove(self.currentWidget()) # noqa
 
         self.removeTab(idx)
 
@@ -849,3 +855,19 @@ class TailTableModel(FAbstractTableModel):
 class TailTableView(FTableView):
     def __init__(self):
         super().__init__()
+
+
+def make_corner_button(
+        text: str,
+        height: int,
+        width: int,
+        tool_tip: str
+) -> QToolButton:
+    btn = QToolButton()
+    btn.setText(text)
+    btn.setToolTip(tool_tip)
+    btn.setFixedHeight(height)
+    btn.setFixedWidth(width)
+
+    return btn
+
