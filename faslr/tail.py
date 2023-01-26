@@ -93,6 +93,7 @@ class TailPane(QWidget):
         self.tail_candidates = []
         self.setWindowTitle("Tail Analysis")
 
+        # number of tabs that have been created, used to create default names for the candidate tabs
         self.max_tab_idx = 1
 
         self.sc = MplCanvas(
@@ -766,11 +767,35 @@ class ConfigTab(QTabWidget):
             self,
             parent: TailPane = None
     ):
-
+        """
+        A QTabWidget that holds each tail candidate's configuration parameters
+        inside a tab.
+        """
         super().__init__()
 
         self.parent = parent
 
+        # corner widget to hold the two corner buttons
+        ly_tab_btn = QHBoxLayout()
+        tab_btn_container = QWidget()
+
+        ly_tab_btn.setContentsMargins(
+            0,
+            0,
+            0,
+            2
+        )
+
+        tab_btn_container.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+
+        tab_btn_container.setLayout(ly_tab_btn)
+
+        # make corner buttons, these add and remove the tail candidate tabs
         add_tab_btn = make_corner_button(
             text='+',
             width=22,
@@ -785,24 +810,9 @@ class ConfigTab(QTabWidget):
             tool_tip='Remove tail candidate'
         )
 
-        ly_tab_btn = QHBoxLayout()
-
-        ly_tab_btn.setContentsMargins(
-            0,
-            0,
-            0,
-            2
-        )
-
+        # add some space between the two buttons
         ly_tab_btn.setSpacing(2)
-        tab_btn_container = QWidget()
-        tab_btn_container.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-        tab_btn_container.setLayout(ly_tab_btn)
+
         ly_tab_btn.addWidget(add_tab_btn)
         ly_tab_btn.addWidget(remove_tab_btn)
 
@@ -815,11 +825,16 @@ class ConfigTab(QTabWidget):
         remove_tab_btn.pressed.connect(self.remove_candidate)  # noqa
 
     def add_candidate(self) -> None:
+        """
+        Add a tail candidate, hold the info in a new tab.
+        """
 
         new_tab = TailConfig(parent=self.parent)
 
+        # Add tab to parent list keeping track of all the tabs
         self.parent.tail_candidates.append(new_tab)
 
+        # Used to get the default name, just the number of current tabs + 1
         tab_count = self.parent.config_tabs.count()
 
         self.addTab(
@@ -829,8 +844,10 @@ class ConfigTab(QTabWidget):
 
         self.parent.max_tab_idx += 1
 
+        # Focus on the new tab after it is created.
         self.setCurrentIndex(tab_count)
 
+        # The new tab comes with default info, so we want the plots to incorporate it.
         self.parent.update_plot()
 
     def remove_candidate(self) -> None:
