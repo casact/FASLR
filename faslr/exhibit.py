@@ -90,17 +90,21 @@ class ExhibitBuilder(QWidget):
         self.ly_input_btns.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.input_btns.setLayout(self.ly_input_btns)
 
-        self.add_column_btn = QPushButton()
-        self.add_column_btn.setIcon(QIcon(ICONS_PATH + 'arrow-right.svg'))
+        self.add_column_btn = make_middle_button(
+            path=ICONS_PATH + 'arrow-right.svg'
+        )
 
-        self.remove_column_btn = QPushButton()
-        self.remove_column_btn.setIcon(QIcon(ICONS_PATH + 'arrow-left.svg'))
+        self.remove_column_btn = make_middle_button(
+            path=ICONS_PATH + 'arrow-left.svg'
+        )
 
-        self.add_link_btn = QPushButton()
-        self.add_link_btn.setIcon(QIcon(ICONS_PATH + 'link.svg'))
+        self.add_link_btn = make_middle_button(
+            path=ICONS_PATH + 'link.svg'
+        )
 
-        self.remove_link_btn = QPushButton()
-        self.remove_link_btn.setIcon(QIcon(ICONS_PATH + 'no-link.svg'))
+        self.remove_link_btn = make_middle_button(
+            path=ICONS_PATH + 'no-link.svg'
+        )
 
         for btn in [
             self.add_column_btn,
@@ -167,3 +171,11 @@ class ExhibitOutputTreeView(QTreeView):
     def __init__(self):
         super().__init__()
 
+
+def make_middle_button(
+        path: str
+) -> QPushButton:
+    btn = QPushButton()
+    btn.setIcon(QIcon(path))
+
+    return btn
