@@ -11,6 +11,7 @@ from PyQt6.QtCore import (
     Qt,
     QRect,
     QSize,
+    QVariant
 )
 
 from PyQt6.QtWidgets import (
@@ -40,6 +41,14 @@ class GridTableHeaderModel(QAbstractTableModel):
 
     def columnCount(self, parent: QModelIndex = ...) -> int:
         return self.column
+
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+        if not index.isValid():
+            return QVariant()
+        if index.row() == self.row or index.row() < 0 or index.column() >= self.column or index.column() < 0:
+            return QVariant()
+        item = TableHeaderItem()
+        return item.data(role)
 
     def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
 
@@ -212,7 +221,16 @@ class TableHeaderItem:
         self.row = row
         self.column = column
 
+        self.m_childItems = ()
+        self.m_itemData = None
+
     def insertChild(
             self
     ):
         return
+
+    def data(
+        self,
+        role: int
+    ) -> QVariant:
+        it = self.m_itemData.find
