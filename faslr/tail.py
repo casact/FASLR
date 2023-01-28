@@ -106,14 +106,12 @@ class TailPane(QWidget):
         hlayout = QHBoxLayout()
         main_container = QWidget()
         main_container.setLayout(hlayout)
-        # hlayout.setContentsMargins(0,0,0,0)
         main_container.setContentsMargins(
             0,
             0,
             0,
             0
         )
-        # vlayout.setContentsMargins(0,0,0,0)
         vlayout.addWidget(main_container)
 
         # canvas layout to enable margin adjustments
@@ -526,19 +524,25 @@ class CurveConfig(QWidget):
 
         fit_period = FHContainer()
         fit_period_label = QLabel("Fit Period: ")
+
         self.fit_from = FSpinBox(
             label="From: ",
             value=12,
             single_step=12,
         )
+
         self.fit_to = FSpinBox(
             label="To: ",
             value=120,
             single_step=12
         )
-        fit_period.layout.addWidget(fit_period_label)
-        fit_period.layout.addWidget(self.fit_from)
-        fit_period.layout.addWidget(self.fit_to)
+
+        for widget in [
+            fit_period_label,
+            self.fit_from,
+            self.fit_to
+        ]:
+            fit_period.layout.addWidget(widget)
 
         self.extrap_periods = FSpinBox(
             label="Extrapolation Periods: ",
@@ -555,9 +559,12 @@ class CurveConfig(QWidget):
         self.bg_errors.addButton(errors_ignore)
         self.bg_errors.addButton(errors_raise)
 
-        self.errors.layout.addWidget(errors_label)
-        self.errors.layout.addWidget(errors_ignore)
-        self.errors.layout.addWidget(errors_raise)
+        for widget in [
+            errors_label,
+            errors_ignore,
+            errors_raise
+        ]:
+            self.errors.layout.addWidget(widget)
 
         self.attachment_age = FSpinBox(
             label='Attachment Age: ',
@@ -573,12 +580,15 @@ class CurveConfig(QWidget):
 
         self.curve_type.combo_box.setCurrentText("Exponential")
 
-        layout.addWidget(self.curve_type)
-        layout.addWidget(fit_period)
-        layout.addWidget(self.extrap_periods)
-        layout.addWidget(self.errors)
-        layout.addWidget(self.attachment_age)
-        layout.addWidget(self.projection)
+        for widget in [
+            self.curve_type,
+            fit_period,
+            self.extrap_periods,
+            self.errors,
+            self.attachment_age,
+            self.projection
+        ]:
+            layout.addWidget(widget)
 
         self.curve_type.combo_box.currentTextChanged.connect(parent.parent.update_plot)
         self.fit_from.spin_box.valueChanged.connect(parent.parent.update_plot)
@@ -776,53 +786,15 @@ class ConfigTab(QTabWidget):
         self.parent = parent
 
         # corner widget to hold the two corner buttons
-        ly_tab_btn = QHBoxLayout()
-        tab_btn_container = QWidget()
-
-        ly_tab_btn.setContentsMargins(
-            0,
-            0,
-            0,
-            2
-        )
-
-        tab_btn_container.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-
-        tab_btn_container.setLayout(ly_tab_btn)
-
-        # make corner buttons, these add and remove the tail candidate tabs
-        add_tab_btn = make_corner_button(
-            text='+',
-            width=22,
-            height=22,
-            tool_tip='Add tail candidate'
-        )
-
-        remove_tab_btn = make_corner_button(
-            text='-',
-            width=add_tab_btn.width(),
-            height=add_tab_btn.height(),
-            tool_tip='Remove tail candidate'
-        )
-
-        # add some space between the two buttons
-        ly_tab_btn.setSpacing(2)
-
-        ly_tab_btn.addWidget(add_tab_btn)
-        ly_tab_btn.addWidget(remove_tab_btn)
+        self.add_remove_btns = AddRemoveButtonWidget()
 
         self.setCornerWidget(
-            tab_btn_container,
+            self.add_remove_btns,
             Qt.Corner.TopRightCorner
         )
 
-        add_tab_btn.pressed.connect(self.add_candidate) # noqa
-        remove_tab_btn.pressed.connect(self.remove_candidate)  # noqa
+        self.add_remove_btns.add_tab_btn.pressed.connect(self.add_candidate) # noqa
+        self.add_remove_btns.remove_tab_btn.pressed.connect(self.remove_candidate)  # noqa
 
     def add_candidate(self) -> None:
         """
@@ -851,17 +823,72 @@ class ConfigTab(QTabWidget):
         self.parent.update_plot()
 
     def remove_candidate(self) -> None:
+        """
+        Removes tail candidate contained by the actively selected tab.
+        """
 
-        # do nothing if there is only 1 tab
+        # Do nothing if there is only 1 tab.
         if self.count() == 1:
             return
 
+        # Use the index of the currently selected tab to remove the associated candidate.
         idx = self.currentIndex()
         self.parent.tail_candidates.remove(self.currentWidget()) # noqa
-
         self.removeTab(idx)
 
+        # Remove information from the plots.
         self.parent.update_plot()
+
+
+class AddRemoveButtonWidget(QWidget):
+    """
+    The add/remove buttons for the ConfigTab. These add/remove the tabs containing the tail candidates.
+    """
+    def __init__(self):
+        super().__init__()
+
+        # Layout holds the two +/- buttons.
+        self.layout = QHBoxLayout()
+
+        self.layout.setContentsMargins(
+            0,
+            0,
+            0,
+            2
+        )
+
+        self.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+
+        self.setLayout(self.layout)
+
+        # make corner buttons, these add and remove the tail candidate tabs
+        self.add_tab_btn = make_corner_button(
+            text='+',
+            width=22,
+            height=22,
+            tool_tip='Add tail candidate'
+        )
+
+        self.remove_tab_btn = make_corner_button(
+            text='-',
+            width=self.add_tab_btn.width(),
+            height=self.add_tab_btn.height(),
+            tool_tip='Remove tail candidate'
+        )
+
+        # add some space between the two buttons
+        self.layout.setSpacing(2)
+
+        for btn in [
+            self.add_tab_btn,
+            self.remove_tab_btn
+        ]:
+            self.layout.addWidget(btn)
 
 
 class TailTableModel(FAbstractTableModel):
@@ -880,6 +907,11 @@ def make_corner_button(
         width: int,
         tool_tip: str
 ) -> QToolButton:
+
+    """
+    Used to make the add/remove buttons in the config tab.
+    """
+
     btn = QToolButton()
     btn.setText(text)
     btn.setToolTip(tool_tip)
@@ -887,4 +919,3 @@ def make_corner_button(
     btn.setFixedWidth(width)
 
     return btn
-
