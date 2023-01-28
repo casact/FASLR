@@ -57,6 +57,9 @@ class ExhibitBuilder(QWidget):
             self,
             triangles: List[Triangle] = None
     ):
+        """
+        Dialog box used to create exhibits.
+        """
         super().__init__()
 
         self.triangles = triangles
@@ -71,6 +74,7 @@ class ExhibitBuilder(QWidget):
         self.setLayout(self.layout)
         self.layout.addWidget(self.main_widget)
 
+        # Each tab holds the available columns for a model.
         self.model_tabs = QTabWidget()
         self.input_model = ExhibitInputListModel()
         self.input_list = QListView()
@@ -79,6 +83,7 @@ class ExhibitBuilder(QWidget):
 
         self.ly_build.addWidget(self.model_tabs)
 
+        # Buttons to select and combine columns.
         self.input_btns = QWidget()
         self.ly_input_btns = QVBoxLayout()
         self.ly_input_btns.setSpacing(4)
@@ -119,6 +124,8 @@ class ExhibitBuilder(QWidget):
             0,
             0
         )
+
+        # Output columns selected by the user.
         self.output_container.setLayout(self.ly_output)
         self.output_model = QStandardItemModel()
         self.output_view = ExhibitOutputTreeView()
@@ -127,6 +134,7 @@ class ExhibitBuilder(QWidget):
 
         self.ly_build.addWidget(self.output_container)
 
+        # Add bottom button box.
         self.ok_btn = QDialogButtonBox.StandardButton.Ok
         self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
         self.button_layout = self.ok_btn | self.cancel_btn
