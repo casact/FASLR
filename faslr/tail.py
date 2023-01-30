@@ -208,12 +208,15 @@ class TailPane(QWidget):
         # fit tail
         for config in self.tail_candidates:
 
-            if config.constant_btn.isChecked():
+            gb_tail_type = config.gb_tail_type
+            tail_params = config.gb_tail_params
 
-                tail_constant = config.constant_config.sb_tail_constant.spin_box.value()
-                decay = config.constant_config.sb_decay.spin_box.value()
-                attach = config.constant_config.sb_attach.spin_box.value()
-                projection = config.constant_config.sb_projection.spin_box.value()
+            if gb_tail_type.constant_btn.isChecked():
+
+                tail_constant = tail_params.constant_config.sb_tail_constant.spin_box.value()
+                decay = tail_params.constant_config.sb_decay.spin_box.value()
+                attach = tail_params.constant_config.sb_attach.spin_box.value()
+                projection = tail_params.constant_config.sb_projection.spin_box.value()
 
                 tc = cl.TailConstant(
                     tail=tail_constant,
@@ -222,14 +225,17 @@ class TailPane(QWidget):
                     projection_period=projection
                 ).fit_transform(self.triangle)
 
-            elif config.curve_btn.isChecked():
-                curve = curve_alias[config.curve_config.curve_type.combo_box.currentText()]
-                fit_from = config.curve_config.fit_from.spin_box.value()
-                fit_to = config.curve_config.fit_to.spin_box.value()
-                extrap_periods = config.curve_config.extrap_periods.spin_box.value()
-                errors = fit_errors[config.curve_config.bg_errors.checkedButton().text()]
-                attachment_age = config.curve_config.attachment_age.spin_box.value()
-                projection_period = config.curve_config.projection.spin_box.value()
+            elif gb_tail_type.curve_btn.isChecked():
+
+                curve_config = tail_params.curve_config
+
+                curve = curve_alias[curve_config.curve_type.combo_box.currentText()]
+                fit_from = curve_config.fit_from.spin_box.value()
+                fit_to = curve_config.fit_to.spin_box.value()
+                extrap_periods = curve_config.extrap_periods.spin_box.value()
+                errors = fit_errors[curve_config.bg_errors.checkedButton().text()]
+                attachment_age = curve_config.attachment_age.spin_box.value()
+                projection_period = curve_config.projection.spin_box.value()
 
                 tc = cl.TailCurve(
                     curve=curve,
@@ -259,10 +265,12 @@ class TailPane(QWidget):
 
                 tcds.append(tcd)
 
-            elif config.bondy_btn.isChecked():
-                earliest_age = config.bondy_config.earliest_age.spin_box.value()
-                attachment_age = config.bondy_config.attachment_age.spin_box.value()
-                projection_period = config.bondy_config.projection.spin_box.value()
+            elif gb_tail_type.bondy_btn.isChecked():
+
+                bondy = tail_params.bondy_config
+                earliest_age = bondy.earliest_age.spin_box.value()
+                attachment_age = bondy.attachment_age.spin_box.value()
+                projection_period = bondy.projection.spin_box.value()
 
                 tc = cl.TailBondy(
                     earliest_age=earliest_age,
@@ -270,9 +278,9 @@ class TailPane(QWidget):
                     projection_period=projection_period
                 ).fit_transform(self.triangle)
 
-            elif config.clark_btn.isChecked():
+            elif gb_tail_type.clark_btn.isChecked():
 
-                clark = config.clark_config
+                clark = tail_params.clark_config
 
                 growth = clark_alias[clark.growth.combo_box.currentText()]
                 truncation_age = clark.truncation_age.spin_box.value()
@@ -380,7 +388,7 @@ class TailPane(QWidget):
         else:
 
             for config in self.tail_candidates:
-                if not config.curve_btn.isChecked():
+                if not config.gb_tail_type.curve_btn.isChecked():
                     self.sc.axes.cla()
                     return
 
@@ -463,7 +471,7 @@ class MplCanvas(FigureCanvasQTAgg):
 class ConstantConfig(QWidget):
     def __init__(
             self,
-            parent: TailConfig = None
+            parent: TailParamsGroupBox = None
     ):
         super().__init__()
 
@@ -500,16 +508,16 @@ class ConstantConfig(QWidget):
         self.layout.addWidget(self.sb_attach)
         self.layout.addWidget(self.sb_projection)
 
-        self.sb_tail_constant.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.sb_decay.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.sb_attach.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.sb_projection.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.sb_tail_constant.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.sb_decay.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.sb_attach.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.sb_projection.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
 
 
 class CurveConfig(QWidget):
     def __init__(
             self,
-            parent: TailConfig = None
+            parent: TailParamsGroupBox = None
     ):
         super().__init__()
 
@@ -590,24 +598,24 @@ class CurveConfig(QWidget):
         ]:
             layout.addWidget(widget)
 
-        self.curve_type.combo_box.currentTextChanged.connect(parent.parent.update_plot)
-        self.fit_from.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.fit_to.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.extrap_periods.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.bg_errors.buttonToggled.connect(parent.parent.update_plot)  # noqa
-        self.attachment_age.spin_box.valueChanged.connect(parent.parent.update_plot)
-        self.projection.spin_box.valueChanged.connect(parent.parent.update_plot)
+        self.curve_type.combo_box.currentTextChanged.connect(parent.parent.parent.update_plot)
+        self.fit_from.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.fit_to.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.extrap_periods.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.bg_errors.buttonToggled.connect(parent.parent.parent.update_plot)  # noqa
+        self.attachment_age.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
+        self.projection.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
 
 
 class ClarkConfig(QWidget):
     def __init__(
             self,
-            parent: TailConfig = None
+            parent: TailParamsGroupBox = None
     ):
         super().__init__()
 
         self.parent = parent
-        tail_pane = parent.parent
+        tail_pane = parent.parent.parent
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -653,11 +661,11 @@ class ClarkConfig(QWidget):
 class BondyConfig(QWidget):
     def __init__(
             self,
-            parent: TailConfig = None
+            parent: TailParamsGroupBox = None
     ):
         super().__init__()
 
-        tail_pane = parent.parent
+        tail_pane = parent.parent.parent
 
         self.parent = parent
 
@@ -703,9 +711,34 @@ class TailConfig(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        self.gb_tail_type = QGroupBox("Tail Type")
+        self.gb_tail_type = TailTypeGroupBox(parent=self)
 
-        self.ly_tail_type = QHBoxLayout()
+        self.gb_tail_params = TailParamsGroupBox(
+            parent=self,
+            gb_tail_type=self.gb_tail_type
+        )
+
+        self.cb_mark_selected = QCheckBox('Mark as selected')
+
+        for widget in [
+            self.gb_tail_type,
+            self.gb_tail_params,
+            self.cb_mark_selected
+        ]:
+            self.layout.addWidget(widget)
+
+
+class TailTypeGroupBox(QGroupBox):
+    def __init__(
+            self,
+            title: str = "Tail Type",
+            parent: TailConfig = None
+    ):
+        super().__init__(title)
+
+        self.parent = parent
+
+        self.layout = QHBoxLayout()
 
         self.bg_tail_type = QButtonGroup()
         self.constant_btn = QRadioButton('Constant')
@@ -722,15 +755,30 @@ class TailConfig(QWidget):
 
         for button in buttons:
             self.bg_tail_type.addButton(button)
-            self.ly_tail_type.addWidget(button)
+            self.layout.addWidget(button)
 
-        self.gb_tail_type.setLayout(self.ly_tail_type)
+        self.setLayout(self.layout)
 
-        self.cb_mark_selected = QCheckBox('Mark as selected')
+        self.constant_btn.setChecked(True)
 
-        self.gb_tail_params = QGroupBox("Tail Parameters")
-        self.ly_tail_params = QVBoxLayout()
-        self.gb_tail_params.setLayout(self.ly_tail_params)
+        self.parent.parent.update_plot()
+
+
+class TailParamsGroupBox(QGroupBox):
+    def __init__(
+            self,
+            title: str = "Tail Parameters",
+            gb_tail_type: TailTypeGroupBox = None,
+            parent: TailConfig = None
+    ):
+        super().__init__(title)
+
+        self.parent = parent
+
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        self.gb_tail_type = gb_tail_type
 
         self.params_config = QStackedWidget()
 
@@ -749,27 +797,20 @@ class TailConfig(QWidget):
         for config in configs:
             self.params_config.addWidget(config)
 
-        self.ly_tail_params.addWidget(self.params_config)
+        self.layout.addWidget(self.params_config)
 
-        self.layout.addWidget(self.gb_tail_type)
-        self.layout.addWidget(self.gb_tail_params)
-        self.layout.addWidget(self.cb_mark_selected)
-
-        self.constant_btn.setChecked(True)
-        self.bg_tail_type.buttonToggled.connect(self.set_config)  # noqa
+        self.gb_tail_type.bg_tail_type.buttonToggled.connect(self.set_config) # noqa
 
     def set_config(self):
 
-        if self.constant_btn.isChecked():
+        if self.gb_tail_type.constant_btn.isChecked():
             self.params_config.setCurrentIndex(0)
-        elif self.curve_btn.isChecked():
+        elif self.gb_tail_type.curve_btn.isChecked():
             self.params_config.setCurrentIndex(1)
-        elif self.bondy_btn.isChecked():
+        elif self.gb_tail_type.bondy_btn.isChecked():
             self.params_config.setCurrentIndex(2)
-        elif self.clark_btn.isChecked():
+        elif self.gb_tail_type.clark_btn.isChecked():
             self.params_config.setCurrentIndex(3)
-
-        self.parent.update_plot()
 
 
 class ConfigTab(QTabWidget):
@@ -891,6 +932,7 @@ class AddRemoveButtonWidget(QWidget):
             self.layout.addWidget(btn)
 
 
+# Model/View of the individual LDF/CDFs with the tail in a table
 class TailTableModel(FAbstractTableModel):
     def __init__(self):
         super().__init__()
