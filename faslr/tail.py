@@ -361,10 +361,14 @@ class TailPane(QWidget):
                 curve=['inverse_power', 'exponential'])
 
             # Fit Grid
-            model = cl.GridSearch(cl.TailCurve(), param_grid=param_grid, scoring=scoring).fit(tri)
+            model = cl.GridSearch(
+                cl.TailCurve(),
+                param_grid=param_grid,
+                scoring=scoring
+            ).fit(tri)
 
             # Plot results
-            pvt = model.results_.pivot(
+            pvt = model.results_.pivot( # noqa
                 columns='curve',
                 index='extrap_periods',
                 values='score'
@@ -376,9 +380,22 @@ class TailPane(QWidget):
 
             self.sc.axes.cla()
 
-            self.sc.axes.plot(x, y1, label='Exponential')
-            self.sc.axes.plot(x, y2, label='Inverse Power')
-            self.sc.axes.set_title('Curve Fit Sensitivity to Extrapolation Period')
+            self.sc.axes.plot(
+                x,
+                y1,
+                label='Exponential'
+            )
+
+            self.sc.axes.plot(
+                x,
+                y2,
+                label='Inverse Power'
+            )
+
+            self.sc.axes.set_title(
+                'Curve Fit Sensitivity to Extrapolation Period'
+            )
+
             self.sc.axes.set_ylabel('Tail factor')
             self.sc.axes.set_xlabel('Extrapolation Periods')
             self.sc.axes.legend()
@@ -411,10 +428,10 @@ class TailPane(QWidget):
                 y.append(
                     list(pd.Series(
                         np.arange(1, tcb.ldf_.shape[-1] + 1) *
-                        tc.slope_.sum().values +
-                        tc.intercept_.sum().values,
+                        tc.slope_.sum().values + # noqa
+                        tc.intercept_.sum().values, # noqa
                         index=tcb.ldf_.development,
-                        name=f'Ages after 36: {round(tc.tail_.values[0, 0], 3)}')
+                        name=f'Ages after 36: {round(tc.tail_.values[0, 0], 3)}') # noqa
                     )
                 )
 
@@ -700,6 +717,10 @@ class BondyConfig(QWidget):
 
 
 class TailConfig(QWidget):
+    """
+    Area where the user can select the tail candidate's type, along with its associated parameters. The user also
+    has the option to mark a particular tail candidate as selected for the reserving model.
+    """
     def __init__(
             self,
             parent: TailPane = None
@@ -711,13 +732,16 @@ class TailConfig(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
+        # Group box to select the tail type
         self.gb_tail_type = TailTypeGroupBox(parent=self)
 
+        # Group box to select the tail parameters
         self.gb_tail_params = TailParamsGroupBox(
             parent=self,
             gb_tail_type=self.gb_tail_type
         )
 
+        # Check box to mark the tail candidate as selected
         self.cb_mark_selected = QCheckBox('Mark as selected')
 
         for widget in [
