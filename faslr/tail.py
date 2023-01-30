@@ -729,6 +729,10 @@ class TailConfig(QWidget):
 
 
 class TailTypeGroupBox(QGroupBox):
+    """
+    Group box at the top of the tail pane that allows the user to select
+    the candidate tail type (constant, curve, Bondy, Clark).
+    """
     def __init__(
             self,
             title: str = "Tail Type",
@@ -740,6 +744,7 @@ class TailTypeGroupBox(QGroupBox):
 
         self.layout = QHBoxLayout()
 
+        # Buttons to select the candidate tail type
         self.bg_tail_type = QButtonGroup()
         self.constant_btn = QRadioButton('Constant')
         self.curve_btn = QRadioButton('Curve')
@@ -759,12 +764,15 @@ class TailTypeGroupBox(QGroupBox):
 
         self.setLayout(self.layout)
 
+        # Default selection is tail constant
         self.constant_btn.setChecked(True)
-
-        self.parent.parent.update_plot()
 
 
 class TailParamsGroupBox(QGroupBox):
+    """
+    GroupBox containing a stacked widget. This stacked widget is used to toggle sets of parameters specific
+    to the tail type selection from the user.
+    """
     def __init__(
             self,
             title: str = "Tail Parameters",
@@ -778,6 +786,7 @@ class TailParamsGroupBox(QGroupBox):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
+        # Button group from the sibling tail type group box
         self.gb_tail_type = gb_tail_type
 
         self.params_config = QStackedWidget()
@@ -799,6 +808,7 @@ class TailParamsGroupBox(QGroupBox):
 
         self.layout.addWidget(self.params_config)
 
+        # Making a selection from the button group triggers the stack widget to change parameter sets.
         self.gb_tail_type.bg_tail_type.buttonToggled.connect(self.set_config) # noqa
 
     def set_config(self):
