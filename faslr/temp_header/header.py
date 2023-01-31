@@ -30,14 +30,31 @@ class GridTableHeaderView(QHeaderView):
 
     def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
 
+        # if self.currentIndex().column() == 1:
+        #     print(logicalIndex)
         for i in range(3):
             sectionRect = QRect(rect)
             rect.setTop(i * 21)
             rect.setHeight(21)
-            if logicalIndex == 0:
-                rect.setWidth(200)
-            elif logicalIndex == 1:
-                return
+            if logicalIndex in [0, 1, 2, 5, 6]:
+                rect.setTop(0)
+                rect.setHeight(42)
+            elif logicalIndex in [3, 4]:
+                if i == 0:
+                    # rect.setWidth(200)
+                    rect.setLeft(300)
+                    rect.setTop(0)
+                else:
+                    rect.setTop(i * 21)
+                    if logicalIndex == 3:
+                        rect.setLeft(300)
+                    if logicalIndex == 4:
+                        rect.setLeft(400)
+
+            # if logicalIndex == 0:
+            #     rect.setWidth(200)
+            # elif logicalIndex == 1:
+            #     return
             # rect.setWidth(50)
             # rect.setBottom(10)
             # print(rect.top())
@@ -46,7 +63,7 @@ class GridTableHeaderView(QHeaderView):
             opt = QStyleOptionHeader()
             self.initStyleOption(opt)
             opt.rect = sectionRect
-            opt.text = "hi"
+            # opt.text = "hi"
             # opt.
 
             painter.drawRect(rect)
