@@ -3,7 +3,9 @@ import typing
 from PyQt6.QtGui import QPalette
 from PyQt6.QtCore import (
     QAbstractTableModel,
+    QAbstractItemModel,
     QModelIndex,
+    QObject,
     Qt,
     QRect,
     QSize
@@ -20,28 +22,61 @@ from PyQt6.QtWidgets import (
 from PyQt6 import QtGui
 from PyQt6 import QtCore
 
+
 class TableHeaderItem:
     def __init__(
             self,
-            row: int,
-            column: int,
+            row: int = None,
+            column: int = None,
             parent = None
     ):
         x = 1
+        # self.row = row
+        # self.column = column
+        # self.parent = parent
+        self.childItems = []
+
+    def child(self, row):
+        return self.childItems[row]
+
+    def childCount(self):
+        return len(self.childItems)
 
 
 class GridHeaderTableModel(QAbstractTableModel):
     def __init__(
             self,
             row,
-            column
+            column,
+            parent=None
     ):
-        super().__init__()
+        super(GridHeaderTableModel, self).__init__(parent)
 
         self.row = row
         self.column = column
+        self.rootItem = TableHeaderItem()
+
+    def index(self, row: int, column: int, parent) -> QModelIndex:
+
+        if not self.hasIndex(row, column, parent):
+            print("hi")
+            return QModelIndex()
+
+        if not parent.isValid():
+            print("parent not valid")
+            parentItem = self.rootItem
+        else:
+            parentItem = parent.internalPointer()
+
+        childItem = parentItem.child(row)
+        if childItem:
+            return self.createIndex(row, column, childItem)
+        else:
+            return QModelIndex()
+
 
     def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
+        print(index)
         if index.isValid():
             print("valid")
             return True
@@ -49,11 +84,37 @@ class GridHeaderTableModel(QAbstractTableModel):
             print("not valid")
             return False
 
+    def parent(self, index):
+        print('parent called')
+        if not index.isValid():
+            return QModelIndex()
+
+        childItem = index.internalPointer()
+        parentItem = childItem.parent()
+
+        if parentItem == self.rootItem:
+            return QModelIndex()
+
+        return self.createIndex(parentItem.row(), 0, parentItem)
+
     def rowCount(self, parent: QModelIndex = ...) -> int:
-        return self.row
+
+        # print(parent)
+        if parent.column() > 0:
+            return 0
+
+        if not parent.isValid():
+            parentItem = self.rootItem
+        else:
+            parentItem = parent.internalPointer()
+
+        return parentItem.childCount()
 
     def columnCount(self, parent: QModelIndex = ...) -> int:
-        return self.column
+        if parent.isValid():
+            return parent.internalPointer().columnCount()
+        else:
+            return self.rootItem.columnCount()
 
 
 class GridTableHeaderView(QHeaderView):
@@ -76,10 +137,12 @@ class GridTableHeaderView(QHeaderView):
             baseSectionSize.setHeight(self.defaultSectionSize())
 
         model = GridHeaderTableModel(row=2, column=9)
+        # print(model.index(0,0).parent())
         for row in range(2):
             for col in range(9):
-                model.setData(model.index(row, col), baseSectionSize, Qt.ItemDataRole.SizeHintRole)
-
+                model.setData(model.index(row, col, QModelIndex()), baseSectionSize, Qt.ItemDataRole.SizeHintRole)
+                # model.index(row, col, QModelIndex())
+                # pass
         self.setModel(model)
 
         self.setFixedHeight(42)
