@@ -460,6 +460,9 @@ class TailPane(QWidget):
 
 
 class MplCanvas(FigureCanvasQTAgg):
+    """
+    Canvas to plot the diagnostic charts.
+    """
 
     def __init__(
             self,
@@ -486,6 +489,9 @@ class MplCanvas(FigureCanvasQTAgg):
 
 
 class ConstantConfig(QWidget):
+    """
+    A Constant tail factor. Corresponds to TailConstant class in the chainladder package.
+    """
     def __init__(
             self,
             parent: TailParamsGroupBox = None
