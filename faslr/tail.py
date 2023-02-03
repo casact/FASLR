@@ -635,6 +635,9 @@ class ClarkConfig(QWidget):
             self,
             parent: TailParamsGroupBox = None
     ):
+        """
+        Sets the tail candidate parameters for the Clark method. Corresponds to TailClark in the chainladder package.
+        """
         super().__init__()
 
         self.parent = parent
@@ -670,10 +673,13 @@ class ClarkConfig(QWidget):
             'Weibull'
         ])
 
-        layout.addWidget(self.growth)
-        layout.addWidget(self.truncation_age)
-        layout.addWidget(self.attachment_age)
-        layout.addWidget(self.projection)
+        for widget in [
+            self.growth,
+            self.truncation_age,
+            self.attachment_age,
+            self.projection
+        ]:
+            layout.addWidget(widget)
 
         self.growth.combo_box.currentTextChanged.connect(tail_pane.update_plot)
         self.truncation_age.spin_box.valueChanged.connect(tail_pane.update_plot)
