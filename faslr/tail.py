@@ -686,6 +686,9 @@ class BondyConfig(QWidget):
             self,
             parent: TailParamsGroupBox = None
     ):
+        """
+        Sets the tail candidate parameters for the Bondy method. Corresponds to TailBondy in the chainladder package.
+        """
         super().__init__()
 
         tail_pane = parent.parent.parent
@@ -713,9 +716,12 @@ class BondyConfig(QWidget):
             single_step=1
         )
 
-        layout.addWidget(self.earliest_age)
-        layout.addWidget(self.attachment_age)
-        layout.addWidget(self.projection)
+        for widget in [
+            self.earliest_age,
+            self.attachment_age,
+            self.projection
+        ]:
+            layout.addWidget(widget)
 
         self.earliest_age.spin_box.valueChanged.connect(tail_pane.update_plot)
         self.attachment_age.spin_box.valueChanged.connect(tail_pane.update_plot)
