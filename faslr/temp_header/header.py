@@ -235,6 +235,13 @@ class GridTableHeaderView(QHeaderView):
             i -= 1
         return QModelIndex()
 
+    def rowSpanSize(self, column: int, row_from: int, spanCount: int) -> int:
+        span = 0
+        for i in range(row_from, row_from + spanCount):
+            cellSize = self.model().index(i, column).data(Qt.ItemDataRole.SizeHintRole)
+            span += cellSize.height()
+        return span
+
     def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
 
 
@@ -255,11 +262,17 @@ class GridTableHeaderView(QHeaderView):
                 rect.setHeight(0)
 
             rowSpanIdx = self.rowSpanIndex(cellIndex)
-            # if rowSpanIdx.isValid():
-            #     rowSpanFrom = rowSpanIdx.row()
-            #     rowSpanCnt = rowSpanIdx.data(RowSpanRole)
-            #     rowSpanTo = rowSpanFrom + rowSpanCnt - 1
-            #     rowSpan = rowSpanSize()
+            if rowSpanIdx.isValid():
+                rowSpanFrom = rowSpanIdx.row()
+                rowSpanCnt = rowSpanIdx.data(RowSpanRole)
+                rowSpanTo = rowSpanFrom + rowSpanCnt - 1
+                rowSpan = self.rowSpanSize(cellIndex.column(), rowSpanFrom, rowSpanCnt)
+                if self.orientation() == Qt.Orientation.Vertical:
+                    sectionRect.setTop(self.sectionViewportPosition(rowSpanFrom))
+                else:
+                    sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, rowSpanFrom))
+                    i = rowSpanTo
+                sectionRect.setHeight(rowSpan)
 
             # print(
             #     "Logical index: " + str(logicalIndex) +
