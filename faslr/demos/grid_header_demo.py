@@ -1,7 +1,7 @@
 import sys
 
 from faslr.grid_header import (
-    GridTableView
+    GridTableView,
 )
 
 from PyQt6.QtCore import Qt
@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget
 )
+
 
 app = QApplication(sys.argv)
 
@@ -36,25 +37,71 @@ for row in range(9):
         items.append(QStandardItem('item(' + str(row) + ',' + str(col) + ')'))
     model.appendRow(items)
 
-view.setGridHeaderView(
-    orientation=Qt.Orientation.Horizontal,
-    levels=2
-)
+layout.addWidget(view)
 
 view.setGridHeaderView(
-    orientation=Qt.Orientation.Vertical,
-    levels=3
+    orientation=Qt.Orientation.Horizontal
 )
 
 view.hheader.setSpan(
-    0,
-    0,
-    2,
-    0
+    row=0,
+    column=0,
+    rowSpanCount=2,
+    columnSpanCount=0
+)
+view.hheader.setSpan(
+    row=0,
+    column=1,
+    rowSpanCount=2,
+    columnSpanCount=0
+)
+view.hheader.setSpan(
+    row=0,
+    column=2,
+    rowSpanCount=2,
+    columnSpanCount=0
+)
+view.hheader.setSpan(
+    row=0,
+    column=3,
+    rowSpanCount=1,
+    columnSpanCount=2
+)
+# view.hheader.setSpan(
+#     row=1,
+#     column=3,
+#     rowSpanCount=1,
+#     columnSpanCount=1
+# )
+# view.hheader.setSpan(
+#     row=1,
+#     column=4,
+#     rowSpanCount=1,
+#     columnSpanCount=1
+# )
+view.hheader.setSpan(
+    row=0,
+    column=5,
+    rowSpanCount=2,
+    columnSpanCount=0
+)
+view.hheader.setSpan(
+    row=0,
+    column=6,
+    rowSpanCount=2,
+    columnSpanCount=0
 )
 
-layout.addWidget(view)
+view.hheader.setCellLabel(0, 0, "cell1")
+view.hheader.setCellLabel(0, 1, "cell2")
+view.hheader.setCellLabel(0, 2, "cell3")
+view.hheader.setCellLabel(0, 3, "cell4")
+view.hheader.setCellLabel(1, 3, "cell5")
+view.hheader.setCellLabel(1, 4, "cell6")
+view.hheader.setCellLabel(0, 5, "cell7")
 
+main_widget.resize(937, 315)
 main_widget.show()
+
 
 app.exec()
