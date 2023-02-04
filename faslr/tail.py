@@ -526,10 +526,13 @@ class ConstantConfig(QWidget):
             single_step=1
         )
 
-        self.layout.addWidget(self.sb_tail_constant)
-        self.layout.addWidget(self.sb_decay)
-        self.layout.addWidget(self.sb_attach)
-        self.layout.addWidget(self.sb_projection)
+        for widget in [
+            self.sb_tail_constant,
+            self.sb_decay,
+            self.sb_attach,
+            self.sb_projection
+        ]:
+            self.layout.addWidget(widget)
 
         self.sb_tail_constant.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
         self.sb_decay.spin_box.valueChanged.connect(parent.parent.parent.update_plot)
@@ -542,6 +545,9 @@ class CurveConfig(QWidget):
             self,
             parent: TailParamsGroupBox = None
     ):
+        """
+        Sets the tail candidate parameters for the Curve method. Corresponds to TailCurve in the chainladder package.
+        """
         super().__init__()
 
         layout = QVBoxLayout()
