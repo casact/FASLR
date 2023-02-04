@@ -194,6 +194,8 @@ class GridTableHeaderView(QHeaderView):
         #         print(model.data(model.index(row, col), Qt.ItemDataRole.SizeHintRole))
         self.setModel(model)
 
+        self.sectionResized.connect(self.onSectionResized)
+
         self.setFixedHeight(40)
 
     def setSpan(
@@ -405,6 +407,55 @@ class GridTableHeaderView(QHeaderView):
 
         # print('--------------------end call-----------------------------')
         return
+
+    def onSectionResized(self, logicalIndex: int, oldSize: int, newSize: int) -> None:
+        print("section resized")
+        if self.orientation() == Qt.Orientation.Horizontal:
+            level = self.model().rowCount()
+        else:
+            level = self.model().columnCount()
+        pos = self.sectionViewportPosition(logicalIndex)
+        if self.orientation() == Qt.Orientation.Horizontal:
+            xx = pos
+            yy = 0
+        else:
+            xx = 0
+            yy = pos
+        sectionRect = QRect(xx, yy, 0, 0)
+        for i in range(level):
+            if self.orientation() == Qt.Orientation.Horizontal:
+                cellIndex = self.model().index(i, logicalIndex)
+            else:
+                cellIndex = self.model().index(logicalIndex, i)
+            cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
+            if self.orientation() == Qt.Orientation.Horizontal:
+                sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, i))
+                cellSize.setWidth(newSize)
+            else:
+                sectionRect.setLeft(self.columnSpanSize(logicalIndex, 0, i))
+                cellSize.setHeight(newSize)
+            self.model().setData(cellIndex, cellSize, Qt.ItemDataRole.SizeHintRole)
+
+        colSpanIdx = self.columnSpanIndex(cellIndex)
+        rowSpanIdx = self.rowSpanIndex(cellIndex)
+
+        if colSpanIdx.isValid():
+            colSpanFrom = colSpanIdx.column()
+            if self.orientation() == Qt.Orientation.Horizontal:
+                sectionRect.setLeft(self.sectionViewportPosition(colSpanFrom))
+            else:
+                sectionRect.setLeft(self.columnSpanSize(logicalIndex, 0, colSpanFrom))
+        if rowSpanIdx.isValid():
+            rowSpanFrom = rowSpanIdx.row()
+            if self.orientation() == Qt.Orientation.Vertical:
+                sectionRect.setTop(self.sectionViewportPosition(rowSpanFrom))
+            else:
+                sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, rowSpanFrom))
+        rToUpdate = QRect(sectionRect)
+        rToUpdate.setWidth(self.viewport().width() - sectionRect.left())
+        rToUpdate.setHeight(self.viewport().height() - sectionRect.top())
+        self.viewport().update(rToUpdate.normalized())
+
 
 
 class GridTableView(QTableView):
