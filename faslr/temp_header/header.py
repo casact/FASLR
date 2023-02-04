@@ -1,5 +1,4 @@
 import typing
-from random import random
 
 from PyQt6.QtGui import QPalette
 from PyQt6.QtCore import (
@@ -23,7 +22,7 @@ from PyQt6.QtWidgets import (
 from PyQt6 import QtGui
 from PyQt6 import QtCore
 
-ColumnSpanRole = Qt.ItemDataRole + 1
+ColumnSpanRole = Qt.ItemDataRole.UserRole + 1
 RowSpanRole = ColumnSpanRole + 1
 
 
@@ -37,7 +36,6 @@ class TableHeaderItem:
         self.row = row
         self.column = column
         self.parent = parent
-        self.randid = random()
         self.childItems = {}
 
         self._data = {}
@@ -97,11 +95,29 @@ class GridHeaderTableModel(QAbstractTableModel):
     def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
 
         if index.isValid():
-            print("valid")
             item = index.internalPointer()
-            print(item.randid)
-            print(value)
-            item.setData(value, role)
+            if role == ColumnSpanRole:
+                col = index.column()
+                span = int(value)
+                if span > 0:
+                    if col + span - 1 >= self.column:
+                        span = self.column - col
+                    item.setData(span, ColumnSpanRole)
+            elif role == RowSpanRole:
+                print("role span role detected")
+                row = index.row()
+                span = int(value)
+                print(row)
+                print(index.column())
+                print(span)
+                if span > 0:
+                    if row + span - 1 > self.row:
+                        span = self.column - row
+                    item.setData(span, RowSpanRole)
+                    print('row: ' + str(item.row))
+                    print('column: ' + str(item.column))
+            else:
+                item.setData(value, role)
             return True
         else:
             print("not valid")
@@ -109,7 +125,6 @@ class GridHeaderTableModel(QAbstractTableModel):
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         item = index.internalPointer()
-        print(item.randid)
         return item.data(role)
 
     # def parent(self, index):
@@ -180,6 +195,22 @@ class GridTableHeaderView(QHeaderView):
 
         self.setFixedHeight(42)
 
+    def setSpan(
+            self,
+            row: int,
+            column: int,
+            rowSpanCount: int,
+            columnSpanCount: int
+    ):
+        print('arg row: ' + str(row))
+        print('arg col: ' + str(column))
+        print('arg row span: ' + str(rowSpanCount))
+        idx = self.model().index(row, column)
+
+        if rowSpanCount > 0:
+            self.model().setData(idx, rowSpanCount, RowSpanRole)
+        if columnSpanCount > 0:
+            self.model().setData(idx, columnSpanCount, ColumnSpanRole)
 
     def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
 
@@ -237,6 +268,9 @@ class GridTableHeaderView(QHeaderView):
 class GridTableView(QTableView):
     def __init__(self):
         super().__init__()
+
+        self.hheader = None
+        self.vheader = None
 
         self.setCornerButtonEnabled(True)
 
