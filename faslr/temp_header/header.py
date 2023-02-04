@@ -220,6 +220,21 @@ class GridTableHeaderView(QHeaderView):
         idx = self.model().index(row, col)
         print(self.model().data(idx, role))
 
+    def columnSpanIndex(self, index: QModelIndex) -> QModelIndex:
+        curRow = index.row()
+        curCol = index.column()
+        i = curCol
+        while i >= 0:
+            spanIndex = self.model().index(curRow, i)
+            try:
+                span = spanIndex.data(ColumnSpanRole)
+            except KeyError:
+                span = None
+            if span and (spanIndex.column() + span - 1 >= curCol):
+                return spanIndex
+            i -= 1
+        return QModelIndex()
+
     def rowSpanIndex(self, index: QModelIndex) -> QModelIndex:
         curRow = index.row()
         curCol = index.column()
@@ -242,6 +257,18 @@ class GridTableHeaderView(QHeaderView):
             span += cellSize.height()
         return span
 
+    def columnSpanSize(
+            self,
+            row: int,
+            column_from: int,
+            spanCount: int
+    ) -> int:
+        span = 0
+        for i in range(column_from, column_from + spanCount):
+            cellSize = self.model().index(row, i).data(Qt.ItemDataRole.SizeHintRole)
+            span += cellSize.width()
+        return span
+
     def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
 
 
@@ -254,14 +281,67 @@ class GridTableHeaderView(QHeaderView):
             sectionRect = QRect(rect)
             # print(rect.height())
             rect.setTop(i * 20)
+
             if i != 2:
                 cellIndex = self.model().index(i, logicalIndex)
                 cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
                 rect.setHeight(cellSize.height())
             else:
+                # cellIndex = None
+                # cellSize = QSize(0, 0)
                 rect.setHeight(0)
 
+            # Set the position of the cell.
+            if self.orientation() == Qt.Orientation.Horizontal:
+                sectionRect.setTop(
+                    self.rowSpanSize(
+                        logicalIndex,
+                        0,
+                        i
+                    )
+                )
+            else:
+                sectionRect.setLeft(
+                    self.columnSpanSize(
+                        logicalIndex,
+                        0,
+                        i
+                    )
+                )
+            sectionRect.setSize(cellSize)
+
+            colSpanIdx = self.columnSpanIndex(cellIndex)
+            # print("colSpanIdx is valid: " + str(colSpanIdx.isValid()))
             rowSpanIdx = self.rowSpanIndex(cellIndex)
+            if colSpanIdx.isValid():
+                colSpanFrom = colSpanIdx.column()
+                colSpanCnt = colSpanIdx.data(ColumnSpanRole)
+                colSpanTo = colSpanFrom + colSpanCnt - 1
+                colSpan = self.columnSpanSize(cellIndex.row(), colSpanFrom, colSpanCnt)
+                if self.orientation() == Qt.Orientation.Horizontal:
+                    sectionRect.setLeft(self.sectionViewportPosition(colSpanFrom))
+                else:
+                    sectionRect.setLeft(self.columnSpanSize(logicalIndex, 0, colSpanFrom))
+                    i = colSpanTo
+                sectionRect.setWidth(colSpan)
+                # Check if column span index has a row span
+                subRowSpanData = colSpanIdx.data(RowSpanRole)
+                if subRowSpanData:
+                    subRowSpanFrom = colSpanIdx.row()
+                    subRowSpanCnt = subRowSpanData
+                    subRowSpanTo = subRowSpanFrom + subRowSpanCnt - 1
+                    subRowSpan = self.rowSpanSize(
+                        colSpanFrom,
+                        subRowSpanFrom,
+                        subRowSpanCnt
+                    )
+                    if self.orientation() == Qt.Orientation.Vertical:
+                        sectionRect.setTop(self.sectionViewportPosition(subRowSpanFrom))
+                    else:
+                        sectionRect.setTop(self.rowSpanSize(colSpanFrom, 0, subRowSpanFrom))
+                        i = subRowSpanTo
+                    sectionRect.setHeight(subRowSpan)
+                cellIndex = colSpanIdx
             if rowSpanIdx.isValid():
                 rowSpanFrom = rowSpanIdx.row()
                 rowSpanCnt = rowSpanIdx.data(RowSpanRole)
@@ -273,6 +353,20 @@ class GridTableHeaderView(QHeaderView):
                     sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, rowSpanFrom))
                     i = rowSpanTo
                 sectionRect.setHeight(rowSpan)
+                # Check if the row span index has a column span
+                subColSpanData = rowSpanIdx.data(ColumnSpanRole)
+                if subColSpanData:
+                    subColSpanFrom = rowSpanIdx.column()
+                    subColSpanCnt = subColSpanData
+                    subColSpanTo = subColSpanFrom + subColSpanCnt - 1
+                    subColSpan = self.columnSpanSize(rowSpanFrom, subColSpanFrom, subColSpanCnt)
+                    if self.orientation() == Qt.Orientation.Horizontal:
+                        sectionRect.setLeft(self.sectionViewportPosition(subColSpanFrom))
+                    else:
+                        sectionRect.setLeft(self.columnSpanSize(rowSpanFrom, 0, subColSpanFrom))
+                        i = subColSpanTo
+                    sectionRect.setWidth(subColSpan)
+                cellIndex = rowSpanIdx
 
             # print(
             #     "Logical index: " + str(logicalIndex) +
