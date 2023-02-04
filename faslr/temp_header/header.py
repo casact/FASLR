@@ -198,6 +198,9 @@ class GridTableHeaderView(QHeaderView):
 
         self.setFixedHeight(40)
 
+    def setCellLabel(self, row: int, column: int, label: str):
+        self.model().setData(self.model().index(row, column), label, Qt.ItemDataRole.DisplayRole)
+
     def setSpan(
             self,
             row: int,
@@ -273,25 +276,18 @@ class GridTableHeaderView(QHeaderView):
 
     def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
 
-
-        # print('--------------------start call-----------------------------')
-        # print(self.model().index(0, logicalIndex).data(Qt.ItemDataRole.SizeHintRole))
-        # print(self.model().headerData(0,Qt.Orientation.Horizontal, Qt.ItemDataRole.SizeHintRole))
-        # if self.currentIndex().column() == 1:
-        #     print(logicalIndex)
-        for i in range(3):
+        if self.orientation() == Qt.Orientation.Horizontal:
+            levels = self.model().rowCount()
+        else:
+            levels = self.model().columnCount()
+        for i in range(levels):
             sectionRect = QRect(rect)
             # print(rect.height())
             rect.setTop(i * 20)
 
-            if i != 2:
-                cellIndex = self.model().index(i, logicalIndex)
-                cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
-                rect.setHeight(cellSize.height())
-            else:
-                # cellIndex = None
-                # cellSize = QSize(0, 0)
-                rect.setHeight(0)
+            cellIndex = self.model().index(i, logicalIndex)
+            cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
+            rect.setHeight(cellSize.height())
 
             # Set the position of the cell.
             if self.orientation() == Qt.Orientation.Horizontal:
@@ -370,31 +366,12 @@ class GridTableHeaderView(QHeaderView):
                     sectionRect.setWidth(subColSpan)
                 cellIndex = rowSpanIdx
 
-            # print(
-            #     "Logical index: " + str(logicalIndex) +
-            #     "\n Row index: " + str(i) + "\n Top: " +
-            #     str(rect.top()) + "\n Left: " +
-            #     str(rect.left()) + "\n Width: " +
-            #     str(rect.width())
-            # )
-            # if logicalIndex in [0, 1, 2, 5, 6]:
-            #     rect.setTop(0)
-            #     rect.setHeight(42)
-            # elif logicalIndex in [3, 4]:
-            #     if i == 0:
-            #         # rect.setWidth(200)
-            #         rect.setLeft(300)
-            #         rect.setTop(0)
-            #     else:
-            #         rect.setTop(i * 21)
-            #         if logicalIndex == 3:
-            #             rect.setLeft(300)
-            #         if logicalIndex == 4:
-            #             rect.setLeft(400)
-
             opt = QStyleOptionHeader()
             self.initStyleOption(opt)
             opt.rect = sectionRect
+            opt.textAlignment = Qt.AlignmentFlag.AlignCenter
+            opt.section = logicalIndex
+            opt.text = cellIndex.data(Qt.ItemDataRole.DisplayRole)
             # opt.text = "hi"
             # opt.
 
