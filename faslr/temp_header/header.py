@@ -104,18 +104,15 @@ class GridHeaderTableModel(QAbstractTableModel):
                         span = self.column - col
                     item.setData(span, ColumnSpanRole)
             elif role == RowSpanRole:
-                print("role span role detected")
+                # print("role span role detected")
                 row = index.row()
                 span = int(value)
-                print(row)
-                print(index.column())
-                print(span)
                 if span > 0:
                     if row + span - 1 > self.row:
                         span = self.column - row
                     item.setData(span, RowSpanRole)
-                    print('row: ' + str(item.row))
-                    print('column: ' + str(item.column))
+                    # print('row: ' + str(item.row))
+                    # print('column: ' + str(item.column))
             else:
                 item.setData(value, role)
             return True
@@ -187,13 +184,13 @@ class GridTableHeaderView(QHeaderView):
         for row in range(2):
             for col in range(9):
                 model.index(row, col)
-                model.setData(model.index(row, col), col, Qt.ItemDataRole.SizeHintRole)
+                model.setData(model.index(row, col), baseSectionSize, Qt.ItemDataRole.SizeHintRole)
         # for row in range(2):
         #     for col in range(9):
         #         print(model.data(model.index(row, col), Qt.ItemDataRole.SizeHintRole))
         self.setModel(model)
 
-        self.setFixedHeight(42)
+        self.setFixedHeight(40)
 
     def setSpan(
             self,
@@ -202,9 +199,9 @@ class GridTableHeaderView(QHeaderView):
             rowSpanCount: int,
             columnSpanCount: int
     ):
-        print('arg row: ' + str(row))
-        print('arg col: ' + str(column))
-        print('arg row span: ' + str(rowSpanCount))
+        # print('arg row: ' + str(row))
+        # print('arg col: ' + str(column))
+        # print('arg row span: ' + str(rowSpanCount))
         idx = self.model().index(row, column)
 
         if rowSpanCount > 0:
@@ -212,19 +209,31 @@ class GridTableHeaderView(QHeaderView):
         if columnSpanCount > 0:
             self.model().setData(idx, columnSpanCount, ColumnSpanRole)
 
+    def checkData(self,
+                  row,
+                  col,
+                  role):
+        idx = self.model().index(row, col)
+        print(self.model().data(idx, role))
+
     def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
 
 
         # print('--------------------start call-----------------------------')
-
-        # print(self.model().index(0, logicalIndex).data(Qt.ItemDataRole.SizeHintRole).toSize())
+        # print(self.model().index(0, logicalIndex).data(Qt.ItemDataRole.SizeHintRole))
         # print(self.model().headerData(0,Qt.Orientation.Horizontal, Qt.ItemDataRole.SizeHintRole))
         # if self.currentIndex().column() == 1:
         #     print(logicalIndex)
         for i in range(3):
             sectionRect = QRect(rect)
-            rect.setTop(i * 21)
-            rect.setHeight(21)
+            print(rect.height())
+            rect.setTop(i * 20)
+            if i != 2:
+                cellIndex = self.model().index(i, logicalIndex)
+                cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
+                rect.setHeight(cellSize.height())
+            else:
+                rect.setHeight(0)
 
             # print(
             #     "Logical index: " + str(logicalIndex) +
