@@ -40,56 +40,45 @@ for row in range(9):
 layout.addWidget(view)
 
 view.setGridHeaderView(
-    orientation=Qt.Orientation.Horizontal
+    orientation=Qt.Orientation.Horizontal,
+    levels=2
 )
 
 view.hheader.setSpan(
     row=0,
     column=0,
-    rowSpanCount=2,
-    columnSpanCount=0
+    row_span_count=2,
+    column_span_count=0
 )
 view.hheader.setSpan(
     row=0,
     column=1,
-    rowSpanCount=2,
-    columnSpanCount=0
+    row_span_count=2,
+    column_span_count=0
 )
 view.hheader.setSpan(
     row=0,
     column=2,
-    rowSpanCount=2,
-    columnSpanCount=0
+    row_span_count=2,
+    column_span_count=0
 )
 view.hheader.setSpan(
     row=0,
     column=3,
-    rowSpanCount=1,
-    columnSpanCount=2
+    row_span_count=1,
+    column_span_count=2
 )
-# view.hheader.setSpan(
-#     row=1,
-#     column=3,
-#     rowSpanCount=1,
-#     columnSpanCount=1
-# )
-# view.hheader.setSpan(
-#     row=1,
-#     column=4,
-#     rowSpanCount=1,
-#     columnSpanCount=1
-# )
 view.hheader.setSpan(
     row=0,
     column=5,
-    rowSpanCount=2,
-    columnSpanCount=0
+    row_span_count=2,
+    column_span_count=0
 )
 view.hheader.setSpan(
     row=0,
     column=6,
-    rowSpanCount=2,
-    columnSpanCount=0
+    row_span_count=2,
+    column_span_count=0
 )
 
 view.hheader.setCellLabel(0, 0, "cell1")
@@ -100,7 +89,8 @@ view.hheader.setCellLabel(1, 3, "cell5")
 view.hheader.setCellLabel(1, 4, "cell6")
 view.hheader.setCellLabel(0, 5, "cell7")
 
-main_widget.resize(937, 315)
+main_widget.resize(view.hheader.sizeHint().width(), 315)
+# main_widget.resize(937, 315)
 main_widget.show()
 
 
