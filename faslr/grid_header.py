@@ -2,9 +2,10 @@
 The classes in this module have been ported from C++ code written by Edwin Yllanes:
 
 https://github.com/eyllanesc/stackoverflow/tree/master/questions/46469720
+
+Class and method names will be in CamelCase to be consistent with those in PyQt.
 """
 from __future__ import annotations
-import typing
 
 from PyQt6.QtCore import (
     QAbstractTableModel,
@@ -24,6 +25,8 @@ from PyQt6.QtWidgets import (
 
 from PyQt6 import QtGui
 from PyQt6 import QtCore
+
+from typing import Any
 
 ColumnSpanRole = Qt.ItemDataRole.UserRole + 1
 RowSpanRole = ColumnSpanRole + 1
@@ -51,16 +54,31 @@ class TableHeaderItem:
             row: int,
             col: int
     ):
-        child = TableHeaderItem(row=row, column=col, parent=self)
+        child = TableHeaderItem(
+            row=row,
+            column=col,
+            parent=self
+        )
+
         self.childItems[(row, col)] = child
 
-    def childCount(self):
+    def childCount( # noqa
+            self
+    ) -> int:
         return len(self.childItems)
 
-    def setData(self, data, role):
+    def setData( # noqa
+            self,
+            data: Any,
+            role: int
+    ):
         self._data[role] = data
 
-    def data(self, role):
+    def data(
+            self,
+            role: int
+    ) -> Any:
+
         try:
             res = self._data[role]
         except KeyError:
@@ -71,17 +89,25 @@ class TableHeaderItem:
 class GridHeaderTableModel(QAbstractTableModel):
     def __init__(
             self,
-            row,
-            column,
-            parent=None
+            row: int,
+            column: int,
+            parent: GridTableHeaderView = None
     ):
-        super(GridHeaderTableModel, self).__init__(parent)
+        super(
+            GridHeaderTableModel,
+            self
+        ).__init__(parent)
 
         self.row = row
         self.column = column
         self.rootItem = TableHeaderItem()
 
-    def index(self, row: int, column: int, parent: QModelIndex = None) -> QModelIndex:
+    def index(
+            self,
+            row: int,
+            column: int,
+            parent: QModelIndex = None
+    ) -> QModelIndex:
 
         if parent is None:
             parent = QModelIndex()
@@ -90,19 +116,38 @@ class GridHeaderTableModel(QAbstractTableModel):
                 return QModelIndex()
 
         if not parent.isValid():
-            parentItem = self.rootItem
+            parent_item = self.rootItem
         else:
-            parentItem = parent.internalPointer()
+            parent_item = parent.internalPointer()
 
         try:
-            childItem = parentItem.child(row=row, col=column)
-        except KeyError:
-            childItem = None
-        if not childItem:
-            parentItem.insertChild(row=row, col=column)
-        return self.createIndex(row, column, childItem)
 
-    def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
+            child_item = parent_item.child(
+                row=row,
+                col=column
+            )
+
+        except KeyError:
+
+            child_item = None
+
+        if not child_item:
+            parent_item.insertChild(
+                row=row,
+                col=column
+            )
+
+        return self.createIndex(
+            row,
+            column,
+            child_item
+        )
+
+    def setData(
+            self,
+            index: QModelIndex,
+            value: Any, role: int = None
+    ) -> bool:
 
         if index.isValid():
             item = index.internalPointer()
@@ -114,31 +159,38 @@ class GridHeaderTableModel(QAbstractTableModel):
                         span = self.column - col
                     item.setData(span, ColumnSpanRole)
             elif role == RowSpanRole:
-                # print("role span role detected")
                 row = index.row()
                 span = int(value)
                 if span > 0:
                     if row + span - 1 > self.row:
                         span = self.column - row
                     item.setData(span, RowSpanRole)
-                    # print('row: ' + str(item.row))
-                    # print('column: ' + str(item.column))
             else:
                 item.setData(value, role)
             return True
         else:
-            print("not valid")
             return False
 
-    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+    def data(
+            self,
+            index: QModelIndex,
+            role: int = None
+    ) -> Any:
+
         item = index.internalPointer()
         return item.data(role)
 
-    def rowCount(self, parent: QModelIndex = ...) -> int:
+    def rowCount(
+            self,
+            parent: QModelIndex = None
+    ) -> int:
 
         return self.row
 
-    def columnCount(self, parent: QModelIndex = ...) -> int:
+    def columnCount(
+            self,
+            parent: QModelIndex = None
+    ) -> int:
 
         return self.column
 
@@ -146,242 +198,307 @@ class GridHeaderTableModel(QAbstractTableModel):
 class GridTableHeaderView(QHeaderView):
     def __init__(
             self,
-            orientation,
-            # rows,
-            # columns
+            orientation: Qt.Orientation,
+            rows: int,
+            columns: int,
+            parent: GridTableView = None,
+            base_section_height: int = 20,
+            base_section_width: int = 50
     ):
         super().__init__(orientation)
 
-        # Store each header cell in the model as a tableheaderitem containing the row and column number, and the size.
-        baseSectionSize = QSize()
+        self.n_rows = rows
+        self.n_columns = columns
+        self.parent = parent
+
+        # Store each header cell in the model as a TableHeaderItem containing the row and column number, and the size.
+        base_section_size = QSize()
 
         if orientation == Qt.Orientation.Horizontal:
-            baseSectionSize.setWidth(self.defaultSectionSize())
-            baseSectionSize.setHeight(20)
+            base_section_size.setWidth(self.defaultSectionSize())
+            base_section_size.setHeight(base_section_height)
         else:
-            baseSectionSize.setWidth(50)
-            baseSectionSize.setHeight(self.defaultSectionSize())
+            base_section_size.setWidth(base_section_width)
+            base_section_size.setHeight(self.defaultSectionSize())
 
         model = GridHeaderTableModel(
-            row=2,
-            column=9
+            row=self.n_rows,
+            column=self.n_columns,
+            parent=self
         )
 
-        for row in range(2):
-            for col in range(9):
+        for row in range(self.n_rows):
+            for col in range(self.n_columns):
                 model.index(row, col)
-                model.setData(model.index(row, col), baseSectionSize, Qt.ItemDataRole.SizeHintRole)
+                model.setData(
+                    index=model.index(row, col),
+                    value=base_section_size,
+                    role=Qt.ItemDataRole.SizeHintRole
+                )
+
         self.setModel(model)
 
-        self.sectionResized.connect(self.onSectionResized)
+        self.sectionResized.connect(self.onSectionResized) # noqa
 
-        self.setFixedHeight(40)
+        self.setFixedHeight(base_section_size.height() * 2)
 
-    def setCellLabel(self, row: int, column: int, label: str):
-        self.model().setData(self.model().index(row, column), label, Qt.ItemDataRole.DisplayRole)
+    def setCellLabel( # noqa
+            self, 
+            row: int, 
+            column: int, 
+            label: str
+    ) -> None:
+        
+        self.model().setData(
+            index=self.model().index(row, column), 
+            value=label, 
+            role=Qt.ItemDataRole.DisplayRole
+        )
 
-    def setSpan(
+    def setSpan( # noqa
             self,
             row: int,
             column: int,
-            rowSpanCount: int,
-            columnSpanCount: int
+            row_span_count: int,
+            column_span_count: int
     ):
 
         idx = self.model().index(row, column)
 
-        if rowSpanCount > 0:
-            self.model().setData(idx, rowSpanCount, RowSpanRole)
-        if columnSpanCount > 0:
-            self.model().setData(idx, columnSpanCount, ColumnSpanRole)
+        if row_span_count > 0:
 
-    def checkData(self,
-                  row,
-                  col,
-                  role):
+            self.model().setData(
+                index=idx,
+                value=row_span_count,
+                role=RowSpanRole
+            )
+
+        if column_span_count > 0:
+
+            self.model().setData(
+                index=idx,
+                value=column_span_count,
+                role=ColumnSpanRole
+            )
+
+    def checkData( # noqa
+            self,
+            row: int,
+            col: int,
+            role: Qt.ItemDataRole
+    ) -> Any:
+
         idx = self.model().index(row, col)
         print(self.model().data(idx, role))
 
-    def columnSpanIndex(self, index: QModelIndex) -> QModelIndex:
-        curRow = index.row()
-        curCol = index.column()
-        i = curCol
+    def columnSpanIndex( # noqa
+            self,
+            index: QModelIndex
+    ) -> QModelIndex:
+
+        cur_row = index.row()
+        cur_col = index.column()
+        i = cur_col
+
         while i >= 0:
-            spanIndex = self.model().index(curRow, i)
+            span_index = self.model().index(cur_row, i)
             try:
-                span = spanIndex.data(ColumnSpanRole)
+                span = span_index.data(ColumnSpanRole)
             except KeyError:
                 span = None
-            if span and (spanIndex.column() + span - 1 >= curCol):
-                return spanIndex
+            if span and (span_index.column() + span - 1 >= cur_col):
+                return span_index
             i -= 1
         return QModelIndex()
 
-    def rowSpanIndex(self, index: QModelIndex) -> QModelIndex:
-        curRow = index.row()
-        curCol = index.column()
-        i = curRow
+    def rowSpanIndex( # noqa
+            self,
+            index: QModelIndex
+    ) -> QModelIndex:
+
+        cur_row = index.row()
+        cur_col = index.column()
+        i = cur_row
         while i >= 0:
-            spanIndex = self.model().index(i, curCol)
+            span_index = self.model().index(i, cur_col)
             try:
-                span = spanIndex.data(RowSpanRole)
+                span = span_index.data(RowSpanRole)
             except KeyError:
                 span = None
-            if span and (spanIndex.row() + span - 1 >= curRow):
-                return spanIndex
+            if span and (span_index.row() + span - 1 >= cur_row):
+                return span_index
             i -= 1
+
         return QModelIndex()
 
-    def rowSpanSize(
+    def rowSpanSize( # noqa
             self,
             column: int,
             row_from: int,
-            spanCount: int
+            span_count: int
     ) -> int:
 
         span = 0
 
         for i in range(
                 row_from,
-                row_from + spanCount
+                row_from + span_count
         ):
 
-            cellSize = self.model().\
+            cell_size = self.model().\
                 index(i, column).\
                 data(Qt.ItemDataRole.SizeHintRole)
 
-            span += cellSize.height()
+            span += cell_size.height()
+            
         return span
 
-    def columnSpanSize(
+    def columnSpanSize( # noqa
             self,
             row: int,
             column_from: int,
-            spanCount: int
+            span_count: int
     ) -> int:
+        
         span = 0
-        for i in range(column_from, column_from + spanCount):
-            cellSize = self.model().index(row, i).data(Qt.ItemDataRole.SizeHintRole)
-            span += cellSize.width()
+        for i in range(
+                column_from, 
+                column_from + span_count
+        ):
+            
+            cell_size = self.model().index(row, i).data(Qt.ItemDataRole.SizeHintRole)
+            span += cell_size.width()
         return span
 
-    def paintSection(
+    def paintSection( # noqa
             self,
             painter: QtGui.QPainter,
             rect: QtCore.QRect,
-            logicalIndex: int
+            logicalIndex: int # noqa
     ) -> None:
 
         if self.orientation() == Qt.Orientation.Horizontal:
             levels = self.model().rowCount()
         else:
             levels = self.model().columnCount()
+
         for i in range(levels):
-            sectionRect = QRect(rect)
+            section_rect = QRect(rect)
             # rect.setTop(i * 20)
             # print("before: " + str(rect.top()))
             rect.setTop(i * rect.height())
-            cellIndex = self.model().index(i, logicalIndex)
-            cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
-            rect.setHeight(cellSize.height())
+            cell_index = self.model().index(i, logicalIndex)
+            cell_size = cell_index.data(Qt.ItemDataRole.SizeHintRole)
+            rect.setHeight(cell_size.height())
 
             # Set the position of the cell.
             if self.orientation() == Qt.Orientation.Horizontal:
-                sectionRect.setTop(
+
+                section_rect.setTop(
                     self.rowSpanSize(
                         column=logicalIndex,
                         row_from=0,
-                        spanCount=i
+                        span_count=i
                     )
                 )
+
             else:
-                sectionRect.setLeft(
+
+                section_rect.setLeft(
                     self.columnSpanSize(
-                        logicalIndex,
-                        0,
-                        i
+                        row=logicalIndex,
+                        column_from=0,
+                        span_count=i
                     )
                 )
-            sectionRect.setSize(cellSize)
-            # print("after: " + str(sectionRect.top()))
+
+            section_rect.setSize(cell_size)
+            # print("after: " + str(section_rect.top()))
             rect.setTop(i * 20)
 
-            colSpanIdx = self.columnSpanIndex(cellIndex)
-            rowSpanIdx = self.rowSpanIndex(cellIndex)
-            if colSpanIdx.isValid():
-                colSpanFrom = colSpanIdx.column()
-                colSpanCnt = colSpanIdx.data(ColumnSpanRole)
-                colSpanTo = colSpanFrom + colSpanCnt - 1
-                colSpan = self.columnSpanSize(cellIndex.row(), colSpanFrom, colSpanCnt)
+            col_span_idx = self.columnSpanIndex(cell_index)
+            row_span_idx = self.rowSpanIndex(cell_index)
+            if col_span_idx.isValid():
+                col_span_from = col_span_idx.column()
+                col_span_cnt = col_span_idx.data(ColumnSpanRole)
+                # col_span_to = col_span_from + col_span_cnt - 1
+                col_span = self.columnSpanSize(cell_index.row(), col_span_from, col_span_cnt)
                 if self.orientation() == Qt.Orientation.Horizontal:
-                    sectionRect.setLeft(self.sectionViewportPosition(colSpanFrom))
+                    section_rect.setLeft(self.sectionViewportPosition(col_span_from))
                 else:
-                    sectionRect.setLeft(self.columnSpanSize(logicalIndex, 0, colSpanFrom))
-                    i = colSpanTo
-                sectionRect.setWidth(colSpan)
+                    section_rect.setLeft(self.columnSpanSize(logicalIndex, 0, col_span_from))
+                    # i = col_span_to
+                section_rect.setWidth(col_span)
                 # Check if column span index has a row span
-                subRowSpanData = colSpanIdx.data(RowSpanRole)
-                if subRowSpanData:
-                    subRowSpanFrom = colSpanIdx.row()
-                    subRowSpanCnt = subRowSpanData
-                    subRowSpanTo = subRowSpanFrom + subRowSpanCnt - 1
-                    subRowSpan = self.rowSpanSize(
-                        colSpanFrom,
-                        subRowSpanFrom,
-                        subRowSpanCnt
+                sub_row_span_data = col_span_idx.data(RowSpanRole)
+                if sub_row_span_data:
+                    sub_row_span_from = col_span_idx.row()
+                    sub_row_span_cnt = sub_row_span_data
+                    # sub_row_span_to = sub_row_span_from + sub_row_span_cnt - 1
+                    sub_row_span = self.rowSpanSize(
+                        col_span_from,
+                        sub_row_span_from,
+                        sub_row_span_cnt
                     )
                     if self.orientation() == Qt.Orientation.Vertical:
-                        sectionRect.setTop(self.sectionViewportPosition(subRowSpanFrom))
+                        section_rect.setTop(self.sectionViewportPosition(sub_row_span_from))
                     else:
-                        sectionRect.setTop(self.rowSpanSize(colSpanFrom, 0, subRowSpanFrom))
-                        i = subRowSpanTo
-                    sectionRect.setHeight(subRowSpan)
-                cellIndex = colSpanIdx
-            if rowSpanIdx.isValid():
-                rowSpanFrom = rowSpanIdx.row()
-                rowSpanCnt = rowSpanIdx.data(RowSpanRole)
-                rowSpanTo = rowSpanFrom + rowSpanCnt - 1
-                rowSpan = self.rowSpanSize(cellIndex.column(), rowSpanFrom, rowSpanCnt)
+                        section_rect.setTop(self.rowSpanSize(col_span_from, 0, sub_row_span_from))
+                        # i = sub_row_span_to
+                    section_rect.setHeight(sub_row_span)
+                cell_index = col_span_idx
+            if row_span_idx.isValid():
+                row_span_from = row_span_idx.row()
+                row_span_cnt = row_span_idx.data(RowSpanRole)
+                # row_span_to = row_span_from + row_span_cnt - 1
+                row_span = self.rowSpanSize(cell_index.column(), row_span_from, row_span_cnt)
                 if self.orientation() == Qt.Orientation.Vertical:
-                    sectionRect.setTop(self.sectionViewportPosition(rowSpanFrom))
+                    section_rect.setTop(self.sectionViewportPosition(row_span_from))
                 else:
-                    sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, rowSpanFrom))
-                    i = rowSpanTo
-                sectionRect.setHeight(rowSpan)
+                    section_rect.setTop(self.rowSpanSize(logicalIndex, 0, row_span_from))
+                    # i = row_span_to
+                section_rect.setHeight(row_span)
                 # Check if the row span index has a column span
-                subColSpanData = rowSpanIdx.data(ColumnSpanRole)
-                if subColSpanData:
-                    subColSpanFrom = rowSpanIdx.column()
-                    subColSpanCnt = subColSpanData
-                    subColSpanTo = subColSpanFrom + subColSpanCnt - 1
-                    subColSpan = self.columnSpanSize(rowSpanFrom, subColSpanFrom, subColSpanCnt)
+                sub_col_span_data = row_span_idx.data(ColumnSpanRole)
+                if sub_col_span_data:
+                    sub_col_span_from = row_span_idx.column()
+                    sub_col_span_cnt = sub_col_span_data
+                    # sub_col_span_to = sub_col_span_from + sub_col_span_cnt - 1
+                    sub_col_span = self.columnSpanSize(row_span_from, sub_col_span_from, sub_col_span_cnt)
                     if self.orientation() == Qt.Orientation.Horizontal:
-                        sectionRect.setLeft(self.sectionViewportPosition(subColSpanFrom))
+                        section_rect.setLeft(self.sectionViewportPosition(sub_col_span_from))
                     else:
-                        sectionRect.setLeft(self.columnSpanSize(rowSpanFrom, 0, subColSpanFrom))
-                        i = subColSpanTo
-                    sectionRect.setWidth(subColSpan)
-                cellIndex = rowSpanIdx
+                        section_rect.setLeft(self.columnSpanSize(row_span_from, 0, sub_col_span_from))
+                        # i = sub_col_span_to
+                    section_rect.setWidth(sub_col_span)
+                cell_index = row_span_idx
 
             opt = QStyleOptionHeader()
             self.initStyleOption(opt)
-            opt.rect = sectionRect
+            opt.rect = section_rect
             opt.textAlignment = Qt.AlignmentFlag.AlignCenter
             opt.section = logicalIndex
-            opt.text = cellIndex.data(Qt.ItemDataRole.DisplayRole)
-            # opt.text = "hi"
-            # opt.
+            opt.text = cell_index.data(Qt.ItemDataRole.DisplayRole)
 
             painter.drawRect(rect)
             # opt.palette.setBrush(QPalette.ColorRole.Window, Qt.ItemDataRole.DisplayRole)
             # opt.palette.setBrush()
             painter.save()
-            self.style().drawControl(QStyle.ControlElement.CE_Header, opt, painter, self)
+            self.style().drawControl(
+                QStyle.ControlElement.CE_Header,
+                opt,
+                painter,
+                self
+            )
             painter.restore()
 
         return
 
-    def onSectionResized(self, logicalIndex: int, oldSize: int, newSize: int) -> None:
+    def onSectionResized( # noqa
+            self,
+            logicalIndex: int, # noqa
+            newSize: int # noqa
+    ) -> None:
 
         if self.orientation() == Qt.Orientation.Horizontal:
             level = self.model().rowCount()
@@ -394,44 +511,46 @@ class GridTableHeaderView(QHeaderView):
         else:
             xx = 0
             yy = pos
-        sectionRect = QRect(xx, yy, 0, 0)
+        section_rect = QRect(xx, yy, 0, 0)
         for i in range(level):
             if self.orientation() == Qt.Orientation.Horizontal:
-                cellIndex = self.model().index(i, logicalIndex)
+                cell_index = self.model().index(i, logicalIndex)
             else:
-                cellIndex = self.model().index(logicalIndex, i)
-            cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
+                cell_index = self.model().index(logicalIndex, i)
+            cell_size = cell_index.data(Qt.ItemDataRole.SizeHintRole)
             if self.orientation() == Qt.Orientation.Horizontal:
-                sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, i))
-                cellSize.setWidth(newSize)
+                section_rect.setTop(self.rowSpanSize(logicalIndex, 0, i))
+                cell_size.setWidth(newSize)
             else:
-                sectionRect.setLeft(self.columnSpanSize(logicalIndex, 0, i))
-                cellSize.setHeight(newSize)
-            self.model().setData(cellIndex, cellSize, Qt.ItemDataRole.SizeHintRole)
+                section_rect.setLeft(self.columnSpanSize(logicalIndex, 0, i))
+                cell_size.setHeight(newSize)
+            self.model().setData(cell_index, cell_size, Qt.ItemDataRole.SizeHintRole)
 
-        colSpanIdx = self.columnSpanIndex(cellIndex)
-        rowSpanIdx = self.rowSpanIndex(cellIndex)
+            col_span_idx = self.columnSpanIndex(cell_index)
+            row_span_idx = self.rowSpanIndex(cell_index)
 
-        if colSpanIdx.isValid():
-            colSpanFrom = colSpanIdx.column()
-            if self.orientation() == Qt.Orientation.Horizontal:
-                sectionRect.setLeft(self.sectionViewportPosition(colSpanFrom))
-            else:
-                sectionRect.setLeft(self.columnSpanSize(logicalIndex, 0, colSpanFrom))
-        if rowSpanIdx.isValid():
-            rowSpanFrom = rowSpanIdx.row()
-            if self.orientation() == Qt.Orientation.Vertical:
-                sectionRect.setTop(self.sectionViewportPosition(rowSpanFrom))
-            else:
-                sectionRect.setTop(self.rowSpanSize(logicalIndex, 0, rowSpanFrom))
-        rToUpdate = QRect(sectionRect)
-        rToUpdate.setWidth(self.viewport().width() - sectionRect.left())
-        rToUpdate.setHeight(self.viewport().height() - sectionRect.top())
-        self.viewport().update(rToUpdate.normalized())
+            if col_span_idx.isValid():
+                col_span_from = col_span_idx.column()
+                if self.orientation() == Qt.Orientation.Horizontal:
+                    section_rect.setLeft(self.sectionViewportPosition(col_span_from))
+                else:
+                    section_rect.setLeft(self.columnSpanSize(logicalIndex, 0, col_span_from))
+            if row_span_idx.isValid():
+                row_span_from = row_span_idx.row()
+                if self.orientation() == Qt.Orientation.Vertical:
+                    section_rect.setTop(self.sectionViewportPosition(row_span_from))
+                else:
+                    section_rect.setTop(self.rowSpanSize(logicalIndex, 0, row_span_from))
+            r_to_update = QRect(section_rect)
+            r_to_update.setWidth(self.viewport().width() - section_rect.left())
+            r_to_update.setHeight(self.viewport().height() - section_rect.top())
+            self.viewport().update(r_to_update.normalized())
 
 
 class GridTableView(QTableView):
-    def __init__(self):
+    def __init__(
+            self,
+    ):
         super().__init__()
 
         self.hheader = None
@@ -449,12 +568,18 @@ class GridTableView(QTableView):
             """
         )
 
-    def setGridHeaderView(self, orientation): # noqa
+    def setGridHeaderView( # noqa
+            self,
+            orientation: Qt.Orientation,
+            levels: int
+    ): # noqa
 
         if orientation == Qt.Orientation.Horizontal:
             header = GridTableHeaderView(
                 orientation=orientation,
-                # columns=self.model().columnCount()
+                rows=levels,
+                columns=self.model().columnCount(),
+                parent=self
             )
             self.setHorizontalHeader(header)
             self.hheader = header
@@ -462,7 +587,8 @@ class GridTableView(QTableView):
             header = GridTableHeaderView(
                 orientation=orientation,
                 rows=self.model().rowCount(),
-                # columns=levels
+                columns=levels,
+                parent=self
             )
             self.setVerticalHeader(header)
             self.vheader = header
