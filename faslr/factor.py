@@ -598,7 +598,10 @@ class FactorView(FTableView):
 
     def contextMenuEvent(self, event):
 
-        self.custom_menu_event(pos=None, event=event)
+        self.custom_menu_event(
+            pos=None,
+            event=event
+        )
 
     def delete_selection(self):
         selection = self.selectedIndexes()
@@ -611,7 +614,12 @@ class FactorView(FTableView):
 
 
 class LDFAverageModel(QAbstractTableModel):
-    def __init__(self, data, parent: FactorModel, checkable_columns=None):
+    def __init__(
+            self,
+            data,
+            parent: FactorModel,
+            checkable_columns=None
+    ):
         super(LDFAverageModel, self).__init__()
 
         self.parent = parent
@@ -623,7 +631,11 @@ class LDFAverageModel(QAbstractTableModel):
             checkable_columns = [checkable_columns]
         self.checkable_columns = set(checkable_columns)
 
-    def set_column_checkable(self, column, checkable=True):
+    def set_column_checkable(
+            self,
+            column,
+            checkable=True
+    ):
         if checkable:
             self.checkable_columns.add(column)
         else:
@@ -688,7 +700,12 @@ class LDFAverageModel(QAbstractTableModel):
 
         return self._data.shape[1]
 
-    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+    def setData(
+            self,
+            index,
+            value,
+            role=Qt.ItemDataRole.EditRole
+    ):
         if role == Qt.ItemDataRole.CheckStateRole and index.column() in self.checkable_columns:
             self._data.iloc[index.row(), index.column()] = bool(value)
             self.dataChanged.emit(index, index) # noqa
@@ -700,7 +717,12 @@ class LDFAverageModel(QAbstractTableModel):
             return True
         return False
 
-    def add_average(self, avg_type: str, years: int, label: str):
+    def add_average(
+            self,
+            avg_type: str,
+            years: int,
+            label: str
+    ):
         """
         Adds a custom LDF average type to the list of current averages.
         """
@@ -763,7 +785,10 @@ class LDFAverageBox(QDialog):
 
         self.button_box = QDialogButtonBox()
 
-        self.button_box.addButton("Add Average", QDialogButtonBox.ButtonRole.ActionRole)
+        self.button_box.addButton(
+            "Add Average",
+            QDialogButtonBox.ButtonRole.ActionRole
+        )
         self.button_box.addButton(QDialogButtonBox.StandardButton.Ok)
 
         self.button_box.clicked.connect(self.add_ldf_average) # noqa
@@ -802,7 +827,11 @@ class LDFAverageBox(QDialog):
     def accept_changes(self):
         self.parent.get_display_data()
         index = QModelIndex()
-        self.parent.setData(index=index, value=None, refresh=True)
+        self.parent.setData(
+            index=index,
+            value=None,
+            refresh=True
+        )
         self.close()
 
 
@@ -825,7 +854,9 @@ class AddLDFDialog(QDialog):
         self.year_spin.setMinimum(1)
         self.year_spin.setValue(1)
         self.avg_label = QLineEdit()
-        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
 
         self.layout.addRow("Type: ", self.type_combo)
         self.layout.addRow("Years: ", self.year_spin)
@@ -859,7 +890,12 @@ class CheckBoxStyle(QProxyStyle):
     Proxy style is used to center the checkboxes in the LDF Average dialog box.
     """
 
-    def subElementRect(self, element, opt, widget=None):
+    def subElementRect(
+            self,
+            element,
+            opt,
+            widget=None
+    ):
         if element == self.SE_ItemViewItemCheckIndicator and not opt.text: # noqa
             rect = super().subElementRect(element, opt, widget)
             rect.moveCenter(opt.rect.center())
