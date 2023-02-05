@@ -1,11 +1,14 @@
+"""
+The classes in this module have been ported from C++ code written by Edwin Yllanes:
+
+https://github.com/eyllanesc/stackoverflow/tree/master/questions/46469720
+"""
+from __future__ import annotations
 import typing
 
-from PyQt6.QtGui import QPalette
 from PyQt6.QtCore import (
     QAbstractTableModel,
-    QAbstractItemModel,
     QModelIndex,
-    QObject,
     Qt,
     QRect,
     QSize
@@ -31,7 +34,7 @@ class TableHeaderItem:
             self,
             row: int = None,
             column: int = None,
-            parent = None
+            parent: TableHeaderItem = None
     ):
         self.row = row
         self.column = column
@@ -43,7 +46,11 @@ class TableHeaderItem:
     def child(self, row, col):
         return self.childItems[(row, col)]
 
-    def insertChild(self, row, col):
+    def insertChild( # noqa
+            self,
+            row: int,
+            col: int
+    ):
         child = TableHeaderItem(row=row, column=col, parent=self)
         self.childItems[(row, col)] = child
 
@@ -84,7 +91,6 @@ class GridHeaderTableModel(QAbstractTableModel):
 
         if not parent.isValid():
             parentItem = self.rootItem
-            # self.createIndex(row, column, parentItem)
         else:
             parentItem = parent.internalPointer()
 
@@ -128,40 +134,13 @@ class GridHeaderTableModel(QAbstractTableModel):
         item = index.internalPointer()
         return item.data(role)
 
-    # def parent(self, index):
-    #     print('parent called')
-    #     if not index.isValid():
-    #         return QModelIndex()
-    #
-    #     childItem = index.internalPointer()
-    #     parentItem = childItem.parent()
-    #
-    #     if parentItem == self.rootItem:
-    #         return QModelIndex()
-    #
-    #     return self.createIndex(parentItem.row(), 0, parentItem)
-
     def rowCount(self, parent: QModelIndex = ...) -> int:
 
         return self.row
 
-        # # print(parent)
-        # if parent.column() > 0:
-        #     return 0
-        #
-        # if not parent.isValid():
-        #     parentItem = self.rootItem
-        # else:
-        #     parentItem = parent.internalPointer()
-        #
-        # return parentItem.childCount()
-
     def columnCount(self, parent: QModelIndex = ...) -> int:
+
         return self.column
-        # if parent.isValid():
-        #     return parent.internalPointer().columnCount()
-        # else:
-        #     return self.rootItem.columnCount()
 
 
 class GridTableHeaderView(QHeaderView):
@@ -183,15 +162,15 @@ class GridTableHeaderView(QHeaderView):
             baseSectionSize.setWidth(50)
             baseSectionSize.setHeight(self.defaultSectionSize())
 
-        model = GridHeaderTableModel(row=2, column=9)
-        # print(model.index(0,0).parent())
+        model = GridHeaderTableModel(
+            row=2,
+            column=9
+        )
+
         for row in range(2):
             for col in range(9):
                 model.index(row, col)
                 model.setData(model.index(row, col), baseSectionSize, Qt.ItemDataRole.SizeHintRole)
-        # for row in range(2):
-        #     for col in range(9):
-        #         print(model.data(model.index(row, col), Qt.ItemDataRole.SizeHintRole))
         self.setModel(model)
 
         self.sectionResized.connect(self.onSectionResized)
@@ -208,9 +187,7 @@ class GridTableHeaderView(QHeaderView):
             rowSpanCount: int,
             columnSpanCount: int
     ):
-        # print('arg row: ' + str(row))
-        # print('arg col: ' + str(column))
-        # print('arg row span: ' + str(rowSpanCount))
+
         idx = self.model().index(row, column)
 
         if rowSpanCount > 0:
@@ -255,10 +232,24 @@ class GridTableHeaderView(QHeaderView):
             i -= 1
         return QModelIndex()
 
-    def rowSpanSize(self, column: int, row_from: int, spanCount: int) -> int:
+    def rowSpanSize(
+            self,
+            column: int,
+            row_from: int,
+            spanCount: int
+    ) -> int:
+
         span = 0
-        for i in range(row_from, row_from + spanCount):
-            cellSize = self.model().index(i, column).data(Qt.ItemDataRole.SizeHintRole)
+
+        for i in range(
+                row_from,
+                row_from + spanCount
+        ):
+
+            cellSize = self.model().\
+                index(i, column).\
+                data(Qt.ItemDataRole.SizeHintRole)
+
             span += cellSize.height()
         return span
 
@@ -274,7 +265,12 @@ class GridTableHeaderView(QHeaderView):
             span += cellSize.width()
         return span
 
-    def paintSection(self, painter: QtGui.QPainter, rect: QtCore.QRect, logicalIndex: int) -> None:
+    def paintSection(
+            self,
+            painter: QtGui.QPainter,
+            rect: QtCore.QRect,
+            logicalIndex: int
+    ) -> None:
 
         if self.orientation() == Qt.Orientation.Horizontal:
             levels = self.model().rowCount()
@@ -282,9 +278,9 @@ class GridTableHeaderView(QHeaderView):
             levels = self.model().columnCount()
         for i in range(levels):
             sectionRect = QRect(rect)
-            # print(rect.height())
-            rect.setTop(i * 20)
-
+            # rect.setTop(i * 20)
+            # print("before: " + str(rect.top()))
+            rect.setTop(i * rect.height())
             cellIndex = self.model().index(i, logicalIndex)
             cellSize = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
             rect.setHeight(cellSize.height())
@@ -293,9 +289,9 @@ class GridTableHeaderView(QHeaderView):
             if self.orientation() == Qt.Orientation.Horizontal:
                 sectionRect.setTop(
                     self.rowSpanSize(
-                        logicalIndex,
-                        0,
-                        i
+                        column=logicalIndex,
+                        row_from=0,
+                        spanCount=i
                     )
                 )
             else:
@@ -307,9 +303,10 @@ class GridTableHeaderView(QHeaderView):
                     )
                 )
             sectionRect.setSize(cellSize)
+            # print("after: " + str(sectionRect.top()))
+            rect.setTop(i * 20)
 
             colSpanIdx = self.columnSpanIndex(cellIndex)
-            # print("colSpanIdx is valid: " + str(colSpanIdx.isValid()))
             rowSpanIdx = self.rowSpanIndex(cellIndex)
             if colSpanIdx.isValid():
                 colSpanFrom = colSpanIdx.column()
@@ -382,11 +379,10 @@ class GridTableHeaderView(QHeaderView):
             self.style().drawControl(QStyle.ControlElement.CE_Header, opt, painter, self)
             painter.restore()
 
-        # print('--------------------end call-----------------------------')
         return
 
     def onSectionResized(self, logicalIndex: int, oldSize: int, newSize: int) -> None:
-        print("section resized")
+
         if self.orientation() == Qt.Orientation.Horizontal:
             level = self.model().rowCount()
         else:
@@ -434,7 +430,6 @@ class GridTableHeaderView(QHeaderView):
         self.viewport().update(rToUpdate.normalized())
 
 
-
 class GridTableView(QTableView):
     def __init__(self):
         super().__init__()
@@ -454,7 +449,7 @@ class GridTableView(QTableView):
             """
         )
 
-    def setGridHeaderView(self, orientation):
+    def setGridHeaderView(self, orientation): # noqa
 
         if orientation == Qt.Orientation.Horizontal:
             header = GridTableHeaderView(
