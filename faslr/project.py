@@ -64,8 +64,6 @@ class ProjectDialog(QDialog):
         button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
 
         self.button_box = QDialogButtonBox(button_layout)
-
-        self.button_box = QDialogButtonBox(button_layout)
         # noinspection PyUnresolvedReferences
         self.button_box.accepted.connect(lambda main_window=self.main_window: self.make_project(main_window))
         # noinspection PyUnresolvedReferences
