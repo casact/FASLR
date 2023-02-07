@@ -7,6 +7,8 @@ Class and method names will be in CamelCase to be consistent with those in PyQt.
 """
 from __future__ import annotations
 
+from faslr.base_table import FTableView
+
 from PyQt6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
@@ -17,10 +19,8 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtWidgets import (
     QHeaderView,
-
     QStyle,
-    QStyleOptionHeader,
-    QTableView
+    QStyleOptionHeader
 )
 
 from PyQt6 import QtGui
@@ -61,6 +61,14 @@ class TableHeaderItem:
         )
 
         self.childItems[(row, col)] = child
+
+    def removeChild(
+            self,
+            row: int,
+            col: int
+    ):
+
+        del self.childItems[(row, col)]
 
     def childCount( # noqa
             self
@@ -142,6 +150,7 @@ class GridHeaderTableModel(QAbstractTableModel):
             column,
             child_item
         )
+
 
     def setData(
             self,
@@ -547,7 +556,7 @@ class GridTableHeaderView(QHeaderView):
             self.viewport().update(r_to_update.normalized())
 
 
-class GridTableView(QTableView):
+class GridTableView(FTableView):
     def __init__(
             self,
     ):
