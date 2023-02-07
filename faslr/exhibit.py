@@ -12,6 +12,10 @@ from faslr.constants import (
     ICONS_PATH
 )
 
+from faslr.grid_header import (
+    GridHeaderTableModel
+)
+
 from PyQt6.QtCore import (
     QAbstractListModel,
     Qt
@@ -19,12 +23,16 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtGui import (
     QIcon,
+    QStandardItem,
     QStandardItemModel
 )
 
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QDialog,
     QDialogButtonBox,
     QHBoxLayout,
+    QLabel,
     QVBoxLayout,
     QListView,
     QPushButton,
@@ -63,6 +71,7 @@ class ExhibitBuilder(QWidget):
         super().__init__()
 
         self.triangles = triangles
+        self.n_triangles = len(self.triangles)
 
         self.setWindowTitle("Exhibit Builder")
 
@@ -76,10 +85,22 @@ class ExhibitBuilder(QWidget):
 
         # Each tab holds the available columns for a model.
         self.model_tabs = QTabWidget()
-        self.input_model = ExhibitInputListModel()
-        self.input_list = QListView()
-        self.input_list.setModel(self.input_model)
-        self.model_tabs.addTab(self.input_list, "Model 1")
+        # self.input_model = ExhibitInputListModel()
+        # self.input_list = QListView()
+        # self.input_list.setModel(self.input_model)
+
+        for i in range(self.n_triangles):
+            list_model = ExhibitInputListModel(input_columns=[
+                'Accident Year',
+                'Age',
+                'Reported Claims',
+                'CDF',
+                'Ultimate Reported Claims'
+            ])
+            list_view = QListView()
+            list_view.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+            list_view.setModel(list_model)
+            self.model_tabs.addTab(list_view, "Model " + str(i + 1))
 
         self.ly_build.addWidget(self.model_tabs)
 
@@ -118,13 +139,14 @@ class ExhibitBuilder(QWidget):
             )
 
         self.ly_build.addWidget(self.input_btns)
+        self.output_label = QLabel("Exhibit Columns")
 
         # Use a container to pad alignment.
         self.output_container = QWidget()
         self.ly_output = QVBoxLayout()
         self.ly_output.setContentsMargins(
             0,
-            26,
+            3,
             0,
             0
         )
@@ -132,8 +154,10 @@ class ExhibitBuilder(QWidget):
         # Output columns selected by the user.
         self.output_container.setLayout(self.ly_output)
         self.output_model = QStandardItemModel()
+        self.output_root = self.output_model.invisibleRootItem()
         self.output_view = ExhibitOutputTreeView()
         self.output_view.setModel(self.output_model)
+        self.ly_output.addWidget(self.output_label)
         self.ly_output.addWidget(self.output_view)
 
         self.ly_build.addWidget(self.output_container)
@@ -148,6 +172,12 @@ class ExhibitBuilder(QWidget):
 
         self.button_box.accepted.connect(self.close)  # noqa
         self.button_box.rejected.connect(self.close)  # noqa
+
+        self.add_column_btn.pressed.connect(self.add_output)
+
+    def add_output(self) -> None:
+        output_item = ExhibitOutputTreeItem(text="Accident Year")
+        self.output_root.appendRow(output_item)
 
 
 class ExhibitInputListModel(QAbstractListModel):
@@ -167,9 +197,21 @@ class ExhibitInputListModel(QAbstractListModel):
         return len(self.input_columns)
 
 
+class ExhibitOutputTreeItem(QStandardItem):
+    def __init__(
+            self,
+            text: str
+    ):
+        super().__init__()
+
+        self.setText(text)
+
+
 class ExhibitOutputTreeView(QTreeView):
     def __init__(self):
         super().__init__()
+
+        self.setHeaderHidden(True)
 
 
 def make_middle_button(
