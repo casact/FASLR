@@ -19,6 +19,8 @@ from faslr.constants import (
     OCTICONS_PATH
 )
 
+from faslr.engine import EngineDialog
+
 from faslr.project import ProjectDialog
 
 from faslr.settings import SettingsDialog
@@ -67,6 +69,7 @@ class MainMenuBar(QMenuBar):
         self.engine_action = QAction("&Select Engine")
         self.engine_action.setShortcut("Ctrl+shift+e")
         self.engine_action.setStatusTip("Select a reserving engine.")
+        self.engine_action.triggered.connect(self.display_engine)
 
         self.settings_action = QAction("&Settings")
         self.settings_action.setShortcut("Ctrl+Shift+t")
@@ -123,6 +126,10 @@ class MainMenuBar(QMenuBar):
         # function triggers the connection dialog box to connect to a database
         dlg = ConnectionDialog(self)
         dlg.exec()
+
+    def display_engine(self) -> None:
+        dlg = EngineDialog(self)
+        dlg.show()
 
     def display_about(self) -> None:
         # function to display about dialog box

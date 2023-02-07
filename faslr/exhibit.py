@@ -31,8 +31,10 @@ from PyQt6.QtWidgets import (
     QAbstractItemView,
     QDialog,
     QDialogButtonBox,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QVBoxLayout,
     QListView,
     QPushButton,
@@ -173,11 +175,51 @@ class ExhibitBuilder(QWidget):
         self.button_box.accepted.connect(self.close)  # noqa
         self.button_box.rejected.connect(self.close)  # noqa
 
-        self.add_column_btn.pressed.connect(self.add_output)
+        self.add_column_btn.pressed.connect(lambda text="Accident Year": self.add_output(text))
+        self.add_link_btn.pressed.connect(self.group_columns)
 
-    def add_output(self) -> None:
-        output_item = ExhibitOutputTreeItem(text="Accident Year")
+    def add_output(self, text: str = None) -> None:
+        output_item = ExhibitOutputTreeItem(text=text)
         self.output_root.appendRow(output_item)
+
+    def group_columns(self) -> None:
+
+        group_dialog = ExhibitGroupDialog(parent=self)
+
+        group_dialog.exec()
+
+
+class ExhibitGroupDialog(QDialog):
+    def __init__(
+            self,
+            parent: ExhibitBuilder = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        self.setWindowTitle("Add Column Group")
+
+        self.layout = QFormLayout()
+
+        self.group_edit = QLineEdit()
+        self.layout.addRow("Column Group Name:", self.group_edit)
+
+        self.button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        self.button_box = QDialogButtonBox(self.button_layout)
+        self.button_box.accepted.connect(self.add_group)
+        self.button_box.rejected.connect(self.close)
+
+        self.layout.addWidget(self.button_box)
+        self.setLayout(self.layout)
+
+    def add_group(self):
+
+        text = self.group_edit.text()
+
+        self.parent.add_output(text=text)
+
+        self.close()
 
 
 class ExhibitInputListModel(QAbstractListModel):
