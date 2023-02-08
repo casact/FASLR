@@ -87,6 +87,8 @@ class TailPane(QWidget):
         super().__init__()
 
         self.triangle = triangle
+
+        # Holds the currently toggled chart
         self.toggled_chart = 'curve_btn'
 
         # list to hold each tail candidate
@@ -125,30 +127,37 @@ class TailPane(QWidget):
         graph_toggle_btns = QWidget()
         graph_toggle_btns.setLayout(ly_graph_toggle)
 
-        curve_btn = QPushButton('')
-        curve_btn.setIcon(QIcon(ICONS_PATH + 'graph-down.svg'))
-        curve_btn.setToolTip('Development factor comparison')
-        curve_btn.clicked.connect(partial(self.toggle_chart, 'curve_btn'))  # noqa
+        curve_btn = self.add_chart_button(
+            name='curve_btn',
+            tool_tip='Development factor comparison',
+            icon='graph-down.svg'
+        )
 
-        tail_comps_btn = QPushButton('')
-        tail_comps_btn.setIcon(QIcon(ICONS_PATH + 'bar-chart-2.svg'))
-        tail_comps_btn.setToolTip('Tail factor comparison')
-        tail_comps_btn.clicked.connect(partial(self.toggle_chart, 'tail_comps_btn'))  # noqa
+        tail_comps_btn = self.add_chart_button(
+            name='tail_comps_btn',
+            tool_tip='Tail factor comparison',
+            icon='bar-chart-2.svg'
+        )
 
-        extrap_btn = QPushButton('')
-        extrap_btn.setIcon(QIcon(ICONS_PATH + 'curve-graph.svg'))
-        extrap_btn.setToolTip('Extrapolation')
-        extrap_btn.clicked.connect(partial(self.toggle_chart, 'extrap_btn'))  # noqa
+        extrap_btn = self.add_chart_button(
+            name='extrap_btn',
+            tool_tip='Extrapolation',
+            icon='curve-graph.svg'
+        )
 
-        reg_btn = QPushButton('')
-        reg_btn.setIcon(QIcon(ICONS_PATH + 'scatter-plot.svg'))
-        reg_btn.setToolTip('Fit period comparison')
-        reg_btn.clicked.connect(partial(self.toggle_chart, 'reg_btn'))  # noqa
+        reg_btn = self.add_chart_button(
+            name='reg_btn',
+            tool_tip='Fit period comparison',
+            icon='scatter-plot.svg'
+        )
 
-        ly_graph_toggle.addWidget(curve_btn)
-        ly_graph_toggle.addWidget(tail_comps_btn)
-        ly_graph_toggle.addWidget(extrap_btn)
-        ly_graph_toggle.addWidget(reg_btn)
+        for widget in [
+            curve_btn,
+            tail_comps_btn,
+            extrap_btn,
+            reg_btn
+        ]:
+            ly_graph_toggle.addWidget(widget)
 
         ly_graph_toggle.setContentsMargins(
             0,
@@ -198,6 +207,22 @@ class TailPane(QWidget):
 
         vlayout.addWidget(self.button_box)
         self.update_plot()
+
+    def add_chart_button(
+            self,
+            name: str,
+            tool_tip: str,
+            icon: str
+    ) -> QPushButton:
+
+        btn = QPushButton('')
+        btn.setIcon(QIcon(ICONS_PATH + icon))
+        btn.setToolTip(tool_tip)
+        btn.clicked.connect( # noqa
+            partial(self.toggle_chart, name)
+        )
+
+        return btn
 
     def update_plot(self) -> None:
 
