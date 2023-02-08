@@ -75,6 +75,8 @@ class ExhibitBuilder(QWidget):
         self.triangles = triangles
         self.n_triangles = len(self.triangles)
 
+        self.input_models = []
+
         self.setWindowTitle("Exhibit Builder")
 
         self.layout = QVBoxLayout()
@@ -87,22 +89,9 @@ class ExhibitBuilder(QWidget):
 
         # Each tab holds the available columns for a model.
         self.model_tabs = QTabWidget()
-        # self.input_model = ExhibitInputListModel()
-        # self.input_list = QListView()
-        # self.input_list.setModel(self.input_model)
-
         for i in range(self.n_triangles):
-            list_model = ExhibitInputListModel(input_columns=[
-                'Accident Year',
-                'Age',
-                'Reported Claims',
-                'CDF',
-                'Ultimate Reported Claims'
-            ])
-            list_view = QListView()
-            list_view.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-            list_view.setModel(list_model)
-            self.model_tabs.addTab(list_view, "Model " + str(i + 1))
+            self.input_models.append(ModelTab())
+            self.model_tabs.addTab(self.input_models[i], "Model " + str(i + 1))
 
         self.ly_build.addWidget(self.model_tabs)
 
@@ -158,6 +147,7 @@ class ExhibitBuilder(QWidget):
         self.output_model = QStandardItemModel()
         self.output_root = self.output_model.invisibleRootItem()
         self.output_view = ExhibitOutputTreeView()
+        self.output_view.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.output_view.setModel(self.output_model)
         self.ly_output.addWidget(self.output_label)
         self.ly_output.addWidget(self.output_view)
@@ -175,14 +165,46 @@ class ExhibitBuilder(QWidget):
         self.button_box.accepted.connect(self.close)  # noqa
         self.button_box.rejected.connect(self.close)  # noqa
 
-        self.add_column_btn.pressed.connect(lambda text="Accident Year": self.add_output(text))
-        self.add_link_btn.pressed.connect(self.group_columns)
+        self.add_column_btn.pressed.connect( # noqa
+            self.add_output
+        )
 
-    def add_output(self, text: str = None) -> None:
-        output_item = ExhibitOutputTreeItem(text=text)
-        self.output_root.appendRow(output_item)
+        self.remove_column_btn.pressed.connect( # noqa
+            self.remove_output
+        )
+        self.add_link_btn.pressed.connect( # noqa
+            self.group_columns
+        )
 
-    def group_columns(self) -> None:
+    def add_output(
+            self,
+            group_name: str = None
+    ) -> None:
+
+        selected_indexes = self.model_tabs.currentWidget().list_view.selectedIndexes()
+
+        if group_name is None:
+            for index in selected_indexes:
+                colname = index.data(Qt.ItemDataRole.DisplayRole)
+                output_item = ExhibitOutputTreeItem(text=colname)
+                self.output_root.appendRow(output_item)
+        else:
+            group_item = ExhibitOutputTreeItem(text=group_name)
+            for index in selected_indexes:
+                colname = index.data(Qt.ItemDataRole.DisplayRole)
+                output_item = ExhibitOutputTreeItem(text=colname)
+                group_item.appendRow(output_item)
+            self.output_root.appendRow(group_item)
+
+    def remove_output(self):
+
+        selected_indexes = self.output_view.selectedIndexes()
+        for index in selected_indexes:
+            self.output_model.removeRow(index.row(), index.parent())
+
+    def group_columns(
+            self
+    ) -> None:
 
         group_dialog = ExhibitGroupDialog(parent=self)
 
@@ -217,9 +239,31 @@ class ExhibitGroupDialog(QDialog):
 
         text = self.group_edit.text()
 
-        self.parent.add_output(text=text)
+        self.parent.add_output(group_name=text)
 
         self.close()
+
+
+class ModelTab(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.layout = QVBoxLayout()
+        self.list_model = ExhibitInputListModel(
+            input_columns=[
+                'Accident Year',
+                'Age',
+                'Reported Claims',
+                'CDF',
+                'Ultimate Reported Claims'
+            ]
+        )
+        self.list_view = QListView()
+        self.list_view.setModel(self.list_model)
+        self.layout.addWidget(self.list_view)
+        # Enable user to select multiple list items
+        self.list_view.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.setLayout(self.layout)
 
 
 class ExhibitInputListModel(QAbstractListModel):
