@@ -9,6 +9,11 @@ from __future__ import annotations
 
 from faslr.base_table import FTableView
 
+from faslr.constants import (
+    ColumnSpanRole,
+    RowSpanRole
+)
+
 from PyQt6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
@@ -27,9 +32,6 @@ from PyQt6 import QtGui
 from PyQt6 import QtCore
 
 from typing import Any
-
-ColumnSpanRole = Qt.ItemDataRole.UserRole + 1
-RowSpanRole = ColumnSpanRole + 1
 
 
 class TableHeaderItem:

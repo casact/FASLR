@@ -36,6 +36,13 @@ from faslr.constants.general import (
     TEMPLATES_PATH
 )
 
+from faslr.constants.role import (
+    ColumnSpanRole,
+    RowSpanRole,
+    ColumnGroupRole,
+    ExhibitColumnRole
+)
+
 from faslr.constants.triangle import (
     DEVELOPMENT_FIELDS,
     GRAINS,
