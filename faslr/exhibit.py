@@ -15,7 +15,8 @@ from faslr.constants import (
 )
 
 from faslr.grid_header import (
-    GridHeaderTableModel
+    GridTableHeaderView,
+    GridTableView
 )
 
 from PyQt6.QtCore import (
@@ -54,14 +55,28 @@ if TYPE_CHECKING:
     from chainladder import Triangle
 
 
-class ExhibitModel(FAbstractTableModel):
+class ExhibitModel(QStandardItemModel):
     def __init__(self):
         super().__init__()
 
 
-class ExhibitView(FTableView):
+class ExhibitView(GridTableView):
     def __init__(self):
         super().__init__()
+
+
+class ExhibitHeaderView(GridTableHeaderView):
+    def __init__(
+            self,
+            rows: int,
+            columns: int,
+            orientation: Qt.Orientation
+    ):
+        super().__init__(
+            rows=rows,
+            columns=columns,
+            orientation=orientation
+        )
 
 
 class ExhibitBuilder(QWidget):
@@ -73,6 +88,24 @@ class ExhibitBuilder(QWidget):
         Dialog box used to create exhibits.
         """
         super().__init__()
+
+        #### filler for example, delete this later #####
+
+        self.temp_model = ExhibitModel()
+        # for row in range(9):
+        #     items = []
+        #     for col in range(9):
+        #         items.append(QStandardItem('item(' + str(row) + ',' + str(col) + ')'))
+        #     self.temp_model.appendRow(items)
+        self.temp_view = GridTableView()
+        self.temp_view.setModel(self.temp_model)
+
+        self.temp_view.setGridHeaderView(
+            orientation=Qt.Orientation.Horizontal,
+            levels=2
+        )
+
+        ###################################################
 
         self.triangles = triangles
         self.n_triangles = len(self.triangles)
@@ -162,6 +195,9 @@ class ExhibitBuilder(QWidget):
         self.button_layout = self.ok_btn | self.cancel_btn
         self.button_box = QDialogButtonBox(self.button_layout)
 
+        self.preview_label = QLabel("Exhibit Preview")
+        self.layout.addWidget(self.preview_label)
+        self.layout.addWidget(self.temp_view)
         self.layout.addWidget(self.button_box)
 
         self.button_box.accepted.connect(self.map_header)  # noqa
