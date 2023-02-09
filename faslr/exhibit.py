@@ -9,6 +9,8 @@ from faslr.base_table import (
 )
 
 from faslr.constants import (
+    ColumnGroupRole,
+    ExhibitColumnRole,
     ICONS_PATH
 )
 
@@ -162,7 +164,7 @@ class ExhibitBuilder(QWidget):
 
         self.layout.addWidget(self.button_box)
 
-        self.button_box.accepted.connect(self.close)  # noqa
+        self.button_box.accepted.connect(self.map_header)  # noqa
         self.button_box.rejected.connect(self.close)  # noqa
 
         self.add_column_btn.pressed.connect( # noqa
@@ -186,13 +188,22 @@ class ExhibitBuilder(QWidget):
         if group_name is None:
             for index in selected_indexes:
                 colname = index.data(Qt.ItemDataRole.DisplayRole)
-                output_item = ExhibitOutputTreeItem(text=colname)
+                output_item = ExhibitOutputTreeItem(
+                    text=colname,
+                    role=ExhibitColumnRole
+                )
                 self.output_root.appendRow(output_item)
         else:
-            group_item = ExhibitOutputTreeItem(text=group_name)
+            group_item = ExhibitOutputTreeItem(
+                text=group_name,
+                role=ColumnGroupRole
+            )
             for index in selected_indexes:
                 colname = index.data(Qt.ItemDataRole.DisplayRole)
-                output_item = ExhibitOutputTreeItem(text=colname)
+                output_item = ExhibitOutputTreeItem(
+                    text=colname,
+                    role=ExhibitColumnRole
+                )
                 group_item.appendRow(output_item)
             self.output_root.appendRow(group_item)
 
@@ -209,6 +220,17 @@ class ExhibitBuilder(QWidget):
         group_dialog = ExhibitGroupDialog(parent=self)
 
         group_dialog.exec()
+
+    def map_header(self) -> None:
+        root = self.output_root
+        for row in range(self.output_root.rowCount()):
+            item = root.child(row)
+            print(item.text())
+            if item.role == ColumnGroupRole:
+                for subitem in range(item.rowCount()):
+                    print(item.child(subitem).text())
+
+        self.close()
 
 
 class ExhibitGroupDialog(QDialog):
@@ -286,11 +308,13 @@ class ExhibitInputListModel(QAbstractListModel):
 class ExhibitOutputTreeItem(QStandardItem):
     def __init__(
             self,
-            text: str
+            text: str,
+            role: int
     ):
         super().__init__()
 
         self.setText(text)
+        self.role = role
 
 
 class ExhibitOutputTreeView(QTreeView):
