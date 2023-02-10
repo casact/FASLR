@@ -3,6 +3,10 @@ Model-view classes for displaying the results of reserve studies.
 """
 from __future__ import annotations
 
+import pandas as pd
+
+import typing
+
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
@@ -21,6 +25,7 @@ from faslr.grid_header import (
 
 from PyQt6.QtCore import (
     QAbstractListModel,
+    QModelIndex,
     Qt
 )
 
@@ -54,10 +59,75 @@ from typing import (
 if TYPE_CHECKING:
     from chainladder import Triangle
 
+column_alias = {
+    'Accident Year': 'Accident\nYear',
+    'Age': 'Age'
+}
 
-class ExhibitModel(QStandardItemModel):
+
+class ExhibitModel(FAbstractTableModel):
     def __init__(self):
         super().__init__()
+
+        self._data = pd.DataFrame(
+            # {'hi': [1, 2, 3]}
+        )
+
+        # print(self._data)
+
+    def data(
+            self,
+            index: QModelIndex,
+            role: int = None
+    ) -> typing.Any:
+
+        # print(self._data)
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            # print(value)
+
+            display_value = str(value)
+
+            return display_value
+
+    def insertColumn(self, column: int, parent: QModelIndex = ...) -> bool:
+        idx = QModelIndex()
+        new_column = self.columnCount()
+        # print(self.columnCount())
+        self.beginInsertColumns(idx, new_column, new_column)
+
+        # self._data = pd.DataFrame(
+        #     {'test': [4, 5, 6]}
+        # )
+        # print(self._data)
+        self.endInsertColumns()
+
+        # print(self.columnCount())
+        # self.dataChanged.emit(idx, idx)
+        # self.dataChanged.emit(self.index(0,0), self.index(0,0))
+        self.layoutChanged.emit()
+
+        return True
+
+    def setData(
+            self,
+            index: QModelIndex,
+            value: typing.Any = None,
+            role: int = None
+    ) -> bool:
+
+        column_name = value[0]
+        column_values = value[1]
+
+        self._data[column_name] = column_values
+        print(self._data)
+
+        self.dataChanged.emit(index, index)
+        self.layoutChanged.emit()
+
+        return True
 
 
 class ExhibitView(GridTableView):
@@ -82,7 +152,7 @@ class ExhibitHeaderView(GridTableHeaderView):
 class ExhibitBuilder(QWidget):
     def __init__(
             self,
-            triangles: List[Triangle] = None
+            triangles=None
     ):
         """
         Dialog box used to create exhibits.
@@ -98,12 +168,18 @@ class ExhibitBuilder(QWidget):
         #         items.append(QStandardItem('item(' + str(row) + ',' + str(col) + ')'))
         #     self.temp_model.appendRow(items)
         self.temp_view = GridTableView()
+        self.temp_view.verticalHeader().hide()
+
         self.temp_view.setModel(self.temp_model)
 
         self.temp_view.setGridHeaderView(
             orientation=Qt.Orientation.Horizontal,
             levels=2
         )
+
+        # self.temp_view = FTableView()
+
+
 
         ###################################################
 
@@ -229,6 +305,25 @@ class ExhibitBuilder(QWidget):
                     role=ExhibitColumnRole
                 )
                 self.output_root.appendRow(output_item)
+
+                if colname == "Accident Year":
+                    data = self.triangles[0].X_.origin.to_frame().index.astype(str).tolist()
+                else:
+                    data = list(self.triangles[0].X_.development.sort_values(ascending=False))
+
+                self.temp_view.hheader.setSpan(
+                    row=0,
+                    column=self.temp_model.columnCount(),
+                    row_span_count=2,
+                    column_span_count=0
+                )
+                idx = QModelIndex()
+                self.temp_model.setData(idx, value=(colname, data))
+                print(self.temp_model.columnCount() - 1)
+                self.temp_view.hheader.setCellLabel(0, self.temp_model.columnCount() - 1, column_alias[colname])
+                self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                self.temp_model.layoutChanged.emit()
+                self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
         else:
             group_item = ExhibitOutputTreeItem(
                 text=group_name,
