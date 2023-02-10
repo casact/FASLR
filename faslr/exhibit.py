@@ -319,11 +319,10 @@ class ExhibitBuilder(QWidget):
                 )
                 idx = QModelIndex()
                 self.temp_model.setData(idx, value=(colname, data))
-                print(self.temp_model.columnCount() - 1)
                 self.temp_view.hheader.setCellLabel(0, self.temp_model.columnCount() - 1, column_alias[colname])
                 self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                self.temp_model.layoutChanged.emit()
                 self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                self.temp_model.layoutChanged.emit()
         else:
             group_item = ExhibitOutputTreeItem(
                 text=group_name,
@@ -336,7 +335,77 @@ class ExhibitBuilder(QWidget):
                     role=ExhibitColumnRole
                 )
                 group_item.appendRow(output_item)
+
+                if colname == 'Reported Claims':
+                    idx = QModelIndex()
+                    data = list(self.triangles[0].X_.latest_diagonal.to_frame().iloc[:,0])
+                    self.temp_model.setData(idx, value=(colname, data))
+                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
+                    self.temp_model.layoutChanged.emit()
+
+                if colname == 'Paid Claims':
+                    idx = QModelIndex()
+                    data = list(self.triangles[1].X_.latest_diagonal.to_frame().iloc[:, 0])
+                    self.temp_model.setData(idx, value=(colname, data))
+                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
+                    self.temp_model.layoutChanged.emit()
+
+                if colname == 'Reported CDF':
+                    idx = QModelIndex()
+                    data = list(self.triangles[0].X_.cdf_.to_frame().iloc[0, :].values.flatten())
+                    data.pop()
+                    print(data)
+                    data.reverse()
+                    print(data)
+                    self.temp_model.setData(idx, value=(colname, data))
+                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
+                    self.temp_model.layoutChanged.emit()
+
+                if colname == 'Paid CDF':
+                    idx = QModelIndex()
+                    data = list(self.triangles[1].X_.cdf_.to_frame().iloc[0, :].values.flatten())
+                    data.pop()
+                    data.reverse()
+                    self.temp_model.setData(idx, value=(colname, data))
+                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
+                    self.temp_model.layoutChanged.emit()
+
+                if colname == 'Ultimate Reported Claims':
+                    idx = QModelIndex()
+                    data = list(self.triangles[0].ultimate_.to_frame().iloc[:, 0])
+                    self.temp_model.setData(idx, value=(colname, data))
+                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, 'Reported')
+                    self.temp_model.layoutChanged.emit()
+
+                if colname == 'Ultimate Paid Claims':
+                    idx = QModelIndex()
+                    data = list(self.triangles[1].ultimate_.to_frame().iloc[:, 0])
+                    self.temp_model.setData(idx, value=(colname, data))
+                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
+                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, 'Paid')
+                    self.temp_model.layoutChanged.emit()
+
             self.output_root.appendRow(group_item)
+
+            self.temp_view.hheader.setSpan(
+                row=0,
+                column=self.temp_model.columnCount()-2,
+                row_span_count=1,
+                column_span_count=2
+            )
+
+            self.temp_view.hheader.setCellLabel(0, self.temp_model.columnCount() - 2, group_name)
 
     def remove_output(self):
 
@@ -407,8 +476,11 @@ class ModelTab(QWidget):
                 'Accident Year',
                 'Age',
                 'Reported Claims',
-                'CDF',
-                'Ultimate Reported Claims'
+                'Paid Claims',
+                'Reported CDF',
+                'Paid CDF',
+                'Ultimate Reported Claims',
+                'Ultimate Paid Claims'
             ]
         )
         self.list_view = QListView()
