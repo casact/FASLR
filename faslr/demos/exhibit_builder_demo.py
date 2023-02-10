@@ -11,13 +11,15 @@ triangle = load_sample('xyz')
 paid = triangle['Paid Claims']
 reported = triangle['Reported Claims']
 
-test = cl.Development().fit_transform(paid)
+paid_dev = cl.Development().fit_transform(paid)
+reported_dev = cl.Development().fit_transform(reported)
 
-test2 = cl.Chainladder().fit(test)
+test1 = cl.Chainladder().fit(paid_dev)
+test2 = cl.Chainladder().fit(reported_dev)
 app = QApplication(sys.argv)
 
 exhibit_builder = ExhibitBuilder(
-    triangles=[paid, reported]
+    triangles=[test1, test2]
 )
 
 exhibit_builder.show()
