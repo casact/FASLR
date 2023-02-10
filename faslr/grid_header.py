@@ -111,6 +111,7 @@ class GridHeaderTableModel(QAbstractTableModel):
         self.row = row
         self.column = column
         self.rootItem = TableHeaderItem()
+        self.parent = parent
 
     def index(
             self,
@@ -120,12 +121,14 @@ class GridHeaderTableModel(QAbstractTableModel):
     ) -> QModelIndex:
 
         if parent is None:
+
             parent = QModelIndex()
         else:
             if not self.hasIndex(row, column, parent):
                 return QModelIndex()
 
         if not parent.isValid():
+
             parent_item = self.rootItem
         else:
             parent_item = parent.internalPointer()
@@ -138,11 +141,15 @@ class GridHeaderTableModel(QAbstractTableModel):
             )
 
         except KeyError:
-
             child_item = None
 
         if not child_item:
             parent_item.insertChild(
+                row=row,
+                col=column
+            )
+
+            child_item = parent_item.child(
                 row=row,
                 col=column
             )
@@ -205,6 +212,26 @@ class GridHeaderTableModel(QAbstractTableModel):
 
         return self.column
 
+    def insertColumn(self, column: int, parent: QModelIndex = ...) -> bool:
+
+        idx = QModelIndex()
+
+        new_column = self.columnCount()
+
+        self.beginInsertColumns(idx, new_column, new_column)
+
+        self.column += 1
+
+        for row in range(self.rowCount()):
+            self.setData(
+                index=self.index(row, self.column - 1),
+                value=self.parent.base_section_size,
+                role=Qt.ItemDataRole.SizeHintRole
+            )
+
+        self.endInsertColumns()
+
+        return True
 
 class GridTableHeaderView(QHeaderView):
     def __init__(
@@ -223,14 +250,14 @@ class GridTableHeaderView(QHeaderView):
         self.parent = parent
 
         # Store each header cell in the model as a TableHeaderItem containing the row and column number, and the size.
-        base_section_size = QSize()
+        self.base_section_size = QSize()
 
         if orientation == Qt.Orientation.Horizontal:
-            base_section_size.setWidth(self.defaultSectionSize())
-            base_section_size.setHeight(base_section_height)
+            self.base_section_size.setWidth(self.defaultSectionSize())
+            self.base_section_size.setHeight(base_section_height)
         else:
-            base_section_size.setWidth(base_section_width)
-            base_section_size.setHeight(self.defaultSectionSize())
+            self.base_section_size.setWidth(base_section_width)
+            self.base_section_size.setHeight(self.defaultSectionSize())
 
         model = GridHeaderTableModel(
             row=self.n_rows,
@@ -243,7 +270,7 @@ class GridTableHeaderView(QHeaderView):
                 model.index(row, col)
                 model.setData(
                     index=model.index(row, col),
-                    value=base_section_size,
+                    value=self.base_section_size,
                     role=Qt.ItemDataRole.SizeHintRole
                 )
 
@@ -251,7 +278,7 @@ class GridTableHeaderView(QHeaderView):
 
         self.sectionResized.connect(self.onSectionResized) # noqa
 
-        self.setFixedHeight(base_section_size.height() * 2)
+        self.setFixedHeight(self.base_section_size.height() * 2)
 
     def setCellLabel( # noqa
             self, 
@@ -586,6 +613,8 @@ class GridTableView(FTableView):
     ): # noqa
 
         if orientation == Qt.Orientation.Horizontal:
+            # print(self.model().columnCount())
+            # print(levels)
             header = GridTableHeaderView(
                 orientation=orientation,
                 rows=levels,
