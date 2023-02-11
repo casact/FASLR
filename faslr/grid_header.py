@@ -64,7 +64,7 @@ class TableHeaderItem:
 
         self.childItems[(row, col)] = child
 
-    def removeChild(
+    def removeChild( # noqa
             self,
             row: int,
             col: int
@@ -160,7 +160,6 @@ class GridHeaderTableModel(QAbstractTableModel):
             child_item
         )
 
-
     def setData(
             self,
             index: QModelIndex,
@@ -232,6 +231,7 @@ class GridHeaderTableModel(QAbstractTableModel):
         self.endInsertColumns()
 
         return True
+
 
 class GridTableHeaderView(QHeaderView):
     def __init__(

@@ -92,21 +92,20 @@ class ExhibitModel(FAbstractTableModel):
 
             return display_value
 
-    def insertColumn(self, column: int, parent: QModelIndex = ...) -> bool:
+    def insertColumn(
+            self,
+            column: int,
+            parent: QModelIndex = ...
+    ) -> bool:
+
         idx = QModelIndex()
         new_column = self.columnCount()
-        # print(self.columnCount())
-        self.beginInsertColumns(idx, new_column, new_column)
-
-        # self._data = pd.DataFrame(
-        #     {'test': [4, 5, 6]}
-        # )
-        # print(self._data)
+        self.beginInsertColumns(
+            idx,
+            new_column,
+            new_column
+        )
         self.endInsertColumns()
-
-        # print(self.columnCount())
-        # self.dataChanged.emit(idx, idx)
-        # self.dataChanged.emit(self.index(0,0), self.index(0,0))
         self.layoutChanged.emit()
 
         return True
@@ -135,6 +134,42 @@ class ExhibitView(GridTableView):
         super().__init__()
 
 
+    def insertColumn( # noqa
+            self,
+            colname: str,
+            data
+    ) -> None:
+
+        column_count = self.model().columnCount()
+
+        self.hheader.setSpan(
+            row=0,
+            column=column_count,
+            row_span_count=2,
+            column_span_count=0
+        )
+
+        idx = QModelIndex()
+        model = self.model()
+        model.setData(
+            index=idx,
+            value=(colname, data)
+        )
+        self.hheader.setCellLabel(
+            row=0,
+            column=column_count,
+            label=column_alias[colname])
+
+        column_position = model.columnCount() + 1
+        model.insertColumn(column_position)
+        self.hheader.model().insertColumn(column_position + 1)
+        model.layoutChanged.emit() # noqa
+    #
+    # def insertColumnGroup(
+    #         self
+    # ) -> None:
+
+
 class ExhibitHeaderView(GridTableHeaderView):
     def __init__(
             self,
@@ -161,27 +196,17 @@ class ExhibitBuilder(QWidget):
 
         #### filler for example, delete this later #####
 
-        self.temp_model = ExhibitModel()
-        # for row in range(9):
-        #     items = []
-        #     for col in range(9):
-        #         items.append(QStandardItem('item(' + str(row) + ',' + str(col) + ')'))
-        #     self.temp_model.appendRow(items)
-        self.temp_view = GridTableView()
-        self.temp_view.verticalHeader().hide()
+        self.preview_model = ExhibitModel()
 
-        self.temp_view.setModel(self.temp_model)
+        self.exhibit_preview = ExhibitView()
+        self.exhibit_preview.verticalHeader().hide()
 
-        self.temp_view.setGridHeaderView(
+        self.exhibit_preview.setModel(self.preview_model)
+
+        self.exhibit_preview.setGridHeaderView(
             orientation=Qt.Orientation.Horizontal,
             levels=2
         )
-
-        # self.temp_view = FTableView()
-
-
-
-        ###################################################
 
         self.triangles = triangles
         self.n_triangles = len(self.triangles)
@@ -265,6 +290,10 @@ class ExhibitBuilder(QWidget):
 
         self.ly_build.addWidget(self.output_container)
 
+        self.output_buttons = ExhibitOutputButtonBox()
+
+        self.ly_build.addWidget(self.output_buttons)
+
         # Add bottom button box.
         self.ok_btn = QDialogButtonBox.StandardButton.Ok
         self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
@@ -273,7 +302,7 @@ class ExhibitBuilder(QWidget):
 
         self.preview_label = QLabel("Exhibit Preview")
         self.layout.addWidget(self.preview_label)
-        self.layout.addWidget(self.temp_view)
+        self.layout.addWidget(self.exhibit_preview)
         self.layout.addWidget(self.button_box)
 
         self.button_box.accepted.connect(self.map_header)  # noqa
@@ -289,6 +318,27 @@ class ExhibitBuilder(QWidget):
         self.add_link_btn.pressed.connect( # noqa
             self.group_columns
         )
+
+        self.output_buttons.col_rename_btn.pressed.connect( # noqa
+            self.rename_column
+        )
+
+    def rename_column(self) -> None:
+
+        selected_indexes = self.output_view.selectedIndexes()
+        print(selected_indexes)
+
+        if len(selected_indexes) == 1:
+
+            idx = selected_indexes[0]
+
+            dialog = RenameColumnDialog(
+                index=idx,
+                parent=self
+            )
+
+            dialog.exec()
+
 
     def add_output(
             self,
@@ -311,18 +361,10 @@ class ExhibitBuilder(QWidget):
                 else:
                     data = list(self.triangles[0].X_.development.sort_values(ascending=False))
 
-                self.temp_view.hheader.setSpan(
-                    row=0,
-                    column=self.temp_model.columnCount(),
-                    row_span_count=2,
-                    column_span_count=0
+                self.exhibit_preview.insertColumn(
+                    colname=colname,
+                    data=data
                 )
-                idx = QModelIndex()
-                self.temp_model.setData(idx, value=(colname, data))
-                self.temp_view.hheader.setCellLabel(0, self.temp_model.columnCount() - 1, column_alias[colname])
-                self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                self.temp_model.layoutChanged.emit()
         else:
             group_item = ExhibitOutputTreeItem(
                 text=group_name,
@@ -339,20 +381,20 @@ class ExhibitBuilder(QWidget):
                 if colname == 'Reported Claims':
                     idx = QModelIndex()
                     data = list(self.triangles[0].X_.latest_diagonal.to_frame().iloc[:,0])
-                    self.temp_model.setData(idx, value=(colname, data))
-                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
-                    self.temp_model.layoutChanged.emit()
+                    self.preview_model.setData(idx, value=(colname, data))
+                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
+                    self.preview_model.layoutChanged.emit()
 
                 if colname == 'Paid Claims':
                     idx = QModelIndex()
                     data = list(self.triangles[1].X_.latest_diagonal.to_frame().iloc[:, 0])
-                    self.temp_model.setData(idx, value=(colname, data))
-                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
-                    self.temp_model.layoutChanged.emit()
+                    self.preview_model.setData(idx, value=(colname, data))
+                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
+                    self.preview_model.layoutChanged.emit()
 
                 if colname == 'Reported CDF':
                     idx = QModelIndex()
@@ -361,51 +403,51 @@ class ExhibitBuilder(QWidget):
                     print(data)
                     data.reverse()
                     print(data)
-                    self.temp_model.setData(idx, value=(colname, data))
-                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
-                    self.temp_model.layoutChanged.emit()
+                    self.preview_model.setData(idx, value=(colname, data))
+                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
+                    self.preview_model.layoutChanged.emit()
 
                 if colname == 'Paid CDF':
                     idx = QModelIndex()
                     data = list(self.triangles[1].X_.cdf_.to_frame().iloc[0, :].values.flatten())
                     data.pop()
                     data.reverse()
-                    self.temp_model.setData(idx, value=(colname, data))
-                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, colname)
-                    self.temp_model.layoutChanged.emit()
+                    self.preview_model.setData(idx, value=(colname, data))
+                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
+                    self.preview_model.layoutChanged.emit()
 
                 if colname == 'Ultimate Reported Claims':
                     idx = QModelIndex()
                     data = list(self.triangles[0].ultimate_.to_frame().iloc[:, 0])
-                    self.temp_model.setData(idx, value=(colname, data))
-                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, 'Reported')
-                    self.temp_model.layoutChanged.emit()
+                    self.preview_model.setData(idx, value=(colname, data))
+                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, 'Reported')
+                    self.preview_model.layoutChanged.emit()
 
                 if colname == 'Ultimate Paid Claims':
                     idx = QModelIndex()
                     data = list(self.triangles[1].ultimate_.to_frame().iloc[:, 0])
-                    self.temp_model.setData(idx, value=(colname, data))
-                    self.temp_model.insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.model().insertColumn(self.temp_model.columnCount() + 1)
-                    self.temp_view.hheader.setCellLabel(1, self.temp_model.columnCount() - 1, 'Paid')
-                    self.temp_model.layoutChanged.emit()
+                    self.preview_model.setData(idx, value=(colname, data))
+                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
+                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, 'Paid')
+                    self.preview_model.layoutChanged.emit()
 
             self.output_root.appendRow(group_item)
 
-            self.temp_view.hheader.setSpan(
+            self.exhibit_preview.hheader.setSpan(
                 row=0,
-                column=self.temp_model.columnCount()-2,
+                column=self.preview_model.columnCount()-2,
                 row_span_count=1,
                 column_span_count=2
             )
 
-            self.temp_view.hheader.setCellLabel(0, self.temp_model.columnCount() - 2, group_name)
+            self.exhibit_preview.hheader.setCellLabel(0, self.preview_model.columnCount() - 2, group_name)
 
     def remove_output(self):
 
@@ -457,7 +499,7 @@ class ExhibitGroupDialog(QDialog):
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
-    def add_group(self):
+    def add_group(self) -> None:
 
         text = self.group_edit.text()
 
@@ -519,12 +561,85 @@ class ExhibitOutputTreeItem(QStandardItem):
         self.setText(text)
         self.role = role
 
+        self.setFlags(self.flags() | Qt.ItemFlag.ItemIsEditable)
+
 
 class ExhibitOutputTreeView(QTreeView):
     def __init__(self):
         super().__init__()
 
         self.setHeaderHidden(True)
+
+
+class ExhibitOutputButtonBox(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.layout = QVBoxLayout()
+
+        self.col_up_btn = make_middle_button(
+            path=ICONS_PATH + 'nav-arrow-up.svg'
+        )
+
+        self.col_dwn_btn = make_middle_button(
+            path=ICONS_PATH + 'nav-arrow-down.svg'
+        )
+
+        self.col_rename_btn = make_middle_button(
+            path=ICONS_PATH + 'text-alt.svg'
+        )
+
+        for widget in [
+            self.col_up_btn,
+            self.col_dwn_btn,
+            self.col_rename_btn
+        ]:
+            self.layout.addWidget(
+                widget,
+                stretch=0
+            )
+
+        self.layout.setSpacing(4)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+
+        self.setLayout(self.layout)
+
+
+class RenameColumnDialog(QDialog):
+    def __init__(
+            self,
+            index: QModelIndex,
+            parent: ExhibitBuilder = None
+    ):
+        super().__init__()
+
+        self.setWindowTitle("Rename Column")
+
+        self.index = index
+        self.parent = parent
+
+        self.layout = QFormLayout()
+        self.new_name = QLineEdit()
+        self.layout.addRow("Rename Column:", self.new_name)
+
+        self.button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        self.button_box = QDialogButtonBox(self.button_layout)
+        self.button_box.accepted.connect(self.send_name)
+        self.button_box.rejected.connect(self.close)
+
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+
+    def send_name(self) -> None:
+
+        text = self.new_name.text()
+        self.parent.output_model.setData(
+            index=self.index,
+            value=text,
+            role=Qt.ItemDataRole.EditRole
+        )
+        self.close()
 
 
 def make_middle_button(
