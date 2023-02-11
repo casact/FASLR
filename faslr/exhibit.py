@@ -57,11 +57,20 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from chainladder import Triangle
+    from chainladder import (
+        Chainladder,
+        Triangle
+    )
 
 column_alias = {
     'Accident Year': 'Accident\nYear',
-    'Age': 'Age'
+    'Age': 'Age',
+    'Reported Claims': 'Reported Claims',
+    'Paid Claims': 'Paid Claims',
+    'Reported CDF': 'Reported CDF',
+    'Paid CDF': 'Paid CDF',
+    'Ultimate Reported Claims': 'Ultimate Reported Claims',
+    'Ultimate Paid Claims': 'Ultimate Paid Claims'
 }
 
 
@@ -69,11 +78,7 @@ class ExhibitModel(FAbstractTableModel):
     def __init__(self):
         super().__init__()
 
-        self._data = pd.DataFrame(
-            # {'hi': [1, 2, 3]}
-        )
-
-        # print(self._data)
+        self._data = pd.DataFrame()
 
     def data(
             self,
@@ -81,12 +86,9 @@ class ExhibitModel(FAbstractTableModel):
             role: int = None
     ) -> typing.Any:
 
-        # print(self._data)
-
         if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
-            # print(value)
 
             display_value = str(value)
 
@@ -106,7 +108,7 @@ class ExhibitModel(FAbstractTableModel):
             new_column
         )
         self.endInsertColumns()
-        self.layoutChanged.emit()
+        self.layoutChanged.emit() # noqa
 
         return True
 
@@ -121,10 +123,9 @@ class ExhibitModel(FAbstractTableModel):
         column_values = value[1]
 
         self._data[column_name] = column_values
-        print(self._data)
 
-        self.dataChanged.emit(index, index)
-        self.layoutChanged.emit()
+        self.dataChanged.emit(index, index) # noqa
+        self.layoutChanged.emit() # noqa
 
         return True
 
@@ -164,10 +165,28 @@ class ExhibitView(GridTableView):
         model.insertColumn(column_position)
         self.hheader.model().insertColumn(column_position + 1)
         model.layoutChanged.emit() # noqa
-    #
-    # def insertColumnGroup(
-    #         self
-    # ) -> None:
+
+    def insertColumnSubGroup( # noqa
+            self,
+            colname: str,
+            data: list
+    ) -> None:
+
+        idx = QModelIndex()
+        model = self.model()
+        column_position = model.columnCount() + 1
+        self.model().setData(
+            index=idx,
+            value=(colname, data)
+        )
+        model.insertColumn(column_position + 1)
+        self.hheader.model().insertColumn(column_position + 1)
+        self.hheader.setCellLabel(
+            row=1,
+            column=column_position - 1,
+            label=colname
+        )
+        self.model().layoutChanged.emit() # noqa
 
 
 class ExhibitHeaderView(GridTableHeaderView):
@@ -193,8 +212,6 @@ class ExhibitBuilder(QWidget):
         Dialog box used to create exhibits.
         """
         super().__init__()
-
-        #### filler for example, delete this later #####
 
         self.preview_model = ExhibitModel()
 
@@ -226,7 +243,12 @@ class ExhibitBuilder(QWidget):
         # Each tab holds the available columns for a model.
         self.model_tabs = QTabWidget()
         for i in range(self.n_triangles):
-            self.input_models.append(ModelTab())
+            self.input_models.append(
+                ModelTab(
+                    parent=self,
+                    triangle=triangles[i]
+                )
+            )
             self.model_tabs.addTab(self.input_models[i], "Model " + str(i + 1))
 
         self.ly_build.addWidget(self.model_tabs)
@@ -339,13 +361,13 @@ class ExhibitBuilder(QWidget):
 
             dialog.exec()
 
-
     def add_output(
             self,
             group_name: str = None
     ) -> None:
 
         selected_indexes = self.model_tabs.currentWidget().list_view.selectedIndexes()
+        triangle_idx = self.model_tabs.currentIndex()
 
         if group_name is None:
             for index in selected_indexes:
@@ -356,10 +378,10 @@ class ExhibitBuilder(QWidget):
                 )
                 self.output_root.appendRow(output_item)
 
-                if colname == "Accident Year":
-                    data = self.triangles[0].X_.origin.to_frame().index.astype(str).tolist()
-                else:
-                    data = list(self.triangles[0].X_.development.sort_values(ascending=False))
+                data = fetch_column_data(
+                    colname=colname,
+                    triangle=self.triangles[triangle_idx]
+                )
 
                 self.exhibit_preview.insertColumn(
                     colname=colname,
@@ -370,6 +392,8 @@ class ExhibitBuilder(QWidget):
                 text=group_name,
                 role=ColumnGroupRole
             )
+            idx_count = len(selected_indexes)
+
             for index in selected_indexes:
                 colname = index.data(Qt.ItemDataRole.DisplayRole)
                 output_item = ExhibitOutputTreeItem(
@@ -378,76 +402,30 @@ class ExhibitBuilder(QWidget):
                 )
                 group_item.appendRow(output_item)
 
-                if colname == 'Reported Claims':
-                    idx = QModelIndex()
-                    data = list(self.triangles[0].X_.latest_diagonal.to_frame().iloc[:,0])
-                    self.preview_model.setData(idx, value=(colname, data))
-                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
-                    self.preview_model.layoutChanged.emit()
+                data = fetch_column_data(
+                    colname=colname,
+                    triangle=self.triangles[triangle_idx]
+                )
 
-                if colname == 'Paid Claims':
-                    idx = QModelIndex()
-                    data = list(self.triangles[1].X_.latest_diagonal.to_frame().iloc[:, 0])
-                    self.preview_model.setData(idx, value=(colname, data))
-                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
-                    self.preview_model.layoutChanged.emit()
-
-                if colname == 'Reported CDF':
-                    idx = QModelIndex()
-                    data = list(self.triangles[0].X_.cdf_.to_frame().iloc[0, :].values.flatten())
-                    data.pop()
-                    print(data)
-                    data.reverse()
-                    print(data)
-                    self.preview_model.setData(idx, value=(colname, data))
-                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
-                    self.preview_model.layoutChanged.emit()
-
-                if colname == 'Paid CDF':
-                    idx = QModelIndex()
-                    data = list(self.triangles[1].X_.cdf_.to_frame().iloc[0, :].values.flatten())
-                    data.pop()
-                    data.reverse()
-                    self.preview_model.setData(idx, value=(colname, data))
-                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, colname)
-                    self.preview_model.layoutChanged.emit()
-
-                if colname == 'Ultimate Reported Claims':
-                    idx = QModelIndex()
-                    data = list(self.triangles[0].ultimate_.to_frame().iloc[:, 0])
-                    self.preview_model.setData(idx, value=(colname, data))
-                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, 'Reported')
-                    self.preview_model.layoutChanged.emit()
-
-                if colname == 'Ultimate Paid Claims':
-                    idx = QModelIndex()
-                    data = list(self.triangles[1].ultimate_.to_frame().iloc[:, 0])
-                    self.preview_model.setData(idx, value=(colname, data))
-                    self.preview_model.insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.model().insertColumn(self.preview_model.columnCount() + 1)
-                    self.exhibit_preview.hheader.setCellLabel(1, self.preview_model.columnCount() - 1, 'Paid')
-                    self.preview_model.layoutChanged.emit()
+                self.exhibit_preview.insertColumnSubGroup(
+                    colname=colname,
+                    data=data
+                )
 
             self.output_root.appendRow(group_item)
 
             self.exhibit_preview.hheader.setSpan(
                 row=0,
-                column=self.preview_model.columnCount()-2,
+                column=self.preview_model.columnCount()-idx_count,
                 row_span_count=1,
-                column_span_count=2
+                column_span_count=idx_count
             )
 
-            self.exhibit_preview.hheader.setCellLabel(0, self.preview_model.columnCount() - 2, group_name)
+            self.exhibit_preview.hheader.setCellLabel(
+                row=0,
+                column=self.preview_model.columnCount() - idx_count,
+                label=group_name
+            )
 
     def remove_output(self):
 
@@ -509,21 +487,19 @@ class ExhibitGroupDialog(QDialog):
 
 
 class ModelTab(QWidget):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: ExhibitBuilder = None,
+            triangle: Chainladder = None
+    ):
         super().__init__()
+
+        self.parent = parent
+        self.triangle = triangle
 
         self.layout = QVBoxLayout()
         self.list_model = ExhibitInputListModel(
-            input_columns=[
-                'Accident Year',
-                'Age',
-                'Reported Claims',
-                'Paid Claims',
-                'Reported CDF',
-                'Paid CDF',
-                'Ultimate Reported Claims',
-                'Ultimate Paid Claims'
-            ]
+            input_columns=get_column_listing(triangle=triangle)
         )
         self.list_view = QListView()
         self.list_view.setModel(self.list_model)
@@ -624,8 +600,8 @@ class RenameColumnDialog(QDialog):
 
         self.button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         self.button_box = QDialogButtonBox(self.button_layout)
-        self.button_box.accepted.connect(self.send_name)
-        self.button_box.rejected.connect(self.close)
+        self.button_box.accepted.connect(self.send_name) # noqa
+        self.button_box.rejected.connect(self.close) # noqa
 
         self.layout.addWidget(self.button_box)
 
@@ -649,3 +625,45 @@ def make_middle_button(
     btn.setIcon(QIcon(path))
 
     return btn
+
+
+def fetch_column_data(
+        colname: str,
+        triangle: Chainladder
+) -> list:
+
+    x = triangle.X_
+
+    print(colname)
+
+    if colname == 'Accident Year':
+        data = x.origin.to_frame().index.astype(str).tolist()
+    elif colname == 'Age':
+        data = list(x.development.sort_values(ascending=False))
+    elif colname in ['Reported Claims', 'Paid Claims']:
+        data = list(x.latest_diagonal.to_frame().iloc[:, 0])
+    elif colname in ['Reported CDF', 'Paid CDF']:
+        data = list(x.latest_diagonal.cdf_.to_frame().iloc[:, ].values.flatten())
+        data.pop()
+        data.reverse()
+    elif colname in ['Ultimate Reported Claims', 'Ultimate Paid Claims']:
+        data = list(triangle.ultimate_.to_frame().iloc[:, 0])
+    else:
+        raise ValueError("Invalid column name specified.")
+
+    return data
+
+
+def get_column_listing(
+        triangle: Chainladder
+) -> list:
+
+    columns = []
+    if triangle.X_.origin_grain == 'Y':
+        columns.append('Accident Year')
+    columns.append('Age')
+    columns.append(triangle.X_.columns.values.tolist()[0])
+    columns.append(triangle.X_.columns.values.tolist()[0] + ' CDF')
+    columns.append('Ultimate ' + triangle.X_.columns.values.tolist()[0])
+
+    return columns
