@@ -24,6 +24,7 @@ from faslr.grid_header import (
 
 from PyQt6.QtCore import (
     QAbstractListModel,
+    QItemSelectionModel,
     QModelIndex,
     Qt
 )
@@ -303,7 +304,7 @@ class ExhibitBuilder(QWidget):
         self.input_btns.remove_column_btn.pressed.connect( # noqa
             self.remove_output
         )
-        self.input_btns.add_link_btn.pressed.connect( # noqa
+        self.output_buttons.add_link_btn.pressed.connect( # noqa
             self.group_columns
         )
 
@@ -393,11 +394,47 @@ class ExhibitBuilder(QWidget):
                 label=group_name
             )
 
-    def remove_output(self):
+    def remove_output(self) -> None:
 
         selected_indexes = self.output_view.selectedIndexes()
         for index in selected_indexes:
             self.output_model.removeRow(index.row(), index.parent())
+
+    def add_group(
+            self,
+            group_name: str = None
+    ) -> None:
+
+        selected_indexes = self.output_view.selectedIndexes()
+        print(selected_indexes)
+        group_item = ExhibitOutputTreeItem(
+            text=group_name,
+            role=ColumnGroupRole
+        )
+        idx_count = len(selected_indexes)
+
+        row_pos = max([index.row() for index in selected_indexes]) + 1
+
+        for index in selected_indexes:
+
+            colname = index.data(Qt.ItemDataRole.DisplayRole)
+
+            output_item = ExhibitOutputTreeItem(
+                text=colname,
+                role=ExhibitColumnRole
+            )
+            group_item.appendRow(output_item)
+
+        self.output_root.insertRow(row_pos, group_item)
+
+        for index in range(idx_count):
+            self.output_root.removeRow(row_pos - idx_count)
+
+        self.output_view.expand(group_item.index())
+        self.output_view.selectionModel().select(
+            group_item.index(),
+            QItemSelectionModel.SelectionFlag.ClearAndSelect
+        )
 
     def group_columns(
             self
@@ -447,7 +484,7 @@ class ExhibitGroupDialog(QDialog):
 
         text = self.group_edit.text()
 
-        self.parent.add_output(group_name=text)
+        self.parent.add_group(group_name=text)
 
         self.close()
 
@@ -536,19 +573,9 @@ class ExhibitInputButtonBox(QWidget):
             path=ICONS_PATH + 'arrow-left.svg'
         )
 
-        self.add_link_btn = make_middle_button(
-            path=ICONS_PATH + 'link.svg'
-        )
-
-        self.remove_link_btn = make_middle_button(
-            path=ICONS_PATH + 'no-link.svg'
-        )
-
         for btn in [
             self.add_column_btn,
-            self.remove_column_btn,
-            self.add_link_btn,
-            self.remove_link_btn
+            self.remove_column_btn
         ]:
             self.layout.addWidget(
                 btn,
@@ -575,6 +602,14 @@ class ExhibitOutputButtonBox(QWidget):
             path=ICONS_PATH + 'arrow-down.svg'
         )
 
+        self.add_link_btn = make_middle_button(
+            path=ICONS_PATH + 'link.svg'
+        )
+
+        self.remove_link_btn = make_middle_button(
+            path=ICONS_PATH + 'no-link.svg'
+        )
+
         self.col_rename_btn = make_middle_button(
             path=ICONS_PATH + 'text-alt.svg'
         )
@@ -582,6 +617,8 @@ class ExhibitOutputButtonBox(QWidget):
         for widget in [
             self.col_up_btn,
             self.col_dwn_btn,
+            self.add_link_btn,
+            self.remove_link_btn,
             self.col_rename_btn
         ]:
             self.layout.addWidget(
