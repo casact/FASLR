@@ -8,8 +8,7 @@ import pandas as pd
 import typing
 
 from faslr.base_table import (
-    FAbstractTableModel,
-    FTableView
+    FAbstractTableModel
 )
 
 from faslr.constants import (
@@ -52,14 +51,12 @@ from PyQt6.QtWidgets import (
 )
 
 from typing import (
-    List,
     TYPE_CHECKING
 )
 
 if TYPE_CHECKING:
     from chainladder import (
-        Chainladder,
-        Triangle
+        Chainladder
     )
 
 column_alias = {
@@ -254,38 +251,7 @@ class ExhibitBuilder(QWidget):
         self.ly_build.addWidget(self.model_tabs)
 
         # Buttons to select and combine columns.
-        self.input_btns = QWidget()
-        self.ly_input_btns = QVBoxLayout()
-        self.ly_input_btns.setSpacing(4)
-        self.ly_input_btns.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        self.input_btns.setLayout(self.ly_input_btns)
-
-        self.add_column_btn = make_middle_button(
-            path=ICONS_PATH + 'arrow-right.svg'
-        )
-
-        self.remove_column_btn = make_middle_button(
-            path=ICONS_PATH + 'arrow-left.svg'
-        )
-
-        self.add_link_btn = make_middle_button(
-            path=ICONS_PATH + 'link.svg'
-        )
-
-        self.remove_link_btn = make_middle_button(
-            path=ICONS_PATH + 'no-link.svg'
-        )
-
-        for btn in [
-            self.add_column_btn,
-            self.remove_column_btn,
-            self.add_link_btn,
-            self.remove_link_btn
-        ]:
-            self.ly_input_btns.addWidget(
-                btn,
-                stretch=0
-            )
+        self.input_btns = ExhibitInputButtonBox()
 
         self.ly_build.addWidget(self.input_btns)
         self.output_label = QLabel("Exhibit Columns")
@@ -312,7 +278,7 @@ class ExhibitBuilder(QWidget):
 
         self.ly_build.addWidget(self.output_container)
 
-        self.output_buttons = ExhibitOutputButtonBox()
+        self.output_buttons = ExhibitOutputButtonBox(parent=None)
 
         self.ly_build.addWidget(self.output_buttons)
 
@@ -330,14 +296,14 @@ class ExhibitBuilder(QWidget):
         self.button_box.accepted.connect(self.map_header)  # noqa
         self.button_box.rejected.connect(self.close)  # noqa
 
-        self.add_column_btn.pressed.connect( # noqa
+        self.input_btns.add_column_btn.pressed.connect( # noqa
             self.add_output
         )
 
-        self.remove_column_btn.pressed.connect( # noqa
+        self.input_btns.remove_column_btn.pressed.connect( # noqa
             self.remove_output
         )
-        self.add_link_btn.pressed.connect( # noqa
+        self.input_btns.add_link_btn.pressed.connect( # noqa
             self.group_columns
         )
 
@@ -471,8 +437,8 @@ class ExhibitGroupDialog(QDialog):
 
         self.button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         self.button_box = QDialogButtonBox(self.button_layout)
-        self.button_box.accepted.connect(self.add_group)
-        self.button_box.rejected.connect(self.close)
+        self.button_box.accepted.connect(self.add_group) # noqa
+        self.button_box.rejected.connect(self.close) # noqa
 
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
@@ -547,18 +513,66 @@ class ExhibitOutputTreeView(QTreeView):
         self.setHeaderHidden(True)
 
 
-class ExhibitOutputButtonBox(QWidget):
-    def __init__(self):
+class ExhibitInputButtonBox(QWidget):
+    def __init__(
+            self,
+            parent: ExhibitBuilder = None
+    ):
         super().__init__()
+
+        self.parent = parent
+
+        self.layout = QVBoxLayout()
+
+        self.layout.setSpacing(4)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.setLayout(self.layout)
+
+        self.add_column_btn = make_middle_button(
+            path=ICONS_PATH + 'arrow-right.svg'
+        )
+
+        self.remove_column_btn = make_middle_button(
+            path=ICONS_PATH + 'arrow-left.svg'
+        )
+
+        self.add_link_btn = make_middle_button(
+            path=ICONS_PATH + 'link.svg'
+        )
+
+        self.remove_link_btn = make_middle_button(
+            path=ICONS_PATH + 'no-link.svg'
+        )
+
+        for btn in [
+            self.add_column_btn,
+            self.remove_column_btn,
+            self.add_link_btn,
+            self.remove_link_btn
+        ]:
+            self.layout.addWidget(
+                btn,
+                stretch=0
+            )
+
+
+class ExhibitOutputButtonBox(QWidget):
+    def __init__(
+            self,
+            parent: ExhibitBuilder = None
+    ):
+        super().__init__()
+
+        self.parent = parent
 
         self.layout = QVBoxLayout()
 
         self.col_up_btn = make_middle_button(
-            path=ICONS_PATH + 'nav-arrow-up.svg'
+            path=ICONS_PATH + 'arrow-up.svg'
         )
 
         self.col_dwn_btn = make_middle_button(
-            path=ICONS_PATH + 'nav-arrow-down.svg'
+            path=ICONS_PATH + 'arrow-down.svg'
         )
 
         self.col_rename_btn = make_middle_button(
