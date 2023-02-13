@@ -52,6 +52,7 @@ from PyQt6.QtWidgets import (
 )
 
 from typing import (
+    List,
     TYPE_CHECKING
 )
 
@@ -129,9 +130,12 @@ class ExhibitModel(FAbstractTableModel):
 
 
 class ExhibitView(GridTableView):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: ExhibitBuilder = None
+    ):
         super().__init__()
-
+        self.parent = parent
 
     def insertColumn( # noqa
             self,
@@ -186,6 +190,51 @@ class ExhibitView(GridTableView):
         )
         self.model().layoutChanged.emit() # noqa
 
+    def add_group(
+            self,
+            indexes: List[QModelIndex],
+            group_name: str
+    ) -> None:
+
+        column_pos = get_column_position(
+            index=indexes[0],
+            exhibit_builder=self.parent
+        )
+
+        for index in indexes:
+
+            prior_label = index.data(Qt.ItemDataRole.DisplayRole)
+            self.hheader.removeCellLabel(
+                row=0,
+                column=column_pos
+            )
+            self.hheader.removeSpan(
+                row=0,
+                column=column_pos
+            )
+            self.hheader.setCellLabel(
+                row=1,
+                column=column_pos,
+                label=prior_label
+            )
+
+            column_pos += 1
+
+        column_pos -= len(indexes)
+
+        self.hheader.setSpan(
+            row=0,
+            column=column_pos,
+            row_span_count=1,
+            column_span_count=len(indexes)
+        )
+
+        self.hheader.setCellLabel(
+            row=0,
+            column=column_pos,
+            label=group_name
+        )
+
 
 class ExhibitHeaderView(GridTableHeaderView):
     def __init__(
@@ -213,7 +262,7 @@ class ExhibitBuilder(QWidget):
 
         self.preview_model = ExhibitModel()
 
-        self.exhibit_preview = ExhibitView()
+        self.exhibit_preview = ExhibitView(parent=self)
         self.exhibit_preview.verticalHeader().hide()
 
         self.exhibit_preview.setModel(self.preview_model)
@@ -315,7 +364,7 @@ class ExhibitBuilder(QWidget):
     def rename_column(self) -> None:
 
         selected_indexes = self.output_view.selectedIndexes()
-        print(selected_indexes)
+        # print(selected_indexes)
 
         if len(selected_indexes) == 1:
 
@@ -354,6 +403,8 @@ class ExhibitBuilder(QWidget):
                     colname=colname,
                     data=data
                 )
+
+                # print(self.exhibit_preview.hheader.model().index(0, 0).data(Qt.ItemDataRole.DisplayRole))
         else:
             group_item = ExhibitOutputTreeItem(
                 text=group_name,
@@ -406,7 +457,7 @@ class ExhibitBuilder(QWidget):
     ) -> None:
 
         selected_indexes = self.output_view.selectedIndexes()
-        print(selected_indexes)
+        # print(selected_indexes)
         group_item = ExhibitOutputTreeItem(
             text=group_name,
             role=ColumnGroupRole
@@ -427,6 +478,11 @@ class ExhibitBuilder(QWidget):
 
         self.output_root.insertRow(row_pos, group_item)
 
+        self.exhibit_preview.add_group(
+            indexes=selected_indexes,
+            group_name=group_name
+        )
+
         for index in range(idx_count):
             self.output_root.removeRow(row_pos - idx_count)
 
@@ -446,12 +502,12 @@ class ExhibitBuilder(QWidget):
 
     def map_header(self) -> None:
         root = self.output_root
-        for row in range(self.output_root.rowCount()):
-            item = root.child(row)
-            print(item.text())
-            if item.role == ColumnGroupRole:
-                for subitem in range(item.rowCount()):
-                    print(item.child(subitem).text())
+        # for row in range(self.output_root.rowCount()):
+        #     item = root.child(row)
+        #     # print(item.text())
+        #     # if item.role == ColumnGroupRole:
+        #     #     for subitem in range(item.rowCount()):
+        #     #         # print(item.child(subitem).text())
 
         self.close()
 
@@ -662,9 +718,36 @@ class RenameColumnDialog(QDialog):
 
         text = self.new_name.text()
         self.parent.output_model.setData(
+            self.index,
+            text,
+            Qt.ItemDataRole.EditRole
+        )
+        column_pos = get_column_position(
             index=self.index,
-            value=text,
-            role=Qt.ItemDataRole.EditRole
+            exhibit_builder=self.parent
+        )
+
+        header_view = self.parent.exhibit_preview.hheader
+        item = self.parent.output_model.itemFromIndex(self.index)
+
+        if item.parent():
+            parent_pos = get_column_position(
+                index=item.parent().index(),
+                exhibit_builder=self.parent
+            )
+            column_pos = parent_pos + self.index.row()
+            row_pos = 1
+        else:
+            column_pos = get_column_position(
+                index=self.index,
+                exhibit_builder=self.parent
+            )
+            row_pos = 0
+
+        header_view.setCellLabel(
+            row=row_pos,
+            column=column_pos,
+            label=text
         )
         self.close()
 
@@ -678,6 +761,20 @@ def make_middle_button(
     return btn
 
 
+def get_column_position(
+        index: QModelIndex,
+        exhibit_builder: ExhibitBuilder
+) -> int:
+
+    column_pos = index.row()
+    for row in range(index.row()):
+        item = exhibit_builder.output_model.item(row)
+        n_children = item.rowCount()
+        if n_children > 0:
+            column_pos += n_children - 1
+
+    return column_pos
+
 def fetch_column_data(
         colname: str,
         triangle: Chainladder
@@ -685,7 +782,7 @@ def fetch_column_data(
 
     x = triangle.X_
 
-    print(colname)
+    # print(colname)
 
     if colname == 'Accident Year':
         data = x.origin.to_frame().index.astype(str).tolist()
