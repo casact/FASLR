@@ -22,6 +22,11 @@ from faslr.grid_header import (
     GridTableView
 )
 
+from faslr.style.triangle import (
+    VALUE_STYLE,
+    RATIO_STYLE
+)
+
 from PyQt6.QtCore import (
     QAbstractListModel,
     QItemSelectionModel,
@@ -66,8 +71,8 @@ column_alias = {
     'Age': 'Age',
     'Reported Claims': 'Reported Claims',
     'Paid Claims': 'Paid Claims',
-    'Reported CDF': 'Reported CDF',
-    'Paid CDF': 'Paid CDF',
+    'Reported Claims CDF': 'Reported CDF',
+    'Paid Claims CDF': 'Paid CDF',
     'Ultimate Reported Claims': 'Ultimate Reported Claims',
     'Ultimate Paid Claims': 'Ultimate Paid Claims'
 }
@@ -85,13 +90,43 @@ class ExhibitModel(FAbstractTableModel):
             role: int = None
     ) -> typing.Any:
 
+        colname = self._data.columns[index.column()]
+
         if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
 
-            display_value = str(value)
+            if colname in [
+                'Paid Claims',
+                'Reported Claims',
+                'Ultimate Paid Claims',
+                'Ultimate Reported Claims'
+            ]:
+                display_value = VALUE_STYLE.format(value)
+            elif colname in[
+                'Paid Claims CDF',
+                'Reported Claims CDF'
+            ]:
+                display_value = RATIO_STYLE.format(value)
+            else:
+                display_value = str(value)
 
             return display_value
+
+        elif role == Qt.ItemDataRole.TextAlignmentRole:
+
+            if colname in [
+                'Paid Claims',
+                'Reported Claims',
+                'Ultimate Paid Claims',
+                'Ultimate Reported Claims',
+                'Paid Claims CDF',
+                'Reported Claims CDF'
+            ]:
+                return Qt.AlignmentFlag.AlignRight
+            else:
+                return Qt.AlignmentFlag.AlignCenter
+
 
     def insertColumn(
             self,
@@ -790,7 +825,7 @@ def fetch_column_data(
         data = list(x.development.sort_values(ascending=False))
     elif colname in ['Reported Claims', 'Paid Claims']:
         data = list(x.latest_diagonal.to_frame().iloc[:, 0])
-    elif colname in ['Reported CDF', 'Paid CDF']:
+    elif colname in ['Reported Claims CDF', 'Paid Claims CDF']:
         data = list(x.latest_diagonal.cdf_.to_frame().iloc[:, ].values.flatten())
         data.pop()
         data.reverse()
