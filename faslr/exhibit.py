@@ -413,71 +413,28 @@ class ExhibitBuilder(QWidget):
             dialog.exec()
 
     def add_output(
-            self,
-            group_name: str = None
+            self
     ) -> None:
 
         selected_indexes = self.model_tabs.currentWidget().list_view.selectedIndexes()
         triangle_idx = self.model_tabs.currentIndex()
 
-        if group_name is None:
-            for index in selected_indexes:
-                colname = index.data(Qt.ItemDataRole.DisplayRole)
-                output_item = ExhibitOutputTreeItem(
-                    text=colname,
-                    role=ExhibitColumnRole
-                )
-                self.output_root.appendRow(output_item)
-
-                data = fetch_column_data(
-                    colname=colname,
-                    triangle=self.triangles[triangle_idx]
-                )
-
-                self.exhibit_preview.insertColumn(
-                    colname=colname,
-                    data=data
-                )
-
-                # print(self.exhibit_preview.hheader.model().index(0, 0).data(Qt.ItemDataRole.DisplayRole))
-        else:
-            group_item = ExhibitOutputTreeItem(
-                text=group_name,
-                role=ColumnGroupRole
+        for index in selected_indexes:
+            colname = index.data(Qt.ItemDataRole.DisplayRole)
+            output_item = ExhibitOutputTreeItem(
+                text=colname,
+                role=ExhibitColumnRole
             )
-            idx_count = len(selected_indexes)
+            self.output_root.appendRow(output_item)
 
-            for index in selected_indexes:
-                colname = index.data(Qt.ItemDataRole.DisplayRole)
-                output_item = ExhibitOutputTreeItem(
-                    text=colname,
-                    role=ExhibitColumnRole
-                )
-                group_item.appendRow(output_item)
-
-                data = fetch_column_data(
-                    colname=colname,
-                    triangle=self.triangles[triangle_idx]
-                )
-
-                self.exhibit_preview.insertColumnSubGroup(
-                    colname=colname,
-                    data=data
-                )
-
-            self.output_root.appendRow(group_item)
-
-            self.exhibit_preview.hheader.setSpan(
-                row=0,
-                column=self.preview_model.columnCount()-idx_count,
-                row_span_count=1,
-                column_span_count=idx_count
+            data = fetch_column_data(
+                colname=colname,
+                triangle=self.triangles[triangle_idx]
             )
 
-            self.exhibit_preview.hheader.setCellLabel(
-                row=0,
-                column=self.preview_model.columnCount() - idx_count,
-                label=group_name
+            self.exhibit_preview.insertColumn(
+                colname=colname,
+                data=data
             )
 
     def remove_output(self) -> None:
