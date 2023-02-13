@@ -42,7 +42,9 @@ from faslr.constants.role import (
     ColumnGroupRole,
     ExhibitColumnRole,
     AddColumnRole,
-    DropColumnRole
+    DropColumnRole,
+    RemoveCellLabelRole,
+    RemoveRowSpanRole
 )
 
 from faslr.constants.triangle import (
