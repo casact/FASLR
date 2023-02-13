@@ -11,7 +11,9 @@ from faslr.base_table import FTableView
 
 from faslr.constants import (
     ColumnSpanRole,
-    RowSpanRole
+    RemoveCellLabelRole,
+    RowSpanRole,
+    RemoveRowSpanRole
 )
 
 from PyQt6.QtCore import (
@@ -82,6 +84,10 @@ class TableHeaderItem:
             data: Any,
             role: int
     ):
+        if role == RemoveCellLabelRole:
+            del self._data[Qt.ItemDataRole.DisplayRole]
+        if role == RemoveRowSpanRole:
+            del self._data[RowSpanRole]
         self._data[role] = data
 
     def data(
@@ -181,9 +187,15 @@ class GridHeaderTableModel(QAbstractTableModel):
                 if span > 0:
                     if row + span - 1 > self.row:
                         span = self.column - row
-                    item.setData(span, RowSpanRole)
+                    item.setData(
+                        data=span,
+                        role=RowSpanRole
+                    )
             else:
-                item.setData(value, role)
+                item.setData(
+                    data=value,
+                    role=role
+                )
             return True
         else:
             return False
@@ -293,6 +305,19 @@ class GridTableHeaderView(QHeaderView):
             role=Qt.ItemDataRole.DisplayRole
         )
 
+    def removeCellLabel(
+            self,
+            row: int,
+            column: int
+    ) -> None:
+
+        self.model().setData(
+            index=self.model().index(row, column),
+            value=None,
+            role=RemoveCellLabelRole
+        )
+
+
     def setSpan( # noqa
             self,
             row: int,
@@ -318,6 +343,20 @@ class GridTableHeaderView(QHeaderView):
                 value=column_span_count,
                 role=ColumnSpanRole
             )
+
+    def removeSpan( #noqa
+            self,
+            row: int,
+            column: int
+    ) -> None:
+
+        idx = self.model().index(row, column)
+
+        self.model().setData(
+            index=idx,
+            value=None,
+            role=RemoveRowSpanRole
+        )
 
     def checkData( # noqa
             self,
