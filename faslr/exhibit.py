@@ -103,7 +103,7 @@ class ExhibitModel(FAbstractTableModel):
                 'Ultimate Reported Claims'
             ]:
                 display_value = VALUE_STYLE.format(value)
-            elif colname in[
+            elif colname in [
                 'Paid Claims CDF',
                 'Reported Claims CDF'
             ]:
@@ -126,7 +126,6 @@ class ExhibitModel(FAbstractTableModel):
                 return Qt.AlignmentFlag.AlignRight
             else:
                 return Qt.AlignmentFlag.AlignCenter
-
 
     def insertColumn(
             self,
@@ -399,7 +398,6 @@ class ExhibitBuilder(QWidget):
     def rename_column(self) -> None:
 
         selected_indexes = self.output_view.selectedIndexes()
-        # print(selected_indexes)
 
         if len(selected_indexes) == 1:
 
@@ -491,17 +489,6 @@ class ExhibitBuilder(QWidget):
         group_dialog = ExhibitGroupDialog(parent=self)
 
         group_dialog.exec()
-
-    def map_header(self) -> None:
-        root = self.output_root
-        # for row in range(self.output_root.rowCount()):
-        #     item = root.child(row)
-        #     # print(item.text())
-        #     # if item.role == ColumnGroupRole:
-        #     #     for subitem in range(item.rowCount()):
-        #     #         # print(item.child(subitem).text())
-
-        self.close()
 
 
 class ExhibitGroupDialog(QDialog):
@@ -714,10 +701,6 @@ class RenameColumnDialog(QDialog):
             text,
             Qt.ItemDataRole.EditRole
         )
-        column_pos = get_column_position(
-            index=self.index,
-            exhibit_builder=self.parent
-        )
 
         header_view = self.parent.exhibit_preview.hheader
         item = self.parent.output_model.itemFromIndex(self.index)
@@ -766,6 +749,7 @@ def get_column_position(
             column_pos += n_children - 1
 
     return column_pos
+
 
 def fetch_column_data(
         colname: str,
