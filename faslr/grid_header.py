@@ -13,7 +13,8 @@ from faslr.constants import (
     ColumnSpanRole,
     RemoveCellLabelRole,
     RowSpanRole,
-    RemoveRowSpanRole
+    RemoveRowSpanRole,
+    RemoveColumnSpanRole
 )
 
 from PyQt6.QtCore import (
@@ -88,6 +89,9 @@ class TableHeaderItem:
             del self._data[Qt.ItemDataRole.DisplayRole]
         if role == RemoveRowSpanRole:
             del self._data[RowSpanRole]
+        if role == RemoveColumnSpanRole:
+            del self._data[ColumnSpanRole]
+
         self._data[role] = data
 
     def data(
@@ -344,7 +348,7 @@ class GridTableHeaderView(QHeaderView):
                 role=ColumnSpanRole
             )
 
-    def removeSpan( #noqa
+    def removeSpan( # noqa
             self,
             row: int,
             column: int
@@ -352,11 +356,22 @@ class GridTableHeaderView(QHeaderView):
 
         idx = self.model().index(row, column)
 
-        self.model().setData(
-            index=idx,
-            value=None,
-            role=RemoveRowSpanRole
-        )
+        has_row_span = idx.data(RowSpanRole)
+        has_column_span = idx.data(ColumnSpanRole)
+
+        if has_row_span:
+            self.model().setData(
+                index=idx,
+                value=None,
+                role=RemoveRowSpanRole
+            )
+
+        if has_column_span:
+            self.model().setData(
+                index=idx,
+                value=None,
+                role=RemoveColumnSpanRole
+            )
 
     def checkData( # noqa
             self,
