@@ -125,7 +125,7 @@ class ExhibitModel(FAbstractTableModel):
                 'Paid Claims CDF',
                 'Reported Claims CDF'
             ]:
-                return Qt.AlignmentFlag.AlignRight
+                return Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
             else:
                 return Qt.AlignmentFlag.AlignCenter
 
@@ -308,6 +308,48 @@ class ExhibitView(GridTableView):
             label=group_name
         )
 
+    def swap_columns(
+            self,
+            index: QModelIndex,
+            item_prior: ExhibitOutputTreeItem,
+            item: ExhibitOutputTreeItem,
+    ) -> None:
+
+        self.model().setData(
+            index=index,
+            value=(item_prior, item),
+            role=ColumnSwapRole
+        )
+
+        item_prior_label = item_prior.text()
+        item_label = item.text()
+
+        print(item_prior.row())
+
+        self.hheader.removeCellLabel(
+            row=0,
+            column=item_prior.row()
+        )
+
+        self.hheader.removeCellLabel(
+            row=0,
+            column=item.row()
+        )
+
+        self.hheader.setCellLabel(
+            row=0,
+            column=item_prior.row(),
+            label=item_prior_label
+        )
+
+        self.hheader.setCellLabel(
+            row=0,
+            column=item.row(),
+            label=item_label
+        )
+
+        self.hheader.model().layoutChanged.emit()
+
 
 class ExhibitHeaderView(GridTableHeaderView):
     def __init__(
@@ -442,6 +484,10 @@ class ExhibitBuilder(QWidget):
             self.move_up
         )
 
+        self.output_buttons.col_dwn_btn.pressed.connect(
+            self.move_down
+        )
+
     def rename_column(self) -> None:
 
         selected_indexes = self.output_view.selectedIndexes()
@@ -574,11 +620,33 @@ class ExhibitBuilder(QWidget):
         item = self.output_model.takeRow(current_row)
 
         self.output_model.insertRow(current_row - 1, item)
-        self.preview_model.setData(
+        self.exhibit_preview.swap_columns(
             index=index,
-            value=(item_prior, item[0]),
-            role=ColumnSwapRole
+            item_prior=item_prior,
+            item=item[0] # noqa
         )
+
+        self.output_view.selectionModel().select(item[0].index(), QItemSelectionModel.SelectionFlag.Select)
+
+    def move_down(
+            self
+    ) -> None:
+
+        index = self.output_view.selectedIndexes()[0]
+
+        current_row = index.row()
+
+        item_next = self.output_model.item(current_row + 1)
+        item = self.output_model.takeRow(current_row)
+
+        self.output_model.insertRow(current_row + 1, item)
+        self.exhibit_preview.swap_columns(
+            index=index,
+            item_prior=item[0], # noqa
+            item=item_next
+        )
+
+        self.output_view.selectionModel().select(item[0].index(), QItemSelectionModel.SelectionFlag.Select)
 
 
 class ExhibitGroupDialog(QDialog):
