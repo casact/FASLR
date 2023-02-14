@@ -4,7 +4,7 @@ Model-view classes for displaying the results of reserve studies.
 from __future__ import annotations
 
 import pandas as pd
-
+import re
 import typing
 
 from faslr.base_table import (
@@ -12,9 +12,11 @@ from faslr.base_table import (
 )
 
 from faslr.constants import (
+    AddColumnRole,
     ColumnGroupRole,
     ExhibitColumnRole,
-    ICONS_PATH
+    ICONS_PATH,
+    ColumnSwapRole
 )
 
 from faslr.grid_header import (
@@ -152,14 +154,36 @@ class ExhibitModel(FAbstractTableModel):
             role: int = None
     ) -> bool:
 
-        column_name = value[0]
-        column_values = value[1]
+        if role == AddColumnRole:
+            column_name = value[0]
+            column_values = value[1]
 
-        self._data[column_name] = column_values
+            # check if column name already exists - this allows multiple columns of the same name
+            # duplicate names are suffixed with a period and number, such as column.1, column.2, etc.
+            columns = self._data.columns
+            if column_name in columns:
+                base_col = column_name + '.'
+                dupes = [col for col in columns if base_col in col]
+                if len(dupes) >= 1:
+                    max_dupe = max([int(col[col.rindex('.') + 1:]) for col in dupes])
+                    column_name = column_name + '.' + str(max_dupe + 1)
+                else:
+                    column_name = column_name + '.1'
 
-        self.dataChanged.emit(index, index) # noqa
-        self.layoutChanged.emit() # noqa
+            self._data[column_name] = column_values
 
+        elif role == ColumnSwapRole:
+
+            colname_a = value[0].text()
+            colname_b = value[1].text()
+
+            cols = list(self._data.columns)
+            a, b = cols.index(colname_a), cols.index(colname_b)
+            cols[b], cols[a] = cols[a], cols[b]
+            self._data = self._data[cols]
+
+        self.dataChanged.emit(index, index)  # noqa
+        self.layoutChanged.emit()  # noqa
         return True
 
 
@@ -190,7 +214,8 @@ class ExhibitView(GridTableView):
         model = self.model()
         model.setData(
             index=idx,
-            value=(colname, data)
+            value=(colname, data),
+            role=AddColumnRole
         )
         self.hheader.setCellLabel(
             row=0,
@@ -202,27 +227,41 @@ class ExhibitView(GridTableView):
         self.hheader.model().insertColumn(column_position + 1)
         model.layoutChanged.emit() # noqa
 
-    def insertColumnSubGroup( # noqa
+    def remove_group(
             self,
-            colname: str,
-            data: list
-    ) -> None:
+            column: int,
+            n_children: int
+    ):
 
-        idx = QModelIndex()
-        model = self.model()
-        column_position = model.columnCount() + 1
-        self.model().setData(
-            index=idx,
-            value=(colname, data)
+        self.hheader.removeCellLabel(
+            row=0,
+            column=column
         )
-        model.insertColumn(column_position + 1)
-        self.hheader.model().insertColumn(column_position + 1)
-        self.hheader.setCellLabel(
-            row=1,
-            column=column_position - 1,
-            label=colname
+
+        self.hheader.removeSpan(
+            row=0,
+            column=column
         )
-        self.model().layoutChanged.emit() # noqa
+
+        for i in range(n_children):
+            label = self.hheader.model().index(1, column + i).data(Qt.ItemDataRole.DisplayRole)
+            self.hheader.removeCellLabel(
+                row=1,
+                column=column + i
+            )
+            self.hheader.setSpan(
+                row=0,
+                column=column + i,
+                row_span_count=2,
+                column_span_count=0
+            )
+            self.hheader.setCellLabel(
+                row=0,
+                column=column + i,
+                label=label
+            )
+
+        self.hheader.model().layoutChanged.emit()
 
     def add_group(
             self,
@@ -377,7 +416,7 @@ class ExhibitBuilder(QWidget):
         self.layout.addWidget(self.exhibit_preview)
         self.layout.addWidget(self.button_box)
 
-        self.button_box.accepted.connect(self.map_header)  # noqa
+        self.button_box.accepted.connect(self.close)  # noqa
         self.button_box.rejected.connect(self.close)  # noqa
 
         self.input_btns.add_column_btn.pressed.connect( # noqa
@@ -393,6 +432,14 @@ class ExhibitBuilder(QWidget):
 
         self.output_buttons.col_rename_btn.pressed.connect( # noqa
             self.rename_column
+        )
+
+        self.output_buttons.remove_link_btn.pressed.connect( # noqa
+            self.remove_group
+        )
+
+        self.output_buttons.col_up_btn.pressed.connect(
+            self.move_up
         )
 
     def rename_column(self) -> None:
@@ -447,7 +494,7 @@ class ExhibitBuilder(QWidget):
     ) -> None:
 
         selected_indexes = self.output_view.selectedIndexes()
-        # print(selected_indexes)
+
         group_item = ExhibitOutputTreeItem(
             text=group_name,
             role=ColumnGroupRole
@@ -482,6 +529,31 @@ class ExhibitBuilder(QWidget):
             QItemSelectionModel.SelectionFlag.ClearAndSelect
         )
 
+    def remove_group(self) -> None:
+
+        selected_indexes = self.output_view.selectedIndexes()
+
+        index = selected_indexes[0]
+
+        n_children = self.output_model.item(index.row()).rowCount()
+
+        item = self.output_model.item(index.row())
+        item_row = item.row()
+
+        if n_children < 1:
+            return
+
+        for i in range(n_children):
+            child = item.takeChild(i)
+            self.output_root.insertRow(item_row, child)
+
+        self.output_root.removeRow(item.row())
+
+        self.exhibit_preview.remove_group(
+            column=item_row,
+            n_children=n_children
+        )
+
     def group_columns(
             self
     ) -> None:
@@ -489,6 +561,24 @@ class ExhibitBuilder(QWidget):
         group_dialog = ExhibitGroupDialog(parent=self)
 
         group_dialog.exec()
+
+    def move_up(
+            self
+    ) -> None:
+
+        index = self.output_view.selectedIndexes()[0]
+
+        current_row = index.row()
+
+        item_prior = self.output_model.item(current_row - 1)
+        item = self.output_model.takeRow(current_row)
+
+        self.output_model.insertRow(current_row - 1, item)
+        self.preview_model.setData(
+            index=index,
+            value=(item_prior, item[0]),
+            role=ColumnSwapRole
+        )
 
 
 class ExhibitGroupDialog(QDialog):
