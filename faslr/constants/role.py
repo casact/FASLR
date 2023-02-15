@@ -13,3 +13,4 @@ ExhibitColumnRole = ColumnGroupRole + 1
 AddColumnRole = ExhibitColumnRole + 1
 DropColumnRole = AddColumnRole + 1
 ColumnSwapRole = DropColumnRole + 1
+ColumnRotateRole = ColumnSwapRole + 1
