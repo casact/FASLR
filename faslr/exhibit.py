@@ -16,7 +16,8 @@ from faslr.constants import (
     ColumnGroupRole,
     ExhibitColumnRole,
     ICONS_PATH,
-    ColumnSwapRole
+    ColumnSwapRole,
+    ColumnRotateRole
 )
 
 from faslr.grid_header import (
@@ -182,6 +183,13 @@ class ExhibitModel(FAbstractTableModel):
             cols[b], cols[a] = cols[a], cols[b]
             self._data = self._data[cols]
 
+        elif role == ColumnRotateRole:
+
+            cols = list(self._data.columns)
+            cols = rotate_left(l=cols)
+
+            self._data = self._data[cols]
+
         self.dataChanged.emit(index, index)  # noqa
         self.layoutChanged.emit()  # noqa
         return True
@@ -315,6 +323,9 @@ class ExhibitView(GridTableView):
             item: ExhibitOutputTreeItem,
     ) -> None:
 
+        print('item text: ' + item.text())
+        print('item prior text: ' + item_prior.text())
+
         self.model().setData(
             index=index,
             value=(item_prior, item),
@@ -323,8 +334,6 @@ class ExhibitView(GridTableView):
 
         item_prior_label = item_prior.text()
         item_label = item.text()
-
-        print(item_prior.row())
 
         self.hheader.removeCellLabel(
             row=0,
@@ -347,6 +356,43 @@ class ExhibitView(GridTableView):
             column=item.row(),
             label=item_label
         )
+
+        self.hheader.model().layoutChanged.emit()
+
+    def rotate_columns(
+            self,
+            direction: str
+    ) -> None:
+
+        if direction not in ['left', 'right']:
+            raise ValueError('Invalid direction supplied. Valid values are "right" or "left".')
+
+        index = QModelIndex()
+
+        self.model().setData(
+            index=index,
+            value=direction,
+            role=ColumnRotateRole
+        )
+
+        labels = []
+
+        model = self.hheader.model()
+        n_cols = self.hheader.model().columnCount()
+        if direction == 'left':
+            for i in range(n_cols):
+                labels.append(model.data(model.index(0, i), Qt.ItemDataRole.DisplayRole))
+
+        print(labels)
+        labels = rotate_left(l=labels)
+        print(labels)
+
+        for i in range(n_cols):
+            self.hheader.setCellLabel(
+                row=0,
+                column=i,
+                label=labels[i]
+            )
 
         self.hheader.model().layoutChanged.emit()
 
@@ -443,7 +489,7 @@ class ExhibitBuilder(QWidget):
 
         self.ly_build.addWidget(self.output_container)
 
-        self.output_buttons = ExhibitOutputButtonBox(parent=None)
+        self.output_buttons = ExhibitOutputButtonBox(parent=self)
 
         self.ly_build.addWidget(self.output_buttons)
 
@@ -486,6 +532,10 @@ class ExhibitBuilder(QWidget):
 
         self.output_buttons.col_dwn_btn.pressed.connect(
             self.move_down
+        )
+
+        self.output_view.selectionModel().selectionChanged.connect(
+            self.output_buttons.toggle_col_btns
         )
 
     def rename_column(self) -> None:
@@ -616,15 +666,32 @@ class ExhibitBuilder(QWidget):
 
         current_row = index.row()
 
-        item_prior = self.output_model.item(current_row - 1)
-        item = self.output_model.takeRow(current_row)
+        item = self.output_model.itemFromIndex(index)
 
-        self.output_model.insertRow(current_row - 1, item)
-        self.exhibit_preview.swap_columns(
-            index=index,
-            item_prior=item_prior,
-            item=item[0] # noqa
-        )
+        if item.parent():
+            parent = item.parent()
+        else:
+            parent = self.output_root
+
+        if current_row == 0:
+            item_prior = parent.child(parent.rowCount() - 1)
+        else:
+            item_prior = parent.child(current_row - 1)
+
+        item = parent.takeRow(current_row)
+
+        if current_row == 0:
+            parent.insertRow(parent.rowCount(), item)
+            self.exhibit_preview.rotate_columns(
+                direction='left'
+            )
+        else:
+            parent.insertRow(current_row - 1, item)
+            self.exhibit_preview.swap_columns(
+                index=index,
+                item_prior=item_prior,
+                item=item[0]  # noqa
+            )
 
         self.output_view.selectionModel().select(item[0].index(), QItemSelectionModel.SelectionFlag.Select)
 
@@ -636,17 +703,31 @@ class ExhibitBuilder(QWidget):
 
         current_row = index.row()
 
-        item_next = self.output_model.item(current_row + 1)
+        row_count = self.output_model.rowCount() - 1
+
+        # If the selected row is the last, move it to the beginning.
+        if current_row == row_count:
+            item_next = self.output_model.item(0)
+        else:
+            item_next = self.output_model.item(current_row + 1)
+
         item = self.output_model.takeRow(current_row)
 
-        self.output_model.insertRow(current_row + 1, item)
+        if current_row == row_count:
+            self.output_model.insertRow(0, item)
+        else:
+            self.output_model.insertRow(current_row + 1, item)
+
         self.exhibit_preview.swap_columns(
             index=index,
             item_prior=item[0], # noqa
             item=item_next
         )
 
-        self.output_view.selectionModel().select(item[0].index(), QItemSelectionModel.SelectionFlag.Select)
+        self.output_view.selectionModel().select(
+            item[0].index(),
+            QItemSelectionModel.SelectionFlag.Select
+        )
 
 
 class ExhibitGroupDialog(QDialog):
@@ -790,22 +871,27 @@ class ExhibitOutputButtonBox(QWidget):
         self.col_up_btn = make_middle_button(
             path=ICONS_PATH + 'arrow-up.svg'
         )
+        self.col_up_btn.setEnabled(False)
 
         self.col_dwn_btn = make_middle_button(
             path=ICONS_PATH + 'arrow-down.svg'
         )
+        self.col_dwn_btn.setEnabled(False)
 
         self.add_link_btn = make_middle_button(
             path=ICONS_PATH + 'link.svg'
         )
+        self.add_link_btn.setEnabled(False)
 
         self.remove_link_btn = make_middle_button(
             path=ICONS_PATH + 'no-link.svg'
         )
+        self.remove_link_btn.setEnabled(False)
 
         self.col_rename_btn = make_middle_button(
             path=ICONS_PATH + 'text-alt.svg'
         )
+        self.col_rename_btn.setEnabled(False)
 
         for widget in [
             self.col_up_btn,
@@ -824,6 +910,30 @@ class ExhibitOutputButtonBox(QWidget):
 
         self.setLayout(self.layout)
 
+    def toggle_col_btns(self):
+        indexes = self.parent.output_view.selectedIndexes()
+        n_selection = len(indexes)
+
+        if n_selection == 0:
+            self.col_up_btn.setEnabled(False)
+            self.col_dwn_btn.setEnabled(False)
+        else:
+            self.col_up_btn.setEnabled(True)
+            self.col_dwn_btn.setEnabled(True)
+
+        if n_selection > 0:
+            self.add_link_btn.setEnabled(True)
+        else:
+            self.add_link_btn.setEnabled(False)
+
+        if n_selection == 1:
+            self.col_rename_btn.setEnabled(True)
+            if self.parent.output_model.itemFromIndex(indexes[0]).rowCount() > 1:
+                self.remove_link_btn.setEnabled(True)
+            else:
+                self.remove_link_btn.setEnabled(False)
+        else:
+            self.col_rename_btn.setEnabled(False)
 
 class RenameColumnDialog(QDialog):
     def __init__(
@@ -949,3 +1059,15 @@ def get_column_listing(
     columns.append('Ultimate ' + triangle.X_.columns.values.tolist()[0])
 
     return columns
+
+
+def rotate_right(
+        l: list # noqa
+) -> list:
+    return l[-1:] + l[:-1]
+
+
+def rotate_left(
+        l: list # noqa
+) -> list:
+    return l[1:] + l[:1]
