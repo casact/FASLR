@@ -638,6 +638,49 @@ class GridTableHeaderView(QHeaderView):
             r_to_update.setHeight(self.viewport().height() - section_rect.top())
             self.viewport().update(r_to_update.normalized())
 
+    def sectionSizeFromContents(self, logicalIndex: int) -> QtCore.QSize:
+
+        model = self.model()
+
+        if self.orientation() == Qt.Orientation.Horizontal:
+            level = model.rowCount()
+        else:
+            level = model.columnCount()
+
+        i  = 0
+        while i < level:
+            if self.orientation() == Qt.Orientation.Horizontal:
+                cellIndex = model.index(i, logicalIndex)
+            else:
+                cellIndex = model.index(logicalIndex, i)
+
+            colSpanIdx = self.columnSpanIndex(cellIndex)
+
+            rowSpanIdx = self.rowSpanIndex(cellIndex)
+
+            size = cellIndex.data(Qt.ItemDataRole.SizeHintRole)
+
+            if colSpanIdx.isValid():
+                colSpanFrom = colSpanIdx.column()
+                colSpanCnt = colSpanIdx.data(ColumnSpanRole)
+                colSpanTo = colSpanFrom + colSpanCnt - 1
+                size.setWidth(self.columnSpanSize(colSpanIdx.row(), colSpanFrom, colSpanCnt))
+
+                # if self.orientation() == Qt.Orientation.Vertical:
+                #     i = colSpanTo
+
+            if rowSpanIdx.isValid():
+                rowSpanFrom = rowSpanIdx.row()
+                rowSpanCnt = rowSpanIdx.data(RowSpanRole)
+                rowSpanTo = rowSpanFrom + rowSpanCnt - 1
+                size.setHeight(self.rowSpanSize(rowSpanIdx.column(), rowSpanFrom, rowSpanCnt))
+                # if self.orientation() == Qt.Orientation.Horizontal:
+                #     i = rowSpanTo
+
+            i += 1
+        return size
+
+
 
 class GridTableView(FTableView):
     def __init__(
