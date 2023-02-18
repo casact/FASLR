@@ -507,7 +507,6 @@ class ExhibitView(GridTableView):
             n_cols = parent.rowCount()
             for i in range(n_cols):
                 cols.append(parent.child(i).text())
-            print(cols)
         # Selection is a group
         elif item.rowCount() > 0:
             is_group = True
@@ -619,14 +618,16 @@ class ExhibitView(GridTableView):
                         row_span_count=0,
                         column_span_count=itm.rowCount()
                     )
-                    cols = [parent.child(row).text() for row in range(parent.rowCount())]
                     if parent:
-                        cols = rotate_left(l=cols)
+                        sub_cols = [parent.child(row).text() for row in range(parent.rowCount())]
+                        sub_cols = rotate_left(l=sub_cols)
+                    else:
+                        sub_cols = [itm.child(row).text() for row in range(itm.rowCount())]
                     for sub_row in range(itm.rowCount()):
                         self.hheader.setCellLabel(
                             row=1,
                             column=span_col + sub_row,
-                            label=cols[sub_row]
+                            label=sub_cols[sub_row]
                         )
                 if i == 0:
                     current_col = 0
@@ -943,6 +944,8 @@ class ExhibitBuilder(QWidget):
             item[0].index(),
             QItemSelectionModel.SelectionFlag.Select
         )
+
+        self.output_view.expand(item[0].index())
 
     def move_down(
             self
