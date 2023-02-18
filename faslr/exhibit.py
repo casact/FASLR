@@ -362,14 +362,6 @@ class ExhibitView(GridTableView):
             item: [ExhibitOutputTreeItem, QStandardItem]
     ) -> None:
 
-        parent = item.parent()
-        if parent:
-            label_row = 1
-            parent_col = parent.row()
-        else:
-            label_row = 0
-            parent_col = 0
-
         self.model().setData(
             index=index,
             value=(item_prior, item),
@@ -379,40 +371,49 @@ class ExhibitView(GridTableView):
         item_prior_label = item_prior.text()
         item_label = item.text()
 
+        col_pos = find_column_position(item=item)
+        prior_col_pos = find_column_position(item=item_prior)
+
+        col_dest = prior_col_pos
+        prior_col_dest = col_pos
+        if item_prior.rowCount() > 0:
+            prior_col_dest = prior_col_dest - (item_prior.rowCount() - 1)
+        if item.rowCount() > 0:
+            prior_col_dest = prior_col_dest + (item.rowCount() - 1)
+
         if item.rowCount() == 0 and item_prior.rowCount() == 0:
 
             self.hheader.setCellLabel(
-                row=label_row,
-                column=item_prior.row() + parent_col,
+                row=0,
+                column=prior_col_dest,
                 label=item_prior_label
             )
 
             self.hheader.setCellLabel(
-                row=label_row,
-                column=item.row() + parent_col,
+                row=0,
+                column=col_dest,
                 label=item_label
             )
 
         else:
-            print("item row: " + str(item.row()))
 
             self.hheader.removeCellLabel(
                 row=0,
-                column=item.row()
+                column=col_pos
             )
 
             self.hheader.removeCellLabel(
                 row=0,
-                column=item_prior.row()
+                column=prior_col_pos
             )
 
             self.hheader.removeSpan(
                 row=0,
-                column=item.row()
+                column=col_pos
             )
             self.hheader.removeSpan(
                 row=0,
-                column=item_prior.row()
+                column=prior_col_pos
             )
 
             item_child_labels = []
@@ -420,7 +421,7 @@ class ExhibitView(GridTableView):
                 item_child_labels.append(item.child(i).text())
                 self.hheader.removeCellLabel(
                     row=1,
-                    column=item.row() + i
+                    column=col_pos + i
                 )
 
             prior_child_labels = []
@@ -428,60 +429,61 @@ class ExhibitView(GridTableView):
                 prior_child_labels.append(item_prior.child(i).text())
                 self.hheader.removeCellLabel(
                     row=1,
-                    column=item_prior.row() + i
+                    column=prior_col_pos + i
                 )
 
             if item.rowCount() > 1:
                 self.hheader.setSpan(
                     row=0,
-                    column=item_prior.row(),
+                    column=prior_col_pos,
                     row_span_count=0,
                     column_span_count=item.rowCount()
                 )
                 for i in range(item.rowCount()):
+                    print(item_child_labels[i])
                     self.hheader.setCellLabel(
                         row=1,
-                        column=item_prior.row() + i,
+                        column=prior_col_pos + i,
                         label=item_child_labels[i]
                     )
             else:
                 self.hheader.setSpan(
                     row=0,
-                    column=item_prior.row(),
+                    column=col_dest,
                     row_span_count=2,
                     column_span_count=0
                 )
 
             self.hheader.setCellLabel(
                 row=0,
-                column=item_prior.row(),
+                column=col_dest,
                 label=item_label
             )
 
             if item_prior.rowCount() > 1:
                 self.hheader.setSpan(
                     row=0,
-                    column=item.row(),
+                    column=prior_col_dest,
                     row_span_count=0,
                     column_span_count=item_prior.rowCount()
                 )
                 for i in range(item_prior.rowCount()):
                     self.hheader.setCellLabel(
                         row=1,
-                        column=item.row() + i,
-                        label=item_prior_label[i]
+                        column=prior_col_dest + i,
+                        label=prior_child_labels[i]
                     )
             else:
                 self.hheader.setSpan(
                     row=0,
-                    column=item.row() + item.rowCount() - 1,
+                    column=prior_col_dest,
                     row_span_count=2,
                     column_span_count=0
                 )
 
             self.hheader.setCellLabel(
                 row=0,
-                column=item.row() + item.rowCount() - 1,
+                column=prior_col_dest,
                 label=item_prior_label
             )
 
@@ -497,7 +499,6 @@ class ExhibitView(GridTableView):
             raise ValueError('Invalid direction supplied. Valid values are "right" or "left".')
 
         index = QModelIndex()
-        model = self.hheader.model()
 
         parent = item.parent()
         cols = []
@@ -524,7 +525,6 @@ class ExhibitView(GridTableView):
             output_model = self.parent.output_model
             if parent:
                 current_col = 0
-                itm_level = 1
                 for i in range(parent.row()):
                     tmp_item = output_model.item(i)
                     if tmp_item.rowCount() == 0:
@@ -536,7 +536,6 @@ class ExhibitView(GridTableView):
             else:
                 end_col = output_model.rowCount()
                 current_col = 0
-                itm_level = 0
             for i in range(current_col, end_col):
                 itm = output_model.item(i)
                 if itm.rowCount() == 0:
@@ -1328,9 +1327,10 @@ def find_column_position(
     # If a tree row has children, increment the column position by the number of children, minus 1 for the sub-column
     # that would have already been accounted for in the starting position.
     for i in range(item_row):
-        parent = item.parent()
-        if parent:
-            column_pos += parent.rowCount() - 1
+        col_item = item.model().item(i)
+        children = col_item.rowCount()
+        if children != 0:
+            column_pos += children - 1
 
     return column_pos
 
