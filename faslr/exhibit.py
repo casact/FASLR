@@ -4,7 +4,6 @@ Model-view classes for displaying the results of reserve studies.
 from __future__ import annotations
 
 import pandas as pd
-import re
 import typing
 
 from faslr.base_table import (
@@ -69,6 +68,9 @@ if TYPE_CHECKING:
         Chainladder
     )
 
+
+# Mapping of columns to their displayed versions, values incorporate things like newlines.
+# Ideally we will move away from this and allow the user to manipulate their own whitespace.
 column_alias = {
     'Accident Year': 'Accident\nYear',
     'Age': 'Age',
@@ -82,6 +84,11 @@ column_alias = {
 
 
 class ExhibitModel(FAbstractTableModel):
+    """
+    The data model behind the exhibit. An exhibit organizes model results and allows the user to
+    compare the results between those models - and serves to assist the user in making selections. They
+    can also be used as the final reports for model results.
+    """
     def __init__(self):
         super().__init__()
 
@@ -99,6 +106,7 @@ class ExhibitModel(FAbstractTableModel):
 
             value = self._data.iloc[index.row(), index.column()]
 
+            # Financial figures displayed with thousands separator, rounded to main unit.
             if colname in [
                 'Paid Claims',
                 'Reported Claims',
@@ -106,6 +114,8 @@ class ExhibitModel(FAbstractTableModel):
                 'Ultimate Reported Claims'
             ]:
                 display_value = VALUE_STYLE.format(value)
+
+            # Development factors displayed with decimal points.
             elif colname in [
                 'Paid Claims CDF',
                 'Reported Claims CDF'
@@ -116,6 +126,8 @@ class ExhibitModel(FAbstractTableModel):
 
             return display_value
 
+        # Since this is an exhibit, we center the values vertically. Text is centered, numbers on the right.
+        # This is just my personal style, we should move towards allowing customization.
         elif role == Qt.ItemDataRole.TextAlignmentRole:
 
             if colname in [
@@ -135,14 +147,19 @@ class ExhibitModel(FAbstractTableModel):
             column: int,
             parent: QModelIndex = ...
     ) -> bool:
-
+        """
+        Adds a column to the model. This is triggered when the user adds a column to the ._data DataFrame.
+        """
         idx = QModelIndex()
+
         new_column = self.columnCount()
+
         self.beginInsertColumns(
             idx,
             new_column,
             new_column
         )
+
         self.endInsertColumns()
         self.layoutChanged.emit() # noqa
 
@@ -154,13 +171,20 @@ class ExhibitModel(FAbstractTableModel):
             value: typing.Any = None,
             role: int = None
     ) -> bool:
+        """
+        Governs manipulations to the underlying DataFrame. Responsible for adding, removing, and repositioning
+        columns in the DataFrame. This function then triggers the methods of this class to push those changes
+        to its model.
+        """
 
+        # When role is AddColumnRole, value is sent as a 2-valued tuple, the first element is the name of the
+        # column, and the second element is a list of the corresponding values.
         if role == AddColumnRole:
             column_name = value[0]
             column_values = value[1]
 
-            # check if column name already exists - this allows multiple columns of the same name
-            # duplicate names are suffixed with a period and number, such as column.1, column.2, etc.
+            # Check if column name already exists - this allows multiple columns of the same name.
+            # Duplicate names are suffixed with a period and number, such as column.1, column.2, etc.
             columns = self._data.columns
             if column_name in columns:
                 base_col = column_name + '.'
@@ -173,10 +197,14 @@ class ExhibitModel(FAbstractTableModel):
 
             self._data[column_name] = column_values
 
+        # Swaps two columns. Need to consider if we are swapping groups with nested columns or just the columns.
+        # For this role, the values provided are the two ExhibitOutputTreeItems selected for swapping. These
+        # are referred to as 'prior item' and 'item', respectively.
         elif role == ColumnSwapRole:
 
             cols = list(self._data.columns)
 
+            # Case when both columns are not groups, we can simply swap their column indexes.
             if value[0].rowCount() == 0 and value[1].rowCount() == 0:
                 colname_a = value[0].text()
                 colname_b = value[1].text()
@@ -184,33 +212,31 @@ class ExhibitModel(FAbstractTableModel):
                 a, b = cols.index(colname_a), cols.index(colname_b)
                 cols[b], cols[a] = cols[a], cols[b]
                 self._data = self._data[cols]
+
+            # At least one column is a column group.
             else:
-                # prior children
-                prior_labels = []
-                if value[0].rowCount():
-                    for i in range(0, value[0].rowCount()):
-                        prior_labels.append(value[0].child(i).text())
-                else:
-                    prior_labels.append(value[0].text())
+                # prior item children. If there are no children, item is not a group, and the list of labels
+                # just has one element, the text of the item itself.
 
-                labels = []
-                if value[1].rowCount():
-                    for i in range(0, value[1].rowCount()):
-                        labels.append(value[1].child(i).text())
-                else:
-                    labels.append(value[1].text())
+                prior_labels = get_item_labels(item=value[0])
 
+                # item
+                labels = get_item_labels(item=value[1])
+
+                # Note the column location within the DataFrame for the two items, then swap their positions.
+                # We do this by removing their associated column names and then re-adding them in their new locations.
                 prior_idx = cols.index(prior_labels[0])
                 curr_idx = cols.index(labels[0]) + value[1].rowCount() - 1
 
                 cols = [col for col in cols if col not in (prior_labels + labels)]
-
 
                 cols[prior_idx:prior_idx] = labels
                 cols[curr_idx:curr_idx] = prior_labels
 
                 self._data = self._data[cols]
 
+        # Happens when selected item is at the top or bottom of the exhibit output tree. In this case,
+        # we need to rotate all the columns to the left or right.
         elif role == ColumnRotateRole:
 
             cols = list(self._data.columns)
@@ -231,6 +257,7 @@ class ExhibitModel(FAbstractTableModel):
 
         self.dataChanged.emit(index, index)  # noqa
         self.layoutChanged.emit()  # noqa
+
         return True
 
 
@@ -401,7 +428,7 @@ class ExhibitView(GridTableView):
                 row=0,
                 column=col_pos
             )
-
+            print(prior_col_pos)
             self.hheader.removeCellLabel(
                 row=0,
                 column=prior_col_pos
@@ -440,7 +467,6 @@ class ExhibitView(GridTableView):
                     column_span_count=item.rowCount()
                 )
                 for i in range(item.rowCount()):
-                    print(item_child_labels[i])
                     self.hheader.setCellLabel(
                         row=1,
                         column=prior_col_pos + i,
@@ -962,18 +988,20 @@ class ExhibitBuilder(QWidget):
         else:
             item_next = self.output_model.item(current_row + 1)
 
+        item = self.output_model.item(current_row)
+
+        self.exhibit_preview.swap_columns(
+            index=index,
+            item_prior=item, # noqa
+            item=item_next
+        )
+
         item = self.output_model.takeRow(current_row)
 
         if current_row == row_count:
             self.output_model.insertRow(0, item)
         else:
             self.output_model.insertRow(current_row + 1, item)
-
-        self.exhibit_preview.swap_columns(
-            index=index,
-            item_prior=item[0], # noqa
-            item=item_next
-        )
 
         self.output_view.selectionModel().select(
             item[0].index(),
@@ -1333,6 +1361,25 @@ def find_column_position(
             column_pos += children - 1
 
     return column_pos
+
+def get_item_labels(
+        item: [ExhibitOutputTreeItem, QStandardItem]
+) -> list:
+    """
+    Extracts the exhibit column labels given an item from the corresponding
+    exhibit output tree.
+    """
+    labels = []
+
+    # If the item has children, it is a group, so populate the labels with its children.
+    if item.rowCount():
+        for i in range(0, item.rowCount()):
+            labels.append(item.child(i).text())
+    # Otherwise, it has no subcolumns, value should be its text.
+    else:
+        labels.append(item.text())
+
+    return labels
 
 
 def rotate_right(
