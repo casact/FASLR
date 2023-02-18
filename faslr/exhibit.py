@@ -718,6 +718,14 @@ class ExhibitBuilder(QWidget):
 
         # Each tab holds the available columns for a model.
         self.model_tabs = QTabWidget()
+        self.model_tabs.setStyleSheet(
+            """
+            QTabWidget::pane {
+                margin: 0px, 0px, 0px, 0px;
+            }
+            """
+        )
+
         for i in range(self.n_triangles):
             self.input_models.append(
                 ModelTab(
@@ -740,7 +748,7 @@ class ExhibitBuilder(QWidget):
         self.ly_output = QVBoxLayout()
         self.ly_output.setContentsMargins(
             0,
-            3,
+            5,
             0,
             0
         )
@@ -1054,6 +1062,12 @@ class ModelTab(QWidget):
         self.triangle = triangle
 
         self.layout = QVBoxLayout()
+        self.layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
         self.list_model = ExhibitInputListModel(
             input_columns=get_column_listing(triangle=triangle)
         )
