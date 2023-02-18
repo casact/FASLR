@@ -1,7 +1,9 @@
+# Python 3.10.6
+
 bs4 == 0.0.1
 chainladder == 0.8.14
 GitPython == 3.1.31
-matplotlib == 3..2
+matplotlib == 3.6.2
 numpy == 1.22.4
 pandas == 1.4.3
 pydata-sphinx-theme == 0.11.0
