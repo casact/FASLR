@@ -394,6 +394,7 @@ class ExhibitView(GridTableView):
             )
 
         else:
+            print("item row: " + str(item.row()))
 
             self.hheader.removeCellLabel(
                 row=0,
@@ -413,8 +414,7 @@ class ExhibitView(GridTableView):
                 row=0,
                 column=item_prior.row()
             )
-            print(item.row())
-            print(item_prior.row())
+
             item_child_labels = []
             for i in range(item.rowCount()):
                 item_child_labels.append(item.child(i).text())
@@ -1311,6 +1311,28 @@ def get_column_listing(
     columns.append('Ultimate ' + triangle.X_.columns.values.tolist()[0])
 
     return columns
+
+
+def find_column_position(
+        item: [ExhibitOutputTreeItem, QStandardItem]
+) -> int:
+    """
+    Given an item from the output tree, returns the corresponding column position in the exhibit preview.
+    """
+
+    # Start with the row position in the tree.
+    item_row = item.row()
+    column_pos = item_row
+
+    # Iterate through previous tree rows (corresponding to the leftmost columns in the exhibit preview).
+    # If a tree row has children, increment the column position by the number of children, minus 1 for the sub-column
+    # that would have already been accounted for in the starting position.
+    for i in range(item_row):
+        parent = item.parent()
+        if parent:
+            column_pos += parent.rowCount() - 1
+
+    return column_pos
 
 
 def rotate_right(
