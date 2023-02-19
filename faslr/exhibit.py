@@ -239,18 +239,34 @@ class ExhibitModel(FAbstractTableModel):
         # we need to rotate all the columns to the left or right.
         elif role == ColumnRotateRole:
 
+            direction = value[0]
+
             cols = list(self._data.columns)
             if not value[1]:
-                cols = rotate_left(l=cols)
+                if direction == 'left':
+                    cols = rotate_left(l=cols)
+                elif direction == 'right':
+                    cols = rotate_right(l=cols)
+                else:
+                    raise ValueError(
+                        'Invalid direction specified. Valid rotation values are "right" and "left".'
+                    )
             elif value[2]:
                 cols = [x for x in cols if x not in value[1]]
-                cols = cols + value[1]
+                if direction == 'left':
+                    cols = cols + value[1]
+                else:
+                    cols = value[1] + cols
             # Rotate sub group
             else:
                 idx = cols.index(value[1][0])
                 cols = [x for x in cols if x not in value[1]]
                 subcols = value[1]
-                subcols = rotate_left(subcols)
+                if direction == 'left':
+                    subcols = rotate_left(l=subcols)
+                else:
+                    subcols = rotate_right(l=subcols)
+                    print(subcols)
                 cols[idx:idx] = subcols
 
             self._data = self._data[cols]
@@ -262,11 +278,15 @@ class ExhibitModel(FAbstractTableModel):
 
 
 class ExhibitView(GridTableView):
+    """
+    The view corresponding to ExhibitModel. Displays model results as a table.
+    """
     def __init__(
             self,
             parent: ExhibitBuilder = None
     ):
         super().__init__()
+
         self.parent = parent
 
     def insertColumn( # noqa
@@ -410,25 +430,33 @@ class ExhibitView(GridTableView):
 
         if item.rowCount() == 0 and item_prior.rowCount() == 0:
 
+            if item.parent():
+                row_offset = 1
+                col_offset = item.parent().row()
+            else:
+                row_offset = 0
+                col_offset = 0
+
             self.hheader.setCellLabel(
-                row=0,
-                column=prior_col_dest,
+                row=0 + row_offset,
+                column=prior_col_dest + col_offset,
                 label=item_prior_label
             )
 
             self.hheader.setCellLabel(
-                row=0,
-                column=col_dest,
+                row=0 + row_offset,
+                column=col_dest + col_offset,
                 label=item_label
             )
 
         else:
 
+
             self.hheader.removeCellLabel(
                 row=0,
                 column=col_pos
             )
-            print(prior_col_pos)
+
             self.hheader.removeCellLabel(
                 row=0,
                 column=prior_col_pos
@@ -547,8 +575,53 @@ class ExhibitView(GridTableView):
             role=ColumnRotateRole
         )
 
-        if direction == 'left':
-            output_model = self.parent.output_model
+        output_model = self.parent.output_model
+        if parent:
+            current_col = 0
+            for i in range(parent.row()):
+                tmp_item = output_model.item(i)
+                if tmp_item.rowCount() == 0:
+                    incr = 1
+                else:
+                    incr = tmp_item.rowCount()
+                current_col += incr
+            end_col = current_col + parent.rowCount() - 1
+        else:
+            end_col = output_model.rowCount()
+            current_col = 0
+        for i in range(current_col, end_col):
+            itm = output_model.item(i)
+            if itm.rowCount() == 0:
+                self.hheader.removeCellLabel(
+                    row=0,
+                    column=current_col
+                )
+                self.hheader.removeSpan(
+                    row=0,
+                    column=current_col
+                )
+                current_col += 1
+            else:
+                self.hheader.removeCellLabel(
+                    row=0,
+                    column=current_col
+                )
+                self.hheader.removeSpan(
+                    row=0,
+                    column=current_col
+                )
+                for sub_row in range(itm.rowCount()):
+                    self.hheader.removeCellLabel(
+                        row=1,
+                        column=current_col
+                    )
+                    current_col += 1
+
+        # Redraw spans and labels.
+        if item.rowCount() > 0:
+            current_col = self.parent.exhibit_preview.model().columnCount() - item.rowCount()
+            iter_count = output_model.rowCount()
+        else:
             if parent:
                 current_col = 0
                 for i in range(parent.row()):
@@ -558,109 +631,73 @@ class ExhibitView(GridTableView):
                     else:
                         incr = tmp_item.rowCount()
                     current_col += incr
-                end_col = current_col + parent.rowCount() - 1
-            else:
-                end_col = output_model.rowCount()
-                current_col = 0
-            for i in range(current_col, end_col):
-                itm = output_model.item(i)
-                if itm.rowCount() == 0:
-                    self.hheader.removeCellLabel(
-                        row=0,
-                        column=current_col
-                    )
-                    self.hheader.removeSpan(
-                        row=0,
-                        column=current_col
-                    )
-                    current_col += 1
-                else:
-                    self.hheader.removeCellLabel(
-                        row=0,
-                        column=current_col
-                    )
-                    self.hheader.removeSpan(
-                        row=0,
-                        column=current_col
-                    )
-                    for sub_row in range(itm.rowCount()):
-                        self.hheader.removeCellLabel(
-                            row=1,
-                            column=current_col
-                        )
-                        current_col += 1
 
-            # Redraw spans and labels.
-            if item.rowCount() > 0:
-                current_col = self.parent.exhibit_preview.model().columnCount() - item.rowCount()
-                iter_count = output_model.rowCount()
+                current_col = current_col + parent.rowCount() - 1
+                iter_count = 1
             else:
-                if parent:
-                    current_col = 0
-                    for i in range(parent.row()):
-                        tmp_item = output_model.item(i)
-                        if tmp_item.rowCount() == 0:
-                            incr = 1
-                        else:
-                            incr = tmp_item.rowCount()
-                        current_col += incr
-
-                    current_col = current_col + parent.rowCount() - 1
-                    iter_count = 1
-                else:
+                if direction == 'left':
                     current_col = self.parent.exhibit_preview.model().columnCount() - 1
-                    iter_count = output_model.rowCount()
+                else:
+                    current_col = 1
+                iter_count = output_model.rowCount()
 
-            for i in range(iter_count):
+        for i in range(iter_count):
+            print(current_col)
+
+            if parent:
+                itm = parent
+                span_col = current_col - (parent.rowCount() - 1)
+
+            else:
+                span_col = current_col
+                itm = output_model.item(i)
+
+            if itm.rowCount() == 0:
+
+                self.hheader.setCellLabel(
+                    row=0,
+                    column=span_col,
+                    label=itm.text()
+                )
+                self.hheader.setSpan(
+                    row=0,
+                    column=span_col,
+                    row_span_count=2,
+                    column_span_count=0
+                )
+            else:
+                self.hheader.setCellLabel(
+                    row=0,
+                    column=span_col,
+                    label=itm.text()
+                )
+                self.hheader.setSpan(
+                    row=0,
+                    column=span_col,
+                    row_span_count=0,
+                    column_span_count=itm.rowCount()
+                )
                 if parent:
-                    itm = parent
-                    span_col = current_col - (parent.rowCount() - 1)
+                    sub_cols = [parent.child(row).text() for row in range(parent.rowCount())]
+                    sub_cols = rotate_left(l=sub_cols)
                 else:
-                    span_col = current_col
-                    itm = output_model.item(i)
-
-                if itm.rowCount() == 0:
+                    sub_cols = [itm.child(row).text() for row in range(itm.rowCount())]
+                for sub_row in range(itm.rowCount()):
                     self.hheader.setCellLabel(
-                        row=0,
-                        column=span_col,
-                        label=itm.text()
+                        row=1,
+                        column=span_col + sub_row,
+                        label=sub_cols[sub_row]
                     )
-                    self.hheader.setSpan(
-                        row=0,
-                        column=span_col,
-                        row_span_count=2,
-                        column_span_count=0
-                    )
+            if i == 0 and direction == 'left':
+                print("hi")
+                current_col = 0
+            elif i == (iter_count - 2) and direction == 'right':
+                current_col = 0
+            else:
+                if itm.rowCount() > 0:
+                    current_col = current_col + itm.rowCount()
                 else:
-                    self.hheader.setCellLabel(
-                        row=0,
-                        column=span_col,
-                        label=itm.text()
-                    )
-                    self.hheader.setSpan(
-                        row=0,
-                        column=span_col,
-                        row_span_count=0,
-                        column_span_count=itm.rowCount()
-                    )
-                    if parent:
-                        sub_cols = [parent.child(row).text() for row in range(parent.rowCount())]
-                        sub_cols = rotate_left(l=sub_cols)
-                    else:
-                        sub_cols = [itm.child(row).text() for row in range(itm.rowCount())]
-                    for sub_row in range(itm.rowCount()):
-                        self.hheader.setCellLabel(
-                            row=1,
-                            column=span_col + sub_row,
-                            label=sub_cols[sub_row]
-                        )
-                if i == 0:
-                    current_col = 0
-                else:
-                    if itm.rowCount() > 0:
-                        current_col = current_col + itm.rowCount()
-                    else:
-                        current_col += 1
+                    current_col += 1
 
         self.hheader.model().layoutChanged.emit()
 
@@ -802,15 +839,15 @@ class ExhibitBuilder(QWidget):
             self.remove_group
         )
 
-        self.output_buttons.col_up_btn.pressed.connect(
+        self.output_buttons.col_up_btn.pressed.connect( # noqa
             self.move_up
         )
 
-        self.output_buttons.col_dwn_btn.pressed.connect(
+        self.output_buttons.col_dwn_btn.pressed.connect( # noqa
             self.move_down
         )
 
-        self.output_view.selectionModel().selectionChanged.connect(
+        self.output_view.selectionModel().selectionChanged.connect( # noqa
             self.output_buttons.toggle_col_btns
         )
 
@@ -988,28 +1025,43 @@ class ExhibitBuilder(QWidget):
 
         current_row = index.row()
 
-        row_count = self.output_model.rowCount() - 1
+        item = self.output_model.itemFromIndex(index)
+
+        if item.parent():
+            parent = item.parent()
+        else:
+            parent = self.output_root
+
+        row_count = parent.rowCount() - 1
 
         # If the selected row is the last, move it to the beginning.
         if current_row == row_count:
-            item_next = self.output_model.item(0)
+            item_next = parent.child(0)
         else:
-            item_next = self.output_model.item(current_row + 1)
+            item_next = parent.child(current_row + 1)
 
-        item = self.output_model.item(current_row)
-
-        self.exhibit_preview.swap_columns(
-            index=index,
-            item_prior=item, # noqa
-            item=item_next
-        )
-
-        item = self.output_model.takeRow(current_row)
+        item = parent.child(current_row)
 
         if current_row == row_count:
-            self.output_model.insertRow(0, item)
+
+            self.exhibit_preview.rotate_columns(
+                direction='right',
+                item=item
+            )
+
+            item = parent.takeRow(current_row)
+            parent.insertRow(0, item)
+
         else:
-            self.output_model.insertRow(current_row + 1, item)
+
+            self.exhibit_preview.swap_columns(
+                index=index,
+                item_prior=item,  # noqa
+                item=item_next
+            )
+            item = parent.takeRow(current_row)
+            parent.insertRow(current_row + 1, item)
+
 
         self.output_view.selectionModel().select(
             item[0].index(),
@@ -1318,8 +1370,6 @@ def fetch_column_data(
 ) -> list:
 
     x = triangle.X_
-
-    # print(colname)
 
     if colname == 'Accident Year':
         data = x.origin.to_frame().index.astype(str).tolist()
