@@ -295,6 +295,10 @@ class ExhibitView(GridTableView):
             data
     ) -> None:
 
+        """
+        Inserts an additional column, provided the column is not a column group of multiple columns.
+        """
+
         column_count = self.model().columnCount()
 
         self.hheader.setSpan(
@@ -305,12 +309,15 @@ class ExhibitView(GridTableView):
         )
 
         idx = QModelIndex()
+
         model = self.model()
+
         model.setData(
             index=idx,
             value=(colname, data),
             role=AddColumnRole
         )
+
         self.hheader.setCellLabel(
             row=0,
             column=column_count,
@@ -549,8 +556,13 @@ class ExhibitView(GridTableView):
             item: [ExhibitOutputTreeItem, QStandardItem] = None
     ) -> None:
 
-        if direction not in ['left', 'right']:
-            raise ValueError('Invalid direction supplied. Valid values are "right" or "left".')
+        if direction not in [
+            'left',
+            'right'
+        ]:
+            raise ValueError(
+                'Invalid direction supplied. Valid values are "right" or "left".'
+            )
 
         index = QModelIndex()
 
