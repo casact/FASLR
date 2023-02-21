@@ -7,8 +7,6 @@ Class and method names will be in CamelCase to be consistent with those in PyQt.
 """
 from __future__ import annotations
 
-from faslr.base_table import FTableView
-
 from faslr.constants import (
     ColumnSpanRole,
     RemoveCellLabelRole,
@@ -20,21 +18,28 @@ from faslr.constants import (
 from PyQt6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
-    Qt,
     QRect,
-    QSize
+    QSize,
+    Qt
 )
 
 from PyQt6.QtWidgets import (
     QHeaderView,
     QStyle,
-    QStyleOptionHeader
+    QStyleOptionHeader,
+    QTableView
 )
 
 from PyQt6 import QtGui
 from PyQt6 import QtCore
 
-from typing import Any
+from typing import (
+    Any,
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from faslr.base_table import FTableView
 
 
 class TableHeaderItem:
@@ -255,7 +260,7 @@ class GridTableHeaderView(QHeaderView):
             orientation: Qt.Orientation,
             rows: int,
             columns: int,
-            parent: GridTableView = None,
+            parent: [FTableView, GridTableView] = None,
             base_section_height: int = 20,
             base_section_width: int = 50
     ):
@@ -682,7 +687,7 @@ class GridTableHeaderView(QHeaderView):
 
 
 
-class GridTableView(FTableView):
+class GridTableView(QTableView):
     def __init__(
             self,
     ):
@@ -710,8 +715,7 @@ class GridTableView(FTableView):
     ): # noqa
 
         if orientation == Qt.Orientation.Horizontal:
-            # print(self.model().columnCount())
-            # print(levels)
+
             header = GridTableHeaderView(
                 orientation=orientation,
                 rows=levels,

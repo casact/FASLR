@@ -1,9 +1,14 @@
 import csv
 import io
 
+import pandas as pd
+
+from faslr.grid_header import GridTableHeaderView
+
 from PyQt6.QtCore import (
     QAbstractTableModel,
-    QEvent
+    QEvent,
+    Qt
 )
 
 from PyQt6.QtWidgets import (
@@ -19,6 +24,8 @@ from PyQt6.QtWidgets import (
 class FAbstractTableModel(QAbstractTableModel):
     def __init__(self):
         super().__init__()
+
+        self._data = pd.DataFrame()
 
     def rowCount(
             self,
@@ -42,6 +49,35 @@ class FAbstractTableModel(QAbstractTableModel):
 class FTableView(QTableView):
     def __init__(self):
         super().__init__()
+
+        self.hheader = None
+        self.vheader = None
+
+    def setGridHeaderView( # noqa
+            self,
+            orientation: Qt.Orientation,
+            levels: int
+    ): # noqa
+
+        if orientation == Qt.Orientation.Horizontal:
+
+            header = GridTableHeaderView(
+                orientation=orientation,
+                rows=levels,
+                columns=self.model().columnCount(),
+                parent=self
+            )
+            self.setHorizontalHeader(header)
+            self.hheader = header
+        else:
+            header = GridTableHeaderView(
+                orientation=orientation,
+                rows=self.model().rowCount(),
+                columns=levels,
+                parent=self
+            )
+            self.setVerticalHeader(header)
+            self.vheader = header
 
     def eventFilter(self, obj, event):
         if event.type() != QEvent.Type.Paint or not isinstance(
