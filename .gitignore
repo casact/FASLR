@@ -6,3 +6,4 @@ scratch*.py
 *.log
 *.db
 docs/_build/
+debian/files
