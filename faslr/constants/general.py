@@ -3,8 +3,10 @@ import os
 from os.path import dirname
 from PyQt6.QtWidgets import QFileDialog
 
+from faslr import __version__
 
-BUILD_VERSION = "0.0.6"
+
+BUILD_VERSION = __version__
 
 if "PYCHARM_HOSTED" in os.environ:
     QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
