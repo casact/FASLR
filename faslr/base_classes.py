@@ -74,3 +74,13 @@ class FHContainer(QWidget):
         super().__init__()
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
+
+
+# class FOKCancel():
+#     def __init__(self):
+#         super().__init__()
+#
+#         self.ok_btn = QDialogButtonBox.StandardButton.Ok
+#         self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
+#         self.button_layout = self.ok_btn | self.cancel_btn
+#         self.button_box = QDialogButtonBox(self.button_layout)
