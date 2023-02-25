@@ -7,11 +7,22 @@ from faslr.base_table import (
     FTableView
 )
 
-from PyQt6.QtCore import Qt, QSize
+from faslr.constants import IndexConstantRole
+
+from PyQt6.QtCore import (
+    QModelIndex,
+    QSize,
+    Qt
+)
 
 from PyQt6.QtWidgets import (
     QAbstractButton,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QStyle,
     QStyleOptionHeader,
@@ -35,6 +46,18 @@ class IndexTableModel(FAbstractTableModel):
             index=years
         )
 
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
+
+            if np.isnan(value):
+                return ""
+            else:
+                return str(value)
+
     def headerData(
             self,
             p_int: int,
@@ -49,6 +72,17 @@ class IndexTableModel(FAbstractTableModel):
 
             if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
+
+    def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
+
+        if role == IndexConstantRole:
+            values = [(1 + value ) ** i for i in range(self.rowCount())]
+            values.reverse()
+            self._data['Changes'] = value
+            self._data['Values'] = values
+            print(self._data)
+
+        self.layoutChanged.emit()
 
 
 class IndexTableView(FTableView):
@@ -97,6 +131,7 @@ class IndexPane(QWidget):
         super().__init__()
 
         self.layout = QVBoxLayout()
+        self.years = years
 
         self.constant_btn = QPushButton('Set Constant')
         self.constant_btn.setFixedWidth(100)
@@ -106,7 +141,60 @@ class IndexPane(QWidget):
 
         self.view.setModel(self.model)
 
-        self.layout.addWidget(self.constant_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        self.layout.addWidget(
+            self.constant_btn,
+            alignment=Qt.AlignmentFlag.AlignRight
+        )
+
         self.layout.addWidget(self.view)
 
         self.setLayout(self.layout)
+
+        self.constant_btn.pressed.connect(self.set_constant)
+
+    def set_constant(self):
+
+        constant_dialog = IndexConstantDialog(parent=self)
+
+        constant_dialog.exec()
+
+
+class IndexConstantDialog(QDialog):
+    def __init__(
+            self,
+            parent: IndexPane
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        self.setWindowTitle("Set Constant Trend")
+
+        years = [str(year) for year in parent.years]
+
+        self.layout = QFormLayout()
+        self.trend_input = QLineEdit()
+        self.year_input = QComboBox()
+        self.year_input.addItems(years)
+        self.layout.addRow("Trend (%)", self.trend_input)
+        self.layout.addRow("Reference Year", self.year_input)
+
+        self.ok_btn = QDialogButtonBox.StandardButton.Ok
+        self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
+        self.button_layout = self.ok_btn | self.cancel_btn
+        self.button_box = QDialogButtonBox(self.button_layout)
+
+        self.button_box.accepted.connect(self.set_constant)
+        self.button_box.rejected.connect(self.close)
+
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+
+    def set_constant(self) -> None:
+
+        index = QModelIndex()
+        trend = float(self.trend_input.text())
+        self.parent.model.setData(index=index, value=trend, role=IndexConstantRole)
+
+        self.close()
