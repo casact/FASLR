@@ -174,10 +174,7 @@ class IndexConstantDialog(QDialog):
 
         self.layout = QFormLayout()
         self.trend_input = QLineEdit()
-        self.year_input = QComboBox()
-        self.year_input.addItems(years)
-        self.layout.addRow("Trend (%)", self.trend_input)
-        self.layout.addRow("Reference Year", self.year_input)
+        self.layout.addRow("Trend", self.trend_input)
 
         self.ok_btn = QDialogButtonBox.StandardButton.Ok
         self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
