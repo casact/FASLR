@@ -47,7 +47,8 @@ from faslr.constants.role import (
     RemoveRowSpanRole,
     RemoveColumnSpanRole,
     ColumnSwapRole,
-    ColumnRotateRole
+    ColumnRotateRole,
+    IndexConstantRole
 )
 
 from faslr.constants.triangle import (
