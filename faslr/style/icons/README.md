@@ -9,3 +9,5 @@ https://icons.getbootstrap.com/
 https://thenounproject.com/
 
 https://www.iconhunt.site/
+
+https://github.com/primer/octicons
