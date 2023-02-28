@@ -9,7 +9,8 @@ samples = {
     'us_industry_auto': 'friedland_us_industry_auto.csv',
     'uspp_incr_case': 'friedland_uspp_auto_increasing_case.csv',
     'xyz': 'friedland_xyz_auto_bi.csv',
-    'us_auto_steady_state': 'friedland_us_auto_steady_state.csv'
+    'us_auto_steady_state': 'friedland_us_auto_steady_state.csv',
+    'auto_bi': 'friedland_auto_bi_insurer.csv'
 }
 
 
