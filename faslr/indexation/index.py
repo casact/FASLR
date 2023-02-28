@@ -9,6 +9,11 @@ from faslr.base_table import (
 
 from faslr.constants import IndexConstantRole
 
+from faslr.style.triangle import (
+    RATIO_STYLE,
+    PERCENT_STYLE
+)
+
 from PyQt6.QtCore import (
     QModelIndex,
     QSize,
@@ -56,7 +61,11 @@ class IndexTableModel(FAbstractTableModel):
             if np.isnan(value):
                 return ""
             else:
-                return str(value)
+                if col == "Values":
+                    value = RATIO_STYLE.format(value)
+                else:
+                    value = PERCENT_STYLE.format(value)
+                return value
 
     def headerData(
             self,
