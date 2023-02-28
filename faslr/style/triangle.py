@@ -11,3 +11,5 @@ MAIN_TRIANGLE_COLOR = QColor(255, 255, 255)
 RATIO_STYLE = "{0:,.3f}"
 
 VALUE_STYLE = "{0:,.0f}"
+
+PERCENT_STYLE = "{:.1%}"
