@@ -43,7 +43,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 if TYPE_CHECKING:
-    from main import MainWindow
+    from faslr.__main__ import MainWindow
 
 
 class ProjectDialog(QDialog):

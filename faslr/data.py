@@ -67,7 +67,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from faslr.main import MainWindow
+    from faslr.__main__ import MainWindow
 
 # Starting contents of data preview when no files have been uploaded yet
 dummy_df = pd.DataFrame(

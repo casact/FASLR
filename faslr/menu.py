@@ -38,7 +38,7 @@ from PyQt6.QtWidgets import (
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from faslr.main import MainWindow
+    from faslr.__main__ import MainWindow
 
 
 class MainMenuBar(QMenuBar):

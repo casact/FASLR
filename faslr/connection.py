@@ -43,7 +43,7 @@ from sqlalchemy.engine.base import Connection
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from faslr.main import MainWindow
+    from faslr.__main__ import MainWindow
     from faslr.menu import MainMenuBar
 
 
