@@ -1380,6 +1380,9 @@ def fetch_column_data(
         colname: str,
         triangle: Chainladder
 ) -> list:
+    """
+    Extract data from fitted triangle as lists, to be combined into a data frame when used in a Qt model.
+    """
 
     x = triangle.X_
 
