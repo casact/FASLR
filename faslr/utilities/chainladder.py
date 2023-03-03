@@ -41,3 +41,20 @@ def fetch_latest_diagonal(
 
     return diagonal
 
+def fetch_cdf(
+        triangle: Chainladder
+) -> list:
+
+    cdf = list(triangle.X_.latest_diagonal.cdf_.to_frame().iloc[:, ].values.flatten())
+    cdf.pop()
+    cdf.reverse()
+
+    return cdf
+
+def fetch_ultimate(
+        triangle: Chainladder
+) -> list:
+
+    data = list(triangle.ultimate_.to_frame().iloc[:, 0])
+
+    return data
