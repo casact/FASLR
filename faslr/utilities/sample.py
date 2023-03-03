@@ -13,6 +13,18 @@ samples = {
     'auto_bi': 'friedland_auto_bi_insurer.csv'
 }
 
+auto_bi_olep = [
+    24000000,
+    18000000,
+    19000000,
+    23000000,
+    32000000,
+    47000000,
+    50000000,
+    57000000,
+    62000000
+]
+
 
 def load_sample(
         sample_name: str
