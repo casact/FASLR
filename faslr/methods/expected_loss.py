@@ -10,8 +10,11 @@ from faslr.base_table import (
 from faslr.grid_header import GridTableView
 
 from faslr.utilities import (
+    auto_bi_olep,
+    fetch_cdf,
     fetch_latest_diagonal,
-    fetch_origin
+    fetch_origin,
+    fetch_ultimate
 )
 
 from PyQt6.QtCore import (
@@ -43,14 +46,27 @@ class ExpectedLossModel(FAbstractTableModel):
         super().__init__()
 
         self.origin = fetch_origin(triangles[0])
-        print(self.origin)
         self.reported = fetch_latest_diagonal(triangles[0])
-        print(self.reported)
+        self.paid = fetch_latest_diagonal(triangles[1])
+        self.reported_cdf = fetch_cdf(triangles[0])
+        self.paid_cdf = fetch_cdf(triangles[1])
+        self.reported_ultimate = fetch_ultimate(triangles[0])
+        self.paid_ultimate = fetch_ultimate(triangles[1])
+
 
         self._data = pd.DataFrame({
             'Accident Year': self.origin,
-            'Reported Losses': self.reported
+            'Reported Losses': self.reported,
+            'Paid Losses': self.paid,
+            'Reported CDF': self.reported_cdf,
+            'Paid CDF': self.paid_cdf,
+            'Reported Ultimate': self.reported_ultimate,
+            'Paid Ultimate': self.paid_ultimate
         })
+
+        self._data['Initial Selected'] = (self._data['Reported Ultimate'] + self._data['Paid Ultimate']) / 2
+
+        self._data['On-Level Earned Premium'] = auto_bi_olep
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
 
