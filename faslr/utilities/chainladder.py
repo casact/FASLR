@@ -12,14 +12,20 @@ if TYPE_CHECKING:
 def table_from_tri(
         triangle: Chainladder
 ) -> DataFrame:
+    """
+    Summarize fitted chain ladder model in 2-D table format.
+    """
 
     origin = fetch_origin(triangle=triangle)
     diagonal = fetch_latest_diagonal(triangle=triangle)
     column = triangle.X_.columns[0]
 
+    ultimate = fetch_ultimate(triangle=triangle)
+
     df = pd.DataFrame({
         'Accident Year': origin,
-        column: diagonal
+        column: diagonal,
+        'Ultimate ' + column: ultimate
     })
 
     return df
