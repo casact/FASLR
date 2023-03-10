@@ -7,3 +7,13 @@ scratch*.py
 *.db
 docs/_build/
 debian/files
+faslr/__pycache__/__init__.cpython-310.pyc
+faslr/tests/__pycache__/__init__.cpython-310.pyc
+faslr/tests/__pycache__/test_cascade.cpython-310-pytest-7.2.1.pyc
+faslr/tests/__pycache__/test_sample.cpython-310-pytest-7.2.1.pyc
+faslr/tests/__pycache__/test_schema.cpython-310-pytest-7.2.1.pyc
+faslr/utilities/__pycache__/__init__.cpython-310.pyc
+faslr/utilities/__pycache__/chainladder.cpython-310.pyc
+faslr/utilities/__pycache__/gui.cpython-310.pyc
+faslr/utilities/__pycache__/sample.cpython-310.pyc
+.coverage

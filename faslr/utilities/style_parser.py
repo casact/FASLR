@@ -1,13 +1,8 @@
-import io
-import re
-
-from bs4 import BeautifulSoup
 from chainladder import Triangle
 from matplotlib.colors import Colormap
 from pandas import DataFrame
 
 from faslr.style.triangle import LOWER_DIAG_COLOR
-
 
 def parse_styler(
         triangle: Triangle,
@@ -22,34 +17,19 @@ def parse_styler(
     """
 
     heatmap_html = triangle.link_ratio.heatmap(cmap=cmap).data
-
-    parsed_html = BeautifulSoup(heatmap_html, 'html.parser')
-    css = str(parsed_html.find('style'))
-
-    # First line is the style header
-    buf = io.StringIO(str(css))
-
-    # Initialize dataframe containing FASLR table background color
+    #initialize color_triangle with the lower diagonal color
     color_triangle = triangle.link_ratio.to_frame(origin_as_datetime=False)
     color_triangle = color_triangle.astype(str)
     color_triangle.loc[:] = LOWER_DIAG_COLOR.name()
-
-    # Count the number of background colors to apply
-    n_colors = css.count("background")
-    buf.readline()
-
-    # For each color, find the cells to which it applies
-    for i in range(n_colors):
-        rowcols = buf.readline()
-        result_rows = [x.start() for x in re.finditer('row', rowcols)]
-        result_cols = [x.start() for x in re.finditer('col', rowcols)]
-        bc_row = buf.readline()
-        color = bc_row[bc_row.find("#"):bc_row.find("#") + 7]
-        buf.readline()
-        buf.readline()
-        for j in range(len(result_rows)):
-            row = int(rowcols[result_rows[j]:result_rows[j] + 4][3:])
-            col = int(rowcols[result_cols[j]:result_cols[j] + 4][3:])
-            color_triangle.iloc[[row], [col]] = color
-
+    # Parse css to get the background colors
+    splited = str(heatmap_html.split('<style type="text/css">')[1].split('</style>')[0].split('{')).split('}')
+    for item in splited[0:-1]:
+        splited2 = item.split(',')
+        splited2[-2] = splited2[-2].replace(' \'', '')
+        background  = splited2[-1].split('#')[1].split(';')[0]
+        for index in splited2[0:-1]:
+            parts = index.split('_')
+            color_triangle.iloc[[int(parts[2][3:])], [int(parts[3][3:])]] = '#'+background
+        
+        
     return color_triangle
