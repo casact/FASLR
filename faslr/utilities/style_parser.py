@@ -1,9 +1,8 @@
 from chainladder import Triangle
 from matplotlib.colors import Colormap
 from pandas import DataFrame
-import time
-from faslr.style.triangle import LOWER_DIAG_COLOR
 
+from faslr.style.triangle import LOWER_DIAG_COLOR
 def parse_styler(
         triangle: Triangle,
         cmap: [str, Colormap]
@@ -15,8 +14,6 @@ def parse_styler(
     :param cmap:
     :return:
     """
-
-
     heatmap_html = triangle.link_ratio.heatmap(cmap=cmap).data
     # Parse css to get the background colors
     color_triangle = triangle.link_ratio.to_frame(origin_as_datetime=False)
@@ -26,9 +23,8 @@ def parse_styler(
     for item in splited[0:-1]:
         splited2 = item.split(',')
         splited2[-2] = splited2[-2].replace(' \'', '')
-        background  = splited2[-1].split('#')[1].split(';')[0]
         for index in splited2[0:-1]:
             parts = index.split('_')
-            color_triangle.iloc[[int(parts[2][3:])], [int(parts[3][3:])]] = '#'+background
-        
+            color_triangle.iloc[[int(parts[2][3:])], [int(parts[3][3:])]] = splited2[-1][24:31]
+
     return color_triangle
