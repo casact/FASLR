@@ -84,6 +84,12 @@ class TailPane(QWidget):
             self,
             triangle: Triangle = None
     ):
+        """
+        Dialog box for conducting tail analyses. Holds configuration sub widgets for various tail-factor models
+        (Constant, Curve, Clark, Bondy) as well as a canvas for plotting diagnostic charts.
+
+        :param triangle:
+        """
         super().__init__()
 
         self.triangle = triangle
@@ -122,49 +128,7 @@ class TailPane(QWidget):
         canvas_container.setLayout(canvas_layout)
 
         # layout to toggle between charts
-        ly_graph_toggle = QVBoxLayout()
-        ly_graph_toggle.setAlignment(Qt.AlignmentFlag.AlignTop)
-        graph_toggle_btns = QWidget()
-        graph_toggle_btns.setLayout(ly_graph_toggle)
-
-        curve_btn = self.add_chart_button(
-            name='curve_btn',
-            tool_tip='Development factor comparison',
-            icon='graph-down.svg'
-        )
-
-        tail_comps_btn = self.add_chart_button(
-            name='tail_comps_btn',
-            tool_tip='Tail factor comparison',
-            icon='bar-chart-2.svg'
-        )
-
-        extrap_btn = self.add_chart_button(
-            name='extrap_btn',
-            tool_tip='Extrapolation',
-            icon='curve-graph.svg'
-        )
-
-        reg_btn = self.add_chart_button(
-            name='reg_btn',
-            tool_tip='Fit period comparison',
-            icon='scatter-plot.svg'
-        )
-
-        for widget in [
-            curve_btn,
-            tail_comps_btn,
-            extrap_btn,
-            reg_btn
-        ]:
-            ly_graph_toggle.addWidget(widget)
-
-        ly_graph_toggle.setContentsMargins(
-            0,
-            40,
-            0,
-            0
-        )
+        graph_toggle_btns = TailChartToggle(parent=self)
 
         # Tabs to hold each tail candidate
         self.config_tabs = ConfigTab(parent=self)
@@ -207,22 +171,6 @@ class TailPane(QWidget):
 
         vlayout.addWidget(self.button_box)
         self.update_plot()
-
-    def add_chart_button(
-            self,
-            name: str,
-            tool_tip: str,
-            icon: str
-    ) -> QPushButton:
-
-        btn = QPushButton('')
-        btn.setIcon(QIcon(ICONS_PATH + icon))
-        btn.setToolTip(tool_tip)
-        btn.clicked.connect( # noqa
-            partial(self.toggle_chart, name)
-        )
-
-        return btn
 
     def update_plot(self) -> None:
 
@@ -482,6 +430,75 @@ class TailPane(QWidget):
         self.toggled_chart = value
 
         self.update_plot()
+
+
+class TailChartToggle(QWidget):
+    def __init__(
+            self,
+            parent: TailPane = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        curve_btn = self.add_chart_button(
+            name='curve_btn',
+            tool_tip='Development factor comparison',
+            icon='graph-down.svg'
+        )
+
+        tail_comps_btn = self.add_chart_button(
+            name='tail_comps_btn',
+            tool_tip='Tail factor comparison',
+            icon='bar-chart-2.svg'
+        )
+
+        extrap_btn = self.add_chart_button(
+            name='extrap_btn',
+            tool_tip='Extrapolation',
+            icon='curve-graph.svg'
+        )
+
+        reg_btn = self.add_chart_button(
+            name='reg_btn',
+            tool_tip='Fit period comparison',
+            icon='scatter-plot.svg'
+        )
+
+        for widget in [
+            curve_btn,
+            tail_comps_btn,
+            extrap_btn,
+            reg_btn
+        ]:
+            self.layout.addWidget(widget)
+
+        self.layout.setContentsMargins(
+            0,
+            40,
+            0,
+            0
+        )
+
+    def add_chart_button(
+            self,
+            name: str,
+            tool_tip: str,
+            icon: str
+    ) -> QPushButton:
+
+        btn = QPushButton('')
+        btn.setIcon(QIcon(ICONS_PATH + icon))
+        btn.setToolTip(tool_tip)
+        btn.clicked.connect( # noqa
+            partial(self.parent.toggle_chart, name)
+        )
+
+        return btn
 
 
 class MplCanvas(FigureCanvasQTAgg):
