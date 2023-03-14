@@ -3,6 +3,8 @@ from matplotlib.colors import Colormap
 from pandas import DataFrame
 
 from faslr.style.triangle import LOWER_DIAG_COLOR
+
+
 def parse_styler(
         triangle: Triangle,
         cmap: [str, Colormap]
@@ -14,11 +16,19 @@ def parse_styler(
     :param cmap:
     :return:
     """
-    heatmap_html = triangle.link_ratio.heatmap(cmap=cmap).data
-    # Parse css to get the background colors
+
+    # Extract HTML from triangle heatmap.
+    heatmap_html: str = triangle.link_ratio.heatmap(cmap=cmap).data
+
+    # Declare a DataFrame with the same dimensions as the link ratio triangle to hold the colors.
     color_triangle = triangle.link_ratio.to_frame(origin_as_datetime=False)
     color_triangle = color_triangle.astype(str)
+
+    # Initial colors will be the FASLR lower diagonal color for the entire triangle.
+    # Then we override the upper triangle with the heatmap colors.
     color_triangle.loc[:] = LOWER_DIAG_COLOR.name()
+
+    # Parse css to get the background colors
     splited = str(heatmap_html.split('<style type="text/css">')[1].split('</style>')[0].split('{')).split('}')
     for item in splited[0:-1]:
         splited2 = item.split(',')
