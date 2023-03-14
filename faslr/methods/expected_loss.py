@@ -9,6 +9,11 @@ from faslr.base_table import (
 
 from faslr.grid_header import GridTableView
 
+from faslr.style.triangle import (
+    RATIO_STYLE,
+    VALUE_STYLE
+)
+
 from faslr.utilities import (
     auto_bi_olep,
     fetch_cdf,
@@ -70,11 +75,34 @@ class ExpectedLossModel(FAbstractTableModel):
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
 
+        colname = self._data.columns[index.column()]
+
         if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
 
-            return str(value)
+            if colname in [
+                'Reported Losses',
+                'Paid Losses',
+                'Reported Ultimate',
+                'Paid Ultimate',
+                'Initial Selected',
+                'On-Level Earned Premium'
+            ]:
+
+                display_value = VALUE_STYLE.format(value)
+
+            elif colname in [
+                    'Reported CDF',
+                    'Paid CDF'
+            ]:
+
+                display_value = RATIO_STYLE.format(value)
+
+            else:
+                display_value = str(value)
+
+            return display_value
 
 
 class ExpectedLossView(GridTableView):
