@@ -109,11 +109,6 @@ class ExpectedLossView(GridTableView):
     def __int__(self):
         super().__init__()
 
-        # self.setGridHeaderView(
-        #     orientation=Qt.Orientation.Horizontal,
-        #     levels=2
-        # )
-
 
 class ExpectedLossWidget(QWidget):
     def __init__(
@@ -141,6 +136,19 @@ class ExpectedLossWidget(QWidget):
         self.selection_view.setGridHeaderView(
             orientation=Qt.Orientation.Horizontal,
             levels=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=0,
+            row_span_count=2,
+            column_span_count=1
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=0,
+            column=0,
+            label="Accident\nYear"
         )
 
         ly_selection_tab = QVBoxLayout()
