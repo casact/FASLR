@@ -123,7 +123,7 @@ class ExpectedLossWidget(QWidget):
 
         self.main_tabs = QTabWidget()
 
-        self.indexation = QWidget()
+        self.indexation = ExpectedLossIndex(parent=self)
 
         self.selection_tab = QWidget()
 
@@ -159,3 +159,33 @@ class ExpectedLossWidget(QWidget):
 
         self.setLayout(self.layout)
 
+
+class ExpectedLossIndex(QWidget):
+    def __init__(
+            self,
+            parent: ExpectedLossWidget = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        self.index_toggle = QTabWidget()
+
+        self.premium_indexes = QWidget()
+
+        self.loss_indexes = QWidget()
+
+        self.index_toggle.addTab(
+            self.premium_indexes,
+            "Premium"
+        )
+
+        self.index_toggle.addTab(
+            self.loss_indexes,
+            "Loss"
+        )
+
+        self.layout.addWidget(self.index_toggle)
