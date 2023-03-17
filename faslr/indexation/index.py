@@ -39,17 +39,19 @@ from PyQt6.QtWidgets import (
 class IndexTableModel(FAbstractTableModel):
     def __init__(
             self,
-            years: list
+            years: list = None
     ):
         super().__init__()
 
-        n_years = len(years)
-        data = {'Changes': [np.nan for x in years], 'Values': [np.nan for x in years]}
+        if years:
+            n_years = len(years)
 
-        self._data = pd.DataFrame(
-            data=data,
-            index=years
-        )
+            data = {'Changes': [np.nan for x in years], 'Values': [np.nan for x in years]}
+
+            self._data = pd.DataFrame(
+                data=data,
+                index=years
+            )
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
 
