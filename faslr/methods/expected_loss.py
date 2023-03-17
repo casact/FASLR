@@ -7,6 +7,10 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.common import (
+    AddRemoveButtonWidget
+)
+
 from faslr.grid_header import GridTableView
 
 from faslr.style.triangle import (
@@ -30,6 +34,7 @@ from PyQt6.QtCore import (
 from PyQt6.QtWidgets import (
     QDialog,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QListView,
     QTabWidget,
@@ -175,27 +180,71 @@ class ExpectedLossIndex(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # self.index_toggle = QTabWidget()
-        premium_label = QLabel("Premium Indexes")
-        self.premium_indexes = QListView()
+        self.premium_indexes = IndexListView(
+            parent=self,
+            label="Premium Indexes"
+        )
 
-        loss_label = QLabel("Loss Indexes")
-        self.loss_indexes = QListView()
+        self.loss_indexes = IndexListView(
+            parent=self,
+            label="Loss Indexes"
+        )
 
-        # self.index_toggle.addTab(
-        #     self.premium_indexes,
-        #     "Premium"
-        # )
-        #
-        # self.index_toggle.addTab(
-        #     self.loss_indexes,
-        #     "Loss"
-        # )
+        for widget in [
+            self.premium_indexes,
+            self.loss_indexes
+        ]:
+            self.layout.addWidget(widget)
 
-        # self.layout.addWidget(self.index_toggle)
 
-        self.layout.addWidget(premium_label)
-        self.layout.addWidget(self.premium_indexes)
+class IndexListView(QWidget):
+    def __init__(
+            self,
+            parent: ExpectedLossIndex = None,
+            label: str = None,
+            p_tool_tip: str = None,
+            m_tool_tip: str = None
+    ):
+        super().__init__()
 
-        self.layout.addWidget(loss_label)
-        self.layout.addWidget(self.loss_indexes)
+        self.parent = parent
+
+        self.label = QLabel(label)
+
+        self.layout = QVBoxLayout()
+
+        self.layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+
+        self.setLayout(self.layout)
+
+        self.add_remove_btns = AddRemoveButtonWidget(
+            p_tool_tip=p_tool_tip,
+            m_tool_tip=m_tool_tip
+        )
+        self.header = QWidget()
+        self.header_layout = QHBoxLayout()
+        self.header_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        self.header.setLayout(self.header_layout)
+        self.header_layout.addWidget(self.label)
+        self.header_layout.addWidget(
+            self.add_remove_btns,
+            alignment=Qt.AlignmentFlag.AlignRight
+        )
+
+        self.index_view = QListView()
+
+        for widget in [
+            self.header,
+            self.index_view
+        ]:
+            self.layout.addWidget(widget)
