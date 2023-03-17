@@ -18,6 +18,11 @@ from faslr.base_classes import (
     FSpinBox
 )
 
+from faslr.common import (
+    AddRemoveButtonWidget,
+    make_corner_button
+)
+
 from faslr.constants import (
     ICONS_PATH
 )
@@ -266,6 +271,7 @@ class TailPane(QWidget):
                     attachment_age=attachment_age,
                     projection_period=projection_period
                 ).fit_transform(self.triangle)
+
             else:
                 raise Exception("Invalid tail type selected.")
 
@@ -437,6 +443,12 @@ class TailChartToggle(QWidget):
             self,
             parent: TailPane = None
     ):
+        """
+        Holds button box to toggle diagnostic charts on the TailPane. Intended to be extensible,
+        will eventually allow users to add their own buttons via extensions.
+
+        :param parent:
+        """
         super().__init__()
 
         self.parent = parent
@@ -927,7 +939,10 @@ class ConfigTab(QTabWidget):
         self.parent = parent
 
         # corner widget to hold the two corner buttons
-        self.add_remove_btns = AddRemoveButtonWidget()
+        self.add_remove_btns = AddRemoveButtonWidget(
+            p_tool_tip='Add tail candidate',
+            m_tool_tip='Remove tail candidate'
+        )
 
         self.setCornerWidget(
             self.add_remove_btns,
@@ -981,57 +996,6 @@ class ConfigTab(QTabWidget):
         self.parent.update_plot()
 
 
-class AddRemoveButtonWidget(QWidget):
-    """
-    The add/remove buttons for the ConfigTab. These add/remove the tabs containing the tail candidates.
-    """
-    def __init__(self):
-        super().__init__()
-
-        # Layout holds the two +/- buttons.
-        self.layout = QHBoxLayout()
-
-        self.layout.setContentsMargins(
-            0,
-            0,
-            0,
-            2
-        )
-
-        self.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-
-        self.setLayout(self.layout)
-
-        # make corner buttons, these add and remove the tail candidate tabs
-        self.add_tab_btn = make_corner_button(
-            text='+',
-            width=22,
-            height=22,
-            tool_tip='Add tail candidate'
-        )
-
-        self.remove_tab_btn = make_corner_button(
-            text='-',
-            width=self.add_tab_btn.width(),
-            height=self.add_tab_btn.height(),
-            tool_tip='Remove tail candidate'
-        )
-
-        # add some space between the two buttons
-        self.layout.setSpacing(2)
-
-        for btn in [
-            self.add_tab_btn,
-            self.remove_tab_btn
-        ]:
-            self.layout.addWidget(btn)
-
-
 # Model/View of the individual LDF/CDFs with the tail in a table
 class TailTableModel(FAbstractTableModel):
     def __init__(self):
@@ -1042,22 +1006,3 @@ class TailTableView(FTableView):
     def __init__(self):
         super().__init__()
 
-
-def make_corner_button(
-        text: str,
-        height: int,
-        width: int,
-        tool_tip: str
-) -> QToolButton:
-
-    """
-    Used to make the add/remove buttons in the config tab.
-    """
-
-    btn = QToolButton()
-    btn.setText(text)
-    btn.setToolTip(tool_tip)
-    btn.setFixedHeight(height)
-    btn.setFixedWidth(width)
-
-    return btn
