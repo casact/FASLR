@@ -13,6 +13,11 @@ from faslr.common import (
 
 from faslr.grid_header import GridTableView
 
+from faslr.indexation import (
+    IndexTableModel,
+    IndexTableView
+)
+
 from faslr.style.triangle import (
     RATIO_STYLE,
     VALUE_STYLE
@@ -131,7 +136,10 @@ class ExpectedLossWidget(QWidget):
 
         self.main_tabs = QTabWidget()
 
-        self.indexation = ExpectedLossIndex(parent=self)
+        self.indexation = ExpectedLossIndex(
+            parent=self,
+            origin=fetch_origin(triangles[0])
+        )
 
         self.selection_tab = QWidget()
 
@@ -171,7 +179,43 @@ class ExpectedLossWidget(QWidget):
 class ExpectedLossIndex(QWidget):
     def __init__(
             self,
-            parent: ExpectedLossWidget = None
+            parent: ExpectedLossWidget = None,
+            origin: list = None
+    ):
+        super().__init__()
+
+        self.parent = parent
+
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+
+        self.index_selector = IndexSelector(parent=self)
+
+        index_view_container = QWidget()
+        index_view_layout = QVBoxLayout()
+        index_view_container.setLayout(index_view_layout)
+
+        self.index_model = IndexTableModel(years=origin)
+
+        self.index_view = IndexTableView()
+        self.index_view.setModel(self.index_model)
+
+        index_view_layout.addWidget(self.index_view)
+        index_view_container.setContentsMargins(
+            11,
+            30,
+            11,
+            11
+        )
+
+        self.layout.addWidget(self.index_selector)
+        self.layout.addWidget(index_view_container)
+
+
+class IndexSelector(QWidget):
+    def __init__(
+            self,
+            parent: ExpectedLossIndex = None
     ):
         super().__init__()
 
@@ -197,10 +241,12 @@ class ExpectedLossIndex(QWidget):
             self.layout.addWidget(widget)
 
 
+
+
 class IndexListView(QWidget):
     def __init__(
             self,
-            parent: ExpectedLossIndex = None,
+            parent: IndexSelector = None,
             label: str = None,
             p_tool_tip: str = None,
             m_tool_tip: str = None
