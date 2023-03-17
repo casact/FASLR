@@ -29,6 +29,9 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtWidgets import (
     QDialog,
+    QGroupBox,
+    QLabel,
+    QListView,
     QTabWidget,
     QWidget,
     QVBoxLayout
@@ -172,20 +175,27 @@ class ExpectedLossIndex(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        self.index_toggle = QTabWidget()
+        # self.index_toggle = QTabWidget()
+        premium_label = QLabel("Premium Indexes")
+        self.premium_indexes = QListView()
 
-        self.premium_indexes = QWidget()
+        loss_label = QLabel("Loss Indexes")
+        self.loss_indexes = QListView()
 
-        self.loss_indexes = QWidget()
+        # self.index_toggle.addTab(
+        #     self.premium_indexes,
+        #     "Premium"
+        # )
+        #
+        # self.index_toggle.addTab(
+        #     self.loss_indexes,
+        #     "Loss"
+        # )
 
-        self.index_toggle.addTab(
-            self.premium_indexes,
-            "Premium"
-        )
+        # self.layout.addWidget(self.index_toggle)
 
-        self.index_toggle.addTab(
-            self.loss_indexes,
-            "Loss"
-        )
+        self.layout.addWidget(premium_label)
+        self.layout.addWidget(self.premium_indexes)
 
-        self.layout.addWidget(self.index_toggle)
+        self.layout.addWidget(loss_label)
+        self.layout.addWidget(self.loss_indexes)
