@@ -206,3 +206,13 @@ class IndexConstantDialog(QDialog):
         self.parent.model.setData(index=index, value=trend, role=IndexConstantRole)
 
         self.close()
+        
+        
+class IndexInventoryView(FTableView):
+    def __init__(self):
+        super().__init__()
+        
+        
+class IndexInventoryModel(FAbstractTableModel):
+    def __init__(self):
+        super().__init__()
