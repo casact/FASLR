@@ -226,12 +226,16 @@ class IndexSelector(QWidget):
 
         self.premium_indexes = IndexListView(
             parent=self,
-            label="Premium Indexes"
+            label="Premium Indexes",
+            p_tool_tip='Add premium index.',
+            m_tool_tip='Remove premium index.'
         )
 
         self.loss_indexes = IndexListView(
             parent=self,
-            label="Loss Indexes"
+            label="Loss Indexes",
+            p_tool_tip='Add loss index.',
+            m_tool_tip='Remove loss index.'
         )
 
         for widget in [
