@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import typing
 
+from collections import defaultdict
+
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
@@ -13,6 +15,9 @@ from faslr.style.triangle import (
     RATIO_STYLE,
     PERCENT_STYLE
 )
+
+from itertools import chain
+from operator import methodcaller
 
 from PyQt6.QtCore import (
     QModelIndex,
@@ -34,6 +39,8 @@ from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout
 )
+
+from typing import List
 
 
 class IndexTableModel(FAbstractTableModel):
@@ -206,6 +213,33 @@ class IndexConstantDialog(QDialog):
         self.parent.model.setData(index=index, value=trend, role=IndexConstantRole)
 
         self.close()
+
+
+class IndexInventory(QWidget):
+    """
+    Widget to display the index inventory.
+    """
+    def __init__(
+            self,
+            indexes: List[dict]
+    ):
+        super().__init__()
+
+        self.indexes = indexes
+
+        self.layout = QVBoxLayout()
+
+        self.setWindowTitle("Index Inventory")
+
+        self.inventory_view = IndexInventoryView()
+
+        self.inventory_model = IndexInventoryModel(indexes=self.indexes)
+
+        self.inventory_view.setModel(self.inventory_model)
+
+        self.layout.addWidget(self.inventory_view)
+
+        self.setLayout(self.layout)
         
         
 class IndexInventoryView(FTableView):
@@ -214,5 +248,39 @@ class IndexInventoryView(FTableView):
         
         
 class IndexInventoryModel(FAbstractTableModel):
-    def __init__(self):
+    def __init__(
+            self,
+            indexes: List[dict] = None
+    ):
         super().__init__()
+
+        self._data = pd.DataFrame(columns=[
+            'Name',
+            'Description'
+        ])
+
+        for idx in indexes:
+            df_idx = pd.DataFrame(idx)
+            self._data = pd.concat([self._data, df_idx])
+
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            value = self._data.iloc[index.row(), index.column()]
+
+            return str(value)
+
+    def headerData(
+            self,
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> typing.Any:
+
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Orientation.Vertical:
+                return str(self._data.index[p_int])
