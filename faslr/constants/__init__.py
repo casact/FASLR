@@ -33,6 +33,7 @@ from faslr.constants.general import (
     OCTICONS_PATH,
     QT_FILEPATH_OPTION,
     ROOT_PATH,
+    SAMPLE_DB_NAME,
     TEMPLATES_PATH
 )
 
