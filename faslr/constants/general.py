@@ -52,3 +52,5 @@ BRANCH_SHA = repo.git.rev_parse(
     branch,
     short=6
 )
+
+SAMPLE_DB_NAME = 'sample.db'
