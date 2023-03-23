@@ -396,3 +396,22 @@ class ProjectViewData(Base):
     case_outstanding = Column(
         Float
     )
+
+class IndexTable(Base):
+    __tablename__ = 'index'
+
+    index_id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    description = Column(
+        String
+    )
+
+    def __repr__(self):
+        return "IndexTable(" \
+               "description='%s'" \
+               ")>" % (
+                   self.description
+               )
