@@ -37,17 +37,17 @@ class AddRemoveButtonWidget(QWidget):
         self.setLayout(self.layout)
 
         # make corner buttons, these add and remove the tail candidate tabs
-        self.add_tab_btn = make_corner_button(
+        self.add_btn = make_corner_button(
             text='+',
             width=btn_width,
             height=btn_height,
             tool_tip=p_tool_tip
         )
 
-        self.remove_tab_btn = make_corner_button(
+        self.remove_btn = make_corner_button(
             text='-',
-            width=self.add_tab_btn.width(),
-            height=self.add_tab_btn.height(),
+            width=self.add_btn.width(),
+            height=self.add_btn.height(),
             tool_tip=m_tool_tip
         )
 
@@ -55,8 +55,8 @@ class AddRemoveButtonWidget(QWidget):
         self.layout.setSpacing(2)
 
         for btn in [
-            self.add_tab_btn,
-            self.remove_tab_btn
+            self.add_btn,
+            self.remove_btn
         ]:
             self.layout.addWidget(btn)
 
