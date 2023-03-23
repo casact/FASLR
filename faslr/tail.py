@@ -19,8 +19,7 @@ from faslr.base_classes import (
 )
 
 from faslr.common import (
-    AddRemoveButtonWidget,
-    make_corner_button
+    AddRemoveButtonWidget
 )
 
 from faslr.constants import (
@@ -52,7 +51,6 @@ from PyQt6.QtWidgets import (
     QLabel,
     QPushButton,
     QRadioButton,
-    QToolButton,
     QWidget,
     QStackedWidget,
     QTabWidget,
