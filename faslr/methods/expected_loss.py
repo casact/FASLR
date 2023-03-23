@@ -14,6 +14,7 @@ from faslr.common import (
 from faslr.grid_header import GridTableView
 
 from faslr.indexation import (
+    IndexInventory,
     IndexTableModel,
     IndexTableView
 )
@@ -244,6 +245,13 @@ class IndexSelector(QWidget):
         ]:
             self.layout.addWidget(widget)
 
+        self.premium_indexes.add_remove_btns.add_btn.pressed.connect(self.add_premium_index)
+
+        def add_premium_index() -> None:
+
+            index_inventory = IndexInventory()
+
+            index_inventory.show()
 
 
 
