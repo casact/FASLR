@@ -6,18 +6,15 @@ from faslr.indexation import (
     IndexInventoryView
 )
 
+from faslr.utilities import tort_index
+
 from PyQt6.QtWidgets import (
     QApplication
 )
 
-tort = {
-    'Name': ['Tort Reform'],
-    'Description': ['Tort reform']
-}
-
 app = QApplication(sys.argv)
 
-widget = IndexInventory(indexes = [tort])
+widget = IndexInventory(indexes = [tort_index])
 
 widget.show()
 

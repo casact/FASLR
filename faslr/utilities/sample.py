@@ -25,6 +25,10 @@ auto_bi_olep = [
     62000000
 ]
 
+tort_index = {
+    'Name': ['Tort Reform'],
+    'Description': ['Tort reform']
+}
 
 def load_sample(
         sample_name: str

@@ -13,7 +13,8 @@ from faslr.utilities.chainladder import (
 
 from faslr.utilities.sample import (
     auto_bi_olep,
-    load_sample
+    load_sample,
+    tort_index
 )
 
 
