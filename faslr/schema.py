@@ -397,6 +397,7 @@ class ProjectViewData(Base):
         Float
     )
 
+
 class IndexTable(Base):
     __tablename__ = 'index'
 
@@ -414,4 +415,37 @@ class IndexTable(Base):
                "description='%s'" \
                ")>" % (
                    self.description
+               )
+
+
+class IndexValuesTable(Base):
+    __tablename__ = 'index_values'
+
+    value_id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    index_id = Column(
+        Integer,
+        ForeignKey('index.index_id')
+    )
+
+    year = Column(
+        Integer
+    )
+
+    change = Column(
+        Float
+    )
+
+    def __repr__(self):
+        return "IndexValueTable(" \
+               "index_id='%s', " \
+               "year='%s', " \
+               "change='%s'" \
+               ")>" % (
+                   self.index_id,
+                   self.year,
+                   self.change
                )
