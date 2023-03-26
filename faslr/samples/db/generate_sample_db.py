@@ -11,6 +11,7 @@ from faslr.constants import SAMPLE_DB_NAME
 
 from faslr.schema import (
     CountryTable,
+    IndexTable,
     LocationTable,
     StateTable,
     LOBTable,
@@ -121,4 +122,8 @@ for record in data_list:
 session.add_all(obj_list)
 
 session.commit()
+
+
+
+
 session.close()
