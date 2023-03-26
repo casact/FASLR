@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import typing
-
-from collections import defaultdict
 
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
 )
+
+from faslr.common import FOKCancel
 
 from faslr.constants import IndexConstantRole
 
@@ -16,20 +18,20 @@ from faslr.style.triangle import (
     PERCENT_STYLE
 )
 
-from itertools import chain
-from operator import methodcaller
-
 from PyQt6.QtCore import (
     QModelIndex,
     QSize,
     Qt
 )
 
+from PyQt6.QtGui import QStandardItem
+
 from PyQt6.QtWidgets import (
     QAbstractButton,
-    QComboBox,
+    QAbstractItemView,
     QDialog,
     QDialogButtonBox,
+    QHeaderView,
     QFormLayout,
     QLabel,
     QLineEdit,
@@ -40,7 +42,13 @@ from PyQt6.QtWidgets import (
     QVBoxLayout
 )
 
-from typing import List
+from typing import (
+    List,
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from faslr.methods.expected_loss import IndexSelector
 
 
 class IndexTableModel(FAbstractTableModel):
@@ -168,7 +176,7 @@ class IndexPane(QWidget):
 
         self.setLayout(self.layout)
 
-        self.constant_btn.pressed.connect(self.set_constant)
+        self.constant_btn.pressed.connect(self.set_constant) # noqa
 
     def set_constant(self):
 
@@ -199,8 +207,8 @@ class IndexConstantDialog(QDialog):
         self.button_layout = self.ok_btn | self.cancel_btn
         self.button_box = QDialogButtonBox(self.button_layout)
 
-        self.button_box.accepted.connect(self.set_constant)
-        self.button_box.rejected.connect(self.close)
+        self.button_box.accepted.connect(self.set_constant) # noqa
+        self.button_box.rejected.connect(self.close) # noqa
 
         self.layout.addWidget(self.button_box)
 
@@ -210,20 +218,28 @@ class IndexConstantDialog(QDialog):
 
         index = QModelIndex()
         trend = float(self.trend_input.text())
-        self.parent.model.setData(index=index, value=trend, role=IndexConstantRole)
+
+        self.parent.model.setData(
+            index=index,
+            value=trend,
+            role=IndexConstantRole
+        )
 
         self.close()
 
 
-class IndexInventory(QWidget):
+class IndexInventory(QDialog):
     """
     Widget to display the index inventory.
     """
     def __init__(
             self,
-            indexes: List[dict]
+            indexes: List[dict],
+            parent: IndexSelector  = None
     ):
         super().__init__()
+
+        self.parent = parent
 
         self.indexes = indexes
 
@@ -235,16 +251,51 @@ class IndexInventory(QWidget):
 
         self.inventory_model = IndexInventoryModel(indexes=self.indexes)
 
-        self.inventory_view.setModel(self.inventory_model)
 
-        self.layout.addWidget(self.inventory_view)
+        self.inventory_view.setModel(self.inventory_model)
+        self.inventory_view.selectRow(0)
+
+        for column_index in [0, 1]:
+            self.inventory_view.horizontalHeader().setSectionResizeMode(
+                column_index,
+                QHeaderView.ResizeMode.ResizeToContents
+            )
+
+        self.button_box = FOKCancel()
+
+        for widget in [
+            self.inventory_view,
+            self.button_box
+        ]:
+            self.layout.addWidget(widget)
+
+        self.button_box.accepted.connect(self.add_indexes) # noqa
+        self.button_box.rejected.connect(self.close) # noqa
 
         self.setLayout(self.layout)
-        
+
+    def add_indexes(self) -> None:
+
+        if not self.parent:
+            self.close()
+
+        else:
+            selection = self.inventory_view.selectedIndexes()
+            idx_name = self.inventory_model.data(
+                index=selection[0], role=Qt.ItemDataRole.DisplayRole
+            )
+            idx_item = QStandardItem()
+            idx_item.setText(idx_name)
+            self.parent.premium_indexes.model.appendRow(idx_item)
+            self.close()
+
         
 class IndexInventoryView(FTableView):
     def __init__(self):
         super().__init__()
+
+        self.verticalHeader().hide()
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         
         
 class IndexInventoryModel(FAbstractTableModel):
@@ -254,13 +305,16 @@ class IndexInventoryModel(FAbstractTableModel):
     ):
         super().__init__()
 
-        self._data = pd.DataFrame(columns=[
+        idx_meta_columns = [
             'Name',
             'Description'
-        ])
+        ]
+
+        self._data = pd.DataFrame(columns=idx_meta_columns)
 
         for idx in indexes:
-            df_idx = pd.DataFrame(idx)
+            idx_dict = {k: idx[k] for k in idx_meta_columns}
+            df_idx = pd.DataFrame(idx_dict)
             self._data = pd.concat([self._data, df_idx])
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:

@@ -29,7 +29,9 @@ from faslr.utilities import (
     fetch_cdf,
     fetch_latest_diagonal,
     fetch_origin,
-    fetch_ultimate
+    fetch_ultimate,
+    ppa_loss_trend,
+    tort_index
 )
 
 from PyQt6.QtCore import (
@@ -37,9 +39,9 @@ from PyQt6.QtCore import (
     Qt
 )
 
+from PyQt6.QtGui import QStandardItemModel
+
 from PyQt6.QtWidgets import (
-    QDialog,
-    QGroupBox,
     QHBoxLayout,
     QLabel,
     QListView,
@@ -245,16 +247,25 @@ class IndexSelector(QWidget):
         ]:
             self.layout.addWidget(widget)
 
-        self.premium_indexes.add_remove_btns.add_btn.pressed.connect(self.add_premium_index)
+        self.premium_indexes.add_remove_btns.add_btn.clicked.connect(self.add_premium_index)
+        self.premium_indexes.add_remove_btns.add_btn.released.connect(self.test)
+        # self.loss_indexes.add_remove_btns.add_btn.pressed.connect(self.add_premium_index)
 
-        def add_premium_index() -> None:
+    def add_premium_index(self) -> None:
 
-            index_inventory = IndexInventory()
+        index_inventory = IndexInventory(
+            indexes=[
+                tort_index,
+                ppa_loss_trend],
+            parent=self
+        )
 
-            index_inventory.show()
+        index_inventory.exec()
 
+        # self.premium_indexes.add_remove_btns.add_btn.rele
+    def test(self) -> None:
 
-
+        print("asdf")
 class IndexListView(QWidget):
     def __init__(
             self,
@@ -300,9 +311,16 @@ class IndexListView(QWidget):
         )
 
         self.index_view = QListView()
+        self.model = IndexListModel()
+        self.index_view.setModel(self.model)
 
         for widget in [
             self.header,
             self.index_view
         ]:
             self.layout.addWidget(widget)
+
+
+class IndexListModel(QStandardItemModel):
+    def __init__(self):
+        super().__init__()
