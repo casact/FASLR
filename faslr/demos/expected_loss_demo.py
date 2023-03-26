@@ -29,7 +29,7 @@ paid_ult = cl.Chainladder().fit(paid_dev)
 test = table_from_tri(triangle=reported_ult)
 
 widget = ExpectedLossWidget(
-    triangles=[reported_ult, reported_dev]
+    triangles=[reported_ult, paid_ult]
 )
 
 widget.show()
