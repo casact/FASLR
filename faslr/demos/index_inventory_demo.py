@@ -1,12 +1,13 @@
 import sys
 
 from faslr.indexation import (
-    IndexInventory,
-    IndexInventoryModel,
-    IndexInventoryView
+    IndexInventory
 )
 
-from faslr.utilities import tort_index
+from faslr.utilities import (
+    ppa_loss_trend,
+    tort_index
+)
 
 from PyQt6.QtWidgets import (
     QApplication
@@ -14,7 +15,10 @@ from PyQt6.QtWidgets import (
 
 app = QApplication(sys.argv)
 
-widget = IndexInventory(indexes = [tort_index])
+widget = IndexInventory(indexes=[
+    ppa_loss_trend,
+    tort_index
+])
 
 widget.show()
 
