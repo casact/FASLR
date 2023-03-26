@@ -27,7 +27,49 @@ auto_bi_olep = [
 
 tort_index = {
     'Name': ['Tort Reform'],
-    'Description': ['Tort reform']
+    'Description': [
+        "Adjustments for private passenger law reforms."
+    ],
+    'Origin': [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008
+    ],
+    'Values': [
+        .67,
+        .67,
+        .67,
+        .67,
+        .75,
+        1,
+        1,
+        1,
+        1
+    ]
+}
+
+ppa_loss_trend = {
+    'Name': ['Private Passenger Auto'],
+    'Description': [
+        '14.5% trend for private passenger auto liability claims.'
+    ],
+    'Origin': [
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008
+    ],
+    'Values': [1.145 ** x for x in range(7, -1, -1)]
 }
 
 def load_sample(
