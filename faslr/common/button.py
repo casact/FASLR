@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import (
+    QDialogButtonBox,
     QHBoxLayout,
     QToolButton,
     QWidget
@@ -59,6 +60,14 @@ class AddRemoveButtonWidget(QWidget):
             self.remove_btn
         ]:
             self.layout.addWidget(btn)
+
+
+class FOKCancel(QDialogButtonBox):
+    def __init__(self):
+        super().__init__(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+
 
 
 def make_corner_button(
