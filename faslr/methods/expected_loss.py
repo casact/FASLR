@@ -42,6 +42,7 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import QStandardItemModel
 
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
     QHBoxLayout,
     QLabel,
     QListView,
@@ -198,7 +199,7 @@ class ExpectedLossIndex(QWidget):
         index_view_layout = QVBoxLayout()
         index_view_container.setLayout(index_view_layout)
 
-        self.index_model = IndexTableModel(years=origin)
+        self.index_model = IndexTableModel(years=None)
 
         self.index_view = IndexTableView()
         self.index_view.setModel(self.index_model)
@@ -247,9 +248,12 @@ class IndexSelector(QWidget):
         ]:
             self.layout.addWidget(widget)
 
+        self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
+
         self.premium_indexes.add_remove_btns.add_btn.clicked.connect(self.add_premium_index)
-        self.premium_indexes.add_remove_btns.add_btn.released.connect(self.test)
-        # self.loss_indexes.add_remove_btns.add_btn.pressed.connect(self.add_premium_index)
+        self.premium_indexes.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
+
+        self.premium_indexes.index_view.selectionModel().selectionChanged.connect(self.test)
 
     def add_premium_index(self) -> None:
 
@@ -262,10 +266,19 @@ class IndexSelector(QWidget):
 
         index_inventory.exec()
 
-        # self.premium_indexes.add_remove_btns.add_btn.rele
-    def test(self) -> None:
+    def remove_premium_index(self) -> None:
 
-        print("asdf")
+        selected_indexes = self.premium_indexes.index_view.selectedIndexes()
+
+        for idx in selected_indexes:
+            self.premium_indexes.model.removeRow(idx.row())
+
+        idx_count = self.premium_indexes.model.rowCount()
+
+        if idx_count == 0:
+            self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
+
+
 class IndexListView(QWidget):
     def __init__(
             self,
@@ -320,6 +333,7 @@ class IndexListView(QWidget):
         ]:
             self.layout.addWidget(widget)
 
+        self.index_view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
 class IndexListModel(QStandardItemModel):
     def __init__(self):
