@@ -67,6 +67,8 @@ class IndexTableModel(FAbstractTableModel):
                 data=data,
                 index=years
             )
+        else:
+            self._data = pd.DataFrame(columns=['Changes', 'Values'])
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
 
@@ -287,6 +289,10 @@ class IndexInventory(QDialog):
             idx_item = QStandardItem()
             idx_item.setText(idx_name)
             self.parent.premium_indexes.model.appendRow(idx_item)
+            self.parent.premium_indexes.add_remove_btns.remove_btn.setEnabled(True)
+
+            idx = self.parent.premium_indexes.model.indexFromItem(idx_item)
+            self.parent.premium_indexes.index_view.setCurrentIndex(idx)
             self.close()
 
         
