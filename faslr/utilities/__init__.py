@@ -11,6 +11,10 @@ from faslr.utilities.chainladder import (
     table_from_tri
 )
 
+from faslr.utilities.collections import (
+    subset_dict
+)
+
 from faslr.utilities.sample import (
     auto_bi_olep,
     load_sample,
