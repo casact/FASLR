@@ -64,14 +64,14 @@ class IndexTableModel(FAbstractTableModel):
         if years:
             n_years = len(years)
 
-            data = {'Changes': [np.nan for x in years], 'Values': [np.nan for x in years]}
+            data = {'Change': [np.nan for x in years], 'Factor': [np.nan for x in years]}
 
             self._data = pd.DataFrame(
                 data=data,
                 index=years
             )
         else:
-            self._data = pd.DataFrame(columns=['Changes', 'Values'])
+            self._data = pd.DataFrame(columns=['Change', 'Factor'])
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
 
@@ -83,7 +83,7 @@ class IndexTableModel(FAbstractTableModel):
             if np.isnan(value):
                 return ""
             else:
-                if col == "Values":
+                if col == "Factor":
                     value = RATIO_STYLE.format(value)
                 else:
                     value = PERCENT_STYLE.format(value)
@@ -109,11 +109,20 @@ class IndexTableModel(FAbstractTableModel):
         if role == IndexConstantRole:
             values = [(1 + value ) ** i for i in range(self.rowCount())]
             values.reverse()
-            self._data['Changes'] = value
-            self._data['Values'] = values
+            self._data['Change'] = value
+            self._data['Factor'] = values
             print(self._data)
 
+        elif role == Qt.ItemDataRole.EditRole:
+
+            value = calculate_index_factors(index=value)
+
+            self._data = value
+            self._data = self._data.set_index('Origin')
+
         self.layoutChanged.emit()
+
+        return True
 
 
 class IndexTableView(FTableView):
@@ -286,16 +295,22 @@ class IndexInventory(QDialog):
 
         else:
             selection = self.inventory_view.selectedIndexes()
-            idx_name = self.inventory_model.data(
-                index=selection[0], role=Qt.ItemDataRole.DisplayRole
-            )
-            idx_item = QStandardItem()
-            idx_item.setText(idx_name)
-            self.parent.premium_indexes.model.appendRow(idx_item)
-            self.parent.premium_indexes.add_remove_btns.remove_btn.setEnabled(True)
 
-            idx = self.parent.premium_indexes.model.indexFromItem(idx_item)
-            self.parent.premium_indexes.index_view.setCurrentIndex(idx)
+            for selected_idx in selection:
+                # Only want to execute on first column, the index name.
+                if selected_idx.column() == 1:
+                    continue
+
+                idx_name = self.inventory_model.data(
+                    index=selected_idx, role=Qt.ItemDataRole.DisplayRole
+                )
+                idx_item = QStandardItem()
+                idx_item.setText(idx_name)
+                self.parent.premium_indexes.model.appendRow(idx_item)
+                self.parent.premium_indexes.add_remove_btns.remove_btn.setEnabled(True)
+
+                idx = self.parent.premium_indexes.model.indexFromItem(idx_item)
+                self.parent.premium_indexes.index_view.setCurrentIndex(idx)
             self.close()
 
         
