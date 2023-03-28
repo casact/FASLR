@@ -18,6 +18,8 @@ from faslr.style.triangle import (
     PERCENT_STYLE
 )
 
+from faslr.utilities import subset_dict
+
 from PyQt6.QtCore import (
     QModelIndex,
     QSize,
@@ -49,6 +51,7 @@ from typing import (
 
 if TYPE_CHECKING:
     from faslr.methods.expected_loss import IndexSelector
+    from pandas import DataFrame
 
 
 class IndexTableModel(FAbstractTableModel):
@@ -319,7 +322,10 @@ class IndexInventoryModel(FAbstractTableModel):
         self._data = pd.DataFrame(columns=idx_meta_columns)
 
         for idx in indexes:
-            idx_dict = {k: idx[k] for k in idx_meta_columns}
+            idx_dict = subset_dict(
+                input_dict=idx,
+                keys=idx_meta_columns
+            )
             df_idx = pd.DataFrame(idx_dict)
             self._data = pd.concat([self._data, df_idx])
 
@@ -344,3 +350,19 @@ class IndexInventoryModel(FAbstractTableModel):
 
             if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
+
+
+def calculate_index_factors(index: DataFrame) -> DataFrame:
+
+    # index['Factor'] = 1
+
+    row_count = len(index)
+    factors = [1 for x in range(row_count)]
+    for i in range(row_count - 1, -1, -1):
+        if i == row_count - 1:
+            pass
+        else:
+            factors[i] = factors[i + 1] * (1 + index['Change'].iloc[i + 1])
+    index['Factor'] = factors
+
+    return index
