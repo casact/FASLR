@@ -31,6 +31,7 @@ from faslr.utilities import (
     fetch_origin,
     fetch_ultimate,
     ppa_loss_trend,
+    subset_dict,
     tort_index
 )
 
@@ -253,7 +254,7 @@ class IndexSelector(QWidget):
         self.premium_indexes.add_remove_btns.add_btn.clicked.connect(self.add_premium_index)
         self.premium_indexes.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
 
-        self.premium_indexes.index_view.selectionModel().selectionChanged.connect(self.test)
+        self.premium_indexes.index_view.selectionModel().selectionChanged.connect(self.display_index)
 
     def add_premium_index(self) -> None:
 
@@ -275,8 +276,49 @@ class IndexSelector(QWidget):
 
         idx_count = self.premium_indexes.model.rowCount()
 
+        # If there are no more indexes,
         if idx_count == 0:
+
+            # Remove values from index preview.
+            empty_idx = pd.DataFrame(columns=['Origin', 'Change', 'Factor'])
+            self.parent.index_model.setData(
+                index=QModelIndex(),
+                role=Qt.ItemDataRole.EditRole,
+                value=empty_idx
+            )
+
+            # Disable index removal button.
             self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
+
+    def display_index(self) -> None:
+
+        selected_indexes = self.premium_indexes.index_view.selectedIndexes()
+
+
+        if not selected_indexes:
+            # If user clicks on whitespace below list, do nothing.
+            if self.premium_indexes.model.rowCount() != 0:
+                return
+
+        # Find index and load as DataFrame
+        for index in [tort_index, ppa_loss_trend]:
+
+            if selected_indexes[0].data() == index['Name'][0]:
+
+                idx_dict = subset_dict(
+                    input_dict=index,
+                    keys=['Origin', 'Change']
+                )
+
+                df_idx = pd.DataFrame(idx_dict)
+
+                break
+
+        model_idx = QModelIndex()
+        self.parent.index_model.setData(
+            index=model_idx,
+            role=Qt.ItemDataRole.EditRole, value=df_idx
+        )
 
 
 class IndexListView(QWidget):
