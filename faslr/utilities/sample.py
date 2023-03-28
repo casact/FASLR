@@ -41,12 +41,12 @@ tort_index = {
         2007,
         2008
     ],
-    'Changes': [
+    'Change': [
         0,
         0,
         0,
         0,
-        -.106666666667,
+        - (1 - .67 / .75),
         -.25,
         0,
         0,
@@ -69,7 +69,7 @@ ppa_loss_trend = {
         2007,
         2008
     ],
-    'Changes': [.145 for x in range(8)]
+    'Change': [.145 for x in range(8)]
 }
 
 def load_sample(
