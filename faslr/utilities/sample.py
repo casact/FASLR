@@ -60,6 +60,7 @@ ppa_loss_trend = {
         '14.5% trend for private passenger auto liability claims.'
     ],
     'Origin': [
+        2000,
         2001,
         2002,
         2003,
@@ -69,7 +70,7 @@ ppa_loss_trend = {
         2007,
         2008
     ],
-    'Change': [.145 for x in range(8)]
+    'Change': [.145 for x in range(9)]
 }
 
 def load_sample(
