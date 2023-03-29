@@ -251,21 +251,17 @@ class IndexSelector(QWidget):
 
         self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
 
-        self.premium_indexes.add_remove_btns.add_btn.clicked.connect(self.add_premium_index)
         self.premium_indexes.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
 
-        self.premium_indexes.index_view.selectionModel().selectionChanged.connect(self.display_index)
+        self.loss_indexes.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
 
-    def add_premium_index(self) -> None:
-
-        index_inventory = IndexInventory(
-            indexes=[
-                tort_index,
-                ppa_loss_trend],
-            parent=self
+        self.premium_indexes.index_view.selectionModel().selectionChanged.connect(
+            lambda selected, deselected, loss_prem='premium': self.display_index(loss_prem)
         )
 
-        index_inventory.exec()
+        self.loss_indexes.index_view.selectionModel().selectionChanged.connect(
+            lambda selected, deselected, loss_prem='loss': self.display_index(loss_prem)
+        )
 
     def remove_premium_index(self) -> None:
 
@@ -290,14 +286,28 @@ class IndexSelector(QWidget):
             # Disable index removal button.
             self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
 
-    def display_index(self) -> None:
+    def display_index(
+            self,
+            loss_prem: str
+    ) -> None:
 
-        selected_indexes = self.premium_indexes.index_view.selectedIndexes()
+        print(loss_prem)
+
+        if loss_prem == "premium":
+            index_box = self.premium_indexes
+        elif loss_prem == "loss":
+            index_box = self.loss_indexes
+        else:
+            raise ValueError(
+                "Invalid loss_prem entered. Valid values are 'loss' or 'premium'."
+            )
+
+        selected_indexes = index_box.index_view.selectedIndexes()
 
 
         if not selected_indexes:
             # If user clicks on whitespace below list, do nothing.
-            if self.premium_indexes.model.rowCount() != 0:
+            if index_box.model.rowCount() != 0:
                 return
 
         # Find index and load as DataFrame
@@ -327,7 +337,7 @@ class IndexListView(QWidget):
             parent: IndexSelector = None,
             label: str = None,
             p_tool_tip: str = None,
-            m_tool_tip: str = None
+            m_tool_tip: str = None,
     ):
         super().__init__()
 
@@ -376,6 +386,19 @@ class IndexListView(QWidget):
             self.layout.addWidget(widget)
 
         self.index_view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
+        self.add_remove_btns.add_btn.clicked.connect(self.add_index)
+
+    def add_index(self) -> None:
+
+        index_inventory = IndexInventory(
+            indexes=[
+                tort_index,
+                ppa_loss_trend],
+            parent=self
+        )
+
+        index_inventory.exec()
 
 class IndexListModel(QStandardItemModel):
     def __init__(self):
