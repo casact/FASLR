@@ -251,10 +251,6 @@ class IndexSelector(QWidget):
 
         self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
 
-        self.premium_indexes.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
-
-        self.loss_indexes.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
-
         self.premium_indexes.index_view.selectionModel().selectionChanged.connect(
             lambda selected, deselected, loss_prem='premium': self.display_index(loss_prem)
         )
@@ -262,29 +258,6 @@ class IndexSelector(QWidget):
         self.loss_indexes.index_view.selectionModel().selectionChanged.connect(
             lambda selected, deselected, loss_prem='loss': self.display_index(loss_prem)
         )
-
-    def remove_premium_index(self) -> None:
-
-        selected_indexes = self.premium_indexes.index_view.selectedIndexes()
-
-        for idx in selected_indexes:
-            self.premium_indexes.model.removeRow(idx.row())
-
-        idx_count = self.premium_indexes.model.rowCount()
-
-        # If there are no more indexes,
-        if idx_count == 0:
-
-            # Remove values from index preview.
-            empty_idx = pd.DataFrame(columns=['Origin', 'Change', 'Factor'])
-            self.parent.index_model.setData(
-                index=QModelIndex(),
-                role=Qt.ItemDataRole.EditRole,
-                value=empty_idx
-            )
-
-            # Disable index removal button.
-            self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
 
     def display_index(
             self,
@@ -388,6 +361,7 @@ class IndexListView(QWidget):
         self.index_view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         self.add_remove_btns.add_btn.clicked.connect(self.add_index)
+        self.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
 
     def add_index(self) -> None:
 
@@ -399,6 +373,29 @@ class IndexListView(QWidget):
         )
 
         index_inventory.exec()
+
+    def remove_premium_index(self) -> None:
+
+        selected_indexes = self.index_view.selectedIndexes()
+
+        for idx in selected_indexes:
+            self.model.removeRow(idx.row())
+
+        idx_count = self.model.rowCount()
+
+        # If there are no more indexes,
+        if idx_count == 0:
+
+            # Remove values from index preview.
+            empty_idx = pd.DataFrame(columns=['Origin', 'Change', 'Factor'])
+            self.parent.parent.index_model.setData(
+                index=QModelIndex(),
+                role=Qt.ItemDataRole.EditRole,
+                value=empty_idx
+            )
+
+            # Disable index removal button.
+            self.add_remove_btns.remove_btn.setEnabled(False)
 
 class IndexListModel(QStandardItemModel):
     def __init__(self):
