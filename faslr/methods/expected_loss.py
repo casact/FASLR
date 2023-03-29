@@ -249,8 +249,6 @@ class IndexSelector(QWidget):
         ]:
             self.layout.addWidget(widget)
 
-        self.premium_indexes.add_remove_btns.remove_btn.setEnabled(False)
-
         self.premium_indexes.index_view.selectionModel().selectionChanged.connect(
             lambda selected, deselected, loss_prem='premium': self.display_index(loss_prem)
         )
@@ -359,6 +357,7 @@ class IndexListView(QWidget):
             self.layout.addWidget(widget)
 
         self.index_view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.add_remove_btns.remove_btn.setEnabled(False)
 
         self.add_remove_btns.add_btn.clicked.connect(self.add_index)
         self.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
