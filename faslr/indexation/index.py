@@ -50,7 +50,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from faslr.methods.expected_loss import IndexSelector
+    from faslr.methods.expected_loss import IndexListView
     from pandas import DataFrame
 
 
@@ -249,7 +249,7 @@ class IndexInventory(QDialog):
     def __init__(
             self,
             indexes: List[dict],
-            parent: IndexSelector  = None
+            parent: IndexListView  = None
     ):
         super().__init__()
 
@@ -306,11 +306,11 @@ class IndexInventory(QDialog):
                 )
                 idx_item = QStandardItem()
                 idx_item.setText(idx_name)
-                self.parent.premium_indexes.model.appendRow(idx_item)
-                self.parent.premium_indexes.add_remove_btns.remove_btn.setEnabled(True)
+                self.parent.model.appendRow(idx_item)
+                self.parent.add_remove_btns.remove_btn.setEnabled(True)
 
-                idx = self.parent.premium_indexes.model.indexFromItem(idx_item)
-                self.parent.premium_indexes.index_view.setCurrentIndex(idx)
+                idx = self.parent.model.indexFromItem(idx_item)
+                self.parent.index_view.setCurrentIndex(idx)
             self.close()
 
         
