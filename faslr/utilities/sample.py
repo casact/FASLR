@@ -55,7 +55,7 @@ tort_index = {
 }
 
 ppa_loss_trend = {
-    'Name': ['Private Passenger Auto'],
+    'Name': ['PPA Loss Trend'],
     'Description': [
         '14.5% trend for private passenger auto liability claims.'
     ],
@@ -71,6 +71,25 @@ ppa_loss_trend = {
         2008
     ],
     'Change': [.145 for x in range(9)]
+}
+
+ppa_premium_trend = {
+    'Name': ['PPA Premium Trend'],
+    'Description': [
+        '5% premium trend for private passenger auto liability'
+    ],
+    'Origin': [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008
+    ],
+    'Change': [.05 for x in range(9)]
 }
 
 def load_sample(

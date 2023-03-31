@@ -19,7 +19,8 @@ from faslr.utilities.sample import (
     auto_bi_olep,
     load_sample,
     tort_index,
-    ppa_loss_trend
+    ppa_loss_trend,
+    ppa_premium_trend
 )
 
 
