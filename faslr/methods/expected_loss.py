@@ -31,6 +31,7 @@ from faslr.utilities import (
     fetch_origin,
     fetch_ultimate,
     ppa_loss_trend,
+    ppa_premium_trend,
     subset_dict,
     tort_index
 )
@@ -60,6 +61,12 @@ from typing import (
 
 if TYPE_CHECKING:
     from chainladder import Chainladder
+
+sample_indexes = {
+    tort_index['Name'][0]: tort_index,
+    ppa_loss_trend['Name'][0]: ppa_loss_trend,
+    ppa_premium_trend['Name'][0]: ppa_premium_trend
+}
 
 class ExpectedLossModel(FAbstractTableModel):
     def __init__(
@@ -149,7 +156,7 @@ class ExpectedLossWidget(QWidget):
         self.selection_tab = QWidget()
 
         self.main_tabs.addTab(self.indexation, "Indexation")
-        self.main_tabs.addTab(self.selection_tab, "Model")
+        self.main_tabs.addTab(self.selection_tab, "Apriori Selection")
 
         self.selection_view = ExpectedLossView()
         self.selection_model = ExpectedLossModel(triangles=triangles)
@@ -166,10 +173,118 @@ class ExpectedLossWidget(QWidget):
             column_span_count=1
         )
 
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=1,
+            row_span_count=0,
+            column_span_count=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=3,
+            row_span_count=0,
+            column_span_count=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=5,
+            row_span_count=0,
+            column_span_count=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=7,
+            row_span_count=2,
+            column_span_count=0
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=8,
+            row_span_count=2,
+            column_span_count=0
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=9,
+            row_span_count=2,
+            column_span_count=0
+        )
+
         self.selection_view.hheader.setCellLabel(
             row=0,
             column=0,
             label="Accident\nYear"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=0,
+            column=1,
+            label="Claims at 12/31/08\n"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=1,
+            column=1,
+            label="Reported"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=1,
+            column=2,
+            label="Paid"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=0,
+            column=3,
+            label="CDF to Ultimate"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=1,
+            column=3,
+            label="Reported"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=1,
+            column=4,
+            label="Paid"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=0,
+            column=5,
+            label="Projected Ultimate Claims"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=1,
+            column=5,
+            label="Reported"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=1,
+            column=6,
+            label="Paid"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=0,
+            column=7,
+            label="Initial Selected\nUltimate Claims"
+        )
+
+        self.selection_view.hheader.setCellLabel(
+            row=0,
+            column=8,
+            label="On-Level\nEarned Premium"
         )
 
         ly_selection_tab = QVBoxLayout()
@@ -249,56 +364,33 @@ class IndexSelector(QWidget):
         ]:
             self.layout.addWidget(widget)
 
-        self.premium_indexes.index_view.selectionModel().selectionChanged.connect(
-            lambda selected, deselected, loss_prem='premium': self.display_index(loss_prem)
-        )
-
-        self.loss_indexes.index_view.selectionModel().selectionChanged.connect(
-            lambda selected, deselected, loss_prem='loss': self.display_index(loss_prem)
-        )
-
     def display_index(
             self,
-            loss_prem: str
+            index_list_view: IndexListView
     ) -> None:
 
-        print(loss_prem)
-
-        if loss_prem == "premium":
-            index_box = self.premium_indexes
-        elif loss_prem == "loss":
-            index_box = self.loss_indexes
-        else:
-            raise ValueError(
-                "Invalid loss_prem entered. Valid values are 'loss' or 'premium'."
-            )
-
-        selected_indexes = index_box.index_view.selectedIndexes()
+        selected_indexes = index_list_view.index_view.selectedIndexes()
 
 
         if not selected_indexes:
             # If user clicks on whitespace below list, do nothing.
-            if index_box.model.rowCount() != 0:
+            if index_list_view.model.rowCount() != 0:
                 return
 
-        # Find index and load as DataFrame
-        for index in [tort_index, ppa_loss_trend]:
+        index = sample_indexes[selected_indexes[0].data()]
 
-            if selected_indexes[0].data() == index['Name'][0]:
+        idx_dict = subset_dict(
+            input_dict=index,
+            keys=['Origin', 'Change']
+        )
 
-                idx_dict = subset_dict(
-                    input_dict=index,
-                    keys=['Origin', 'Change']
-                )
-
-                df_idx = pd.DataFrame(idx_dict)
-
-                break
+        df_idx = pd.DataFrame(idx_dict)
 
         model_idx = QModelIndex()
         self.parent.index_model.setData(
             index=model_idx,
-            role=Qt.ItemDataRole.EditRole, value=df_idx
+            role=Qt.ItemDataRole.EditRole,
+            value=df_idx
         )
 
 
@@ -362,12 +454,22 @@ class IndexListView(QWidget):
         self.add_remove_btns.add_btn.clicked.connect(self.add_index)
         self.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
 
+        self.index_view.selectionModel().selectionChanged.connect(
+            lambda selected, deselected, selection_model=self: self.parent.display_index(selection_model)
+        )
+
+        self.index_view.clicked.connect(
+            lambda index, selection_model=self: self.parent.display_index(selection_model)
+        )
+
     def add_index(self) -> None:
 
         index_inventory = IndexInventory(
             indexes=[
                 tort_index,
-                ppa_loss_trend],
+                ppa_loss_trend,
+                ppa_premium_trend
+            ],
             parent=self
         )
 
