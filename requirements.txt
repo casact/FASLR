@@ -1,6 +1,5 @@
 # Python 3.10.6
 
-bs4 == 0.0.1
 chainladder == 0.8.14
 GitPython == 3.1.31
 ipython == 8.11.0
