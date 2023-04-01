@@ -14,6 +14,7 @@ from faslr.common import (
 from faslr.grid_header import GridTableView
 
 from faslr.indexation import (
+    calculate_index_factors,
     IndexInventory,
     IndexTableModel,
     IndexTableView
@@ -125,14 +126,50 @@ class ExpectedLossModel(FAbstractTableModel):
                 display_value = RATIO_STYLE.format(value)
 
             else:
+                print(str(value))
                 display_value = str(value)
 
             return display_value
+
+    def insertColumn(
+            self,
+            column: int,
+            parent: QModelIndex = ...
+    ) -> bool:
+        """
+        Adds a column to the model. This is triggered when the user adds a column to the ._data DataFrame.
+        """
+        idx = QModelIndex()
+
+        new_column = self.columnCount()
+
+        self.beginInsertColumns(
+            idx,
+            new_column,
+            new_column
+        )
+
+        self.endInsertColumns()
+        self.layoutChanged.emit() # noqa
+
+        return True
+
+    def setData(self, index: QModelIndex, value: Any, role: int = ...) -> bool:
+
+        if role == Qt.ItemDataRole.EditRole:
+
+            self._data['factor'] = list(value)
+
+            self.layoutChanged.emit()
+
+        return True
 
 
 class ExpectedLossView(GridTableView):
     def __int__(self):
         super().__init__()
+
+    # def insert_column(self):
 
 
 class ExpectedLossWidget(QWidget):
@@ -348,14 +385,16 @@ class IndexSelector(QWidget):
             parent=self,
             label="Premium Indexes",
             p_tool_tip='Add premium index.',
-            m_tool_tip='Remove premium index.'
+            m_tool_tip='Remove premium index.',
+            prem_loss="premium"
         )
 
         self.loss_indexes = IndexListView(
             parent=self,
             label="Loss Indexes",
             p_tool_tip='Add loss index.',
-            m_tool_tip='Remove loss index.'
+            m_tool_tip='Remove loss index.',
+            prem_loss="loss"
         )
 
         for widget in [
@@ -401,10 +440,12 @@ class IndexListView(QWidget):
             label: str = None,
             p_tool_tip: str = None,
             m_tool_tip: str = None,
+            prem_loss: str = None
     ):
         super().__init__()
 
         self.parent = parent
+        self.prem_loss = prem_loss
 
         self.label = QLabel(label)
 
@@ -464,6 +505,8 @@ class IndexListView(QWidget):
 
     def add_index(self) -> None:
 
+        current_count = self.model.rowCount()
+
         index_inventory = IndexInventory(
             indexes=[
                 tort_index,
@@ -474,6 +517,50 @@ class IndexListView(QWidget):
         )
 
         index_inventory.exec()
+
+        new_count = self.model.rowCount()
+
+        if new_count > current_count:
+
+            idx_name = self.index_view.model().data(
+                self.index_view.selectedIndexes()[0],
+                role=Qt.ItemDataRole.DisplayRole
+            )
+
+            idx_dict = sample_indexes[idx_name]
+
+            idx_dict = subset_dict(
+                input_dict=idx_dict,
+                keys=['Origin', 'Change']
+            )
+
+            idx_df = pd.DataFrame(idx_dict)
+
+            idx_df = calculate_index_factors(index=idx_df)
+
+            self.parent.parent.parent.selection_model.setData(
+                index=QModelIndex(),
+                value=idx_df['Factor'],
+                role=Qt.ItemDataRole.EditRole
+            )
+
+            column_position = self.parent.parent.parent.selection_model.columnCount()
+
+            self.parent.parent.parent.selection_model.insertColumn(column_position+1)
+            self.parent.parent.parent.selection_model.layoutChanged.emit()
+            self.parent.parent.parent.selection_view.hheader.model().insertColumn(column_position + 1)
+
+            if self.prem_loss == "premium":
+                header_prefix = "Premium Index:\n"
+            else:
+                header_prefix = "Loss Index:\n"
+            self.parent.parent.parent.selection_view.hheader.setCellLabel(
+                row=0,
+                column=9,
+                label=header_prefix + idx_name
+            )
+
+
 
     def remove_premium_index(self) -> None:
 
