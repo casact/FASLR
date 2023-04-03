@@ -262,6 +262,11 @@ class ProjectTable(Base):
         back_populates="project"
     )
 
+    index = relationship(
+        "IndexViewTable",
+        back_populates='project'
+    )
+
     def __repr__(self):
         return "ProjectTable(" \
                "user_id='%s', " \
@@ -410,12 +415,30 @@ class IndexTable(Base):
         String
     )
 
+    scope = Column(
+        String # should be 'project' or 'global'
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey('project.project_id')
+    )
+
+    project = relationship(
+        'ProjectTable',
+        back_populates='index'
+    )
+
     def __repr__(self):
         return "IndexTable(" \
-               "description='%s'" \
-               ")>" % (
-                   self.description
-               )
+            "description='%s', " \
+            "scope='%s', " \
+            "project_id='%s'" \
+            ")>" % (
+               self.description,
+               self.scope,
+               self.project_id
+            )
 
 
 class IndexValuesTable(Base):
