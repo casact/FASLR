@@ -4,7 +4,6 @@ import pandas as pd
 
 from faslr.base_table import (
     FAbstractTableModel,
-    FTableView
 )
 
 from faslr.common import (
@@ -495,11 +494,11 @@ class IndexListView(QWidget):
         self.add_remove_btns.add_btn.clicked.connect(self.add_index)
         self.add_remove_btns.remove_btn.clicked.connect(self.remove_premium_index)
 
-        self.index_view.selectionModel().selectionChanged.connect(
+        self.index_view.selectionModel().selectionChanged.connect( # noqa
             lambda selected, deselected, selection_model=self: self.parent.display_index(selection_model)
         )
 
-        self.index_view.clicked.connect(
+        self.index_view.clicked.connect( # noqa
             lambda index, selection_model=self: self.parent.display_index(selection_model)
         )
 
