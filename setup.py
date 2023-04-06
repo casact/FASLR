@@ -10,7 +10,7 @@ def get_property(
 
     result = re.search(
         r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop),
-        open(project + '/__init__.py').read())
+        open(project + '/_version.py').read())
 
     return result.group(1)
 

@@ -3,7 +3,7 @@ import os
 from os.path import dirname
 from PyQt6.QtWidgets import QFileDialog
 
-from faslr import __version__
+from faslr._version import __version__
 
 
 BUILD_VERSION = __version__

@@ -9,4 +9,7 @@
 #     AnalysisTab
 # )
 
-__version__ = '0.0.6'
+from faslr.project import (
+    ProjectDialog,
+    ProjectTreeView
+)
