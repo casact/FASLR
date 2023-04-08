@@ -15,7 +15,7 @@ jobs:
       with:
         python-version: '3.10'
     - name: Install ubuntu packages
-      run: sudo apt-get update && apt-get install libegl1 -y
+      run: sudo apt-get update && sudo apt-get install libegl1 -y
     - name: Install requirements
       run: pip install -r requirements.txt
     - name: Run tests and collect coverage
