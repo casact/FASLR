@@ -23,8 +23,8 @@ jobs:
       run: pytest --cov=./ --cov-report=xml
     #- name: Upload coverage reports to Codecov with GitHub Action
     #  uses: codecov/codecov-action@v3
-    - name: Get Cover
-      uses: orgoro/coverage@v3
-      with:
-        coverageFile: path/to/coverage.xml
-        token: ${{ secrets.PYTEST_TOKEN }}
+#    - name: Get Cover
+#      uses: orgoro/coverage@v3
+#      with:
+#        coverageFile: path/to/coverage.xml
+#        token: ${{ secrets.PYTEST_TOKEN }}
