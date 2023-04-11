@@ -209,12 +209,19 @@ class MainWindow(QMainWindow):
             self,
             event: QEvent
     ) -> None:
+        """
+        Close the main window.
+
+        :param event:
+        :return:
+        """
         logging.info("Main window closed.")
 
         event.accept()  # let the window close
 
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
 
     window = MainWindow()
