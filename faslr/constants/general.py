@@ -13,9 +13,10 @@ if "PYCHARM_HOSTED" in os.environ:
 else:
     QT_FILEPATH_OPTION = QFileDialog.Option.ShowDirsOnly
 
-
+# Path of the faslr repo
 ROOT_PATH = dirname(dirname(os.path.realpath(__file__)))
 
+# Path of the configuration file
 CONFIG_PATH = os.path.join(ROOT_PATH, 'faslr.ini')
 
 TEMPLATES_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'templates')
