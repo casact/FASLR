@@ -1,9 +1,9 @@
 import git
 import os
-from os.path import dirname
-from PyQt6.QtWidgets import QFileDialog
 
 from faslr._version import __version__
+from os.path import dirname
+from PyQt6.QtWidgets import QFileDialog
 
 
 BUILD_VERSION = __version__
@@ -19,10 +19,13 @@ ROOT_PATH = dirname(dirname(os.path.realpath(__file__)))
 # Path of the configuration file
 CONFIG_PATH = os.path.join(ROOT_PATH, 'faslr.ini')
 
+# Path for template files, i.e., the generic configuration file
 TEMPLATES_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'templates')
 
+# Path for icons
 ICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/')
 
+# URL of the documentation website
 DOCUMENTATION_URL = 'https://faslr.com'
 
 GITHUB_URL = 'https://github.com/casact/faslr'
@@ -31,7 +34,10 @@ DISCUSSIONS_URL = 'https://github.com/casact/FASLR/discussions'
 
 ISSUES_URL = 'https://github.com/casact/FASLR/issues'
 
-OCTICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/octicons/')
+OCTICONS_PATH = os.path.join(
+    dirname(dirname(os.path.realpath(__file__))),
+    'style/icons/octicons/'
+)
 
 
 repo = git.Repo(search_parent_directories=True)
