@@ -1,0 +1,1 @@
+from faslr.tests.constants import (ASSET_PATH)
