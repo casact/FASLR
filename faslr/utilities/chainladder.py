@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from chainladder import Chainladder
     from pandas import DataFrame
 
