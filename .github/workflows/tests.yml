@@ -24,6 +24,8 @@ jobs:
         /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
     - name: Install requirements
       run: pip install -r requirements.txt
+    - name: Reinstall opencv
+      run: pip uninstall opencv-python && pip install opencv-python-headless
     - name: Run tests and collect coverage
       # run: pytest --cov=./ --cov-report=xml
       run: pytest -s
