@@ -27,8 +27,7 @@ jobs:
     - name: Reinstall opencv
       run: pip uninstall opencv-python && pip install opencv-python-headless
     - name: Run tests and collect coverage
-      # run: pytest --cov=./ --cov-report=xml
-      run: pytest -s
+      run: pytest --cov=./ --cov-report=xml
     #- name: Upload coverage reports to Codecov with GitHub Action
     #  uses: codecov/codecov-action@v3
 #    - name: Get Cover
