@@ -9,6 +9,8 @@ jobs:
     defaults:
       run:
         working-directory: .
+    env:
+      DISPLAY: ':99.0'
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v2
@@ -16,6 +18,10 @@ jobs:
         python-version: '3.10'
     - name: Install ubuntu packages
       run: sudo apt-get update && sudo apt-get install libegl1 -y
+    - name: Install package for pytest-qt
+      run: |
+        sudo apt install libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 x11-utils
+        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
     - name: Install requirements
       run: pip install -r requirements.txt
     - name: Run tests and collect coverage
