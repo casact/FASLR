@@ -36,6 +36,8 @@ class AboutDialog(QDialog):
 
         self.setWindowTitle("About")
 
+        self.parent = parent
+
         faslr_version = "FASLR v" + BUILD_VERSION
 
         faslr_version_link = '<a href="https://github.com/casact/faslr" ' \
