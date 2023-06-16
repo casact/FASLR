@@ -41,14 +41,14 @@ Once the packages have been installed, you can run FASLR by executing the `main.
 
 .. code-block:: shell
 
-   python -m faslr.main
+   python -m faslr
 
 Alternatively, if you have a virtual environment set up:
 
 .. code-block:: shell
 
    source venv/bin/activate
-   python -m faslr.main
+   python -m faslr
 
 ===========
 Demo files

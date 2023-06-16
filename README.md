@@ -33,7 +33,7 @@ You can evaluate the working version of FASLR by executing the [main.py](https:/
 
 ```shell
 cd FASLR
-python -m faslr.main
+python -m faslr
 ```
 
 Alternatively, if you have a virtual environment set up:
@@ -41,7 +41,7 @@ Alternatively, if you have a virtual environment set up:
 ```shell
 cd FASLR
 source venv/bin/activate
-python -m faslr.main
+python -m faslr
 ```
 
 To learn more about the current structure of the repository, read [ARCHITECTURE.md](https://github.com/casact/FASLR/blob/main/ARCHITECTURE.md).
