@@ -100,14 +100,15 @@ class TriangleModel(FAbstractTableModel):
 
             return LOWER_DIAG_COLOR
 
-        if (role == Qt.ItemDataRole.FontRole) and (self.value_type == "ratio"):
-            font = QFont()
-            exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
-            if exclude:
-                font.setStrikeOut(True)
-            else:
-                font.setStrikeOut(False)
-            return font
+        # if (role == Qt.ItemDataRole.FontRole) and (self.value_type == "ratio"):
+        #
+        #     font = QFont()
+        #     exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
+        #     if exclude:
+        #         font.setStrikeOut(True)
+        #     else:
+        #         font.setStrikeOut(False)
+        #     return font
 
     def headerData(
             self,
@@ -182,6 +183,9 @@ class TriangleView(FTableView):
         :param: event
         :return:
         """
+
+        print(event)
+
         menu = QMenu()
         menu.addAction(self.copy_action)
         menu.exec(event.globalPos())
