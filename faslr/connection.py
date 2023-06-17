@@ -42,7 +42,8 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.engine.base import Connection
 
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
+
+if TYPE_CHECKING: # pragma: no cover
     from faslr.__main__ import MainWindow
     from faslr.menu import MainMenuBar
 
@@ -281,6 +282,7 @@ class FaslrConnection:
             'sqlite:///' + db_path,
             echo=True
         )
+        self.raw_connection = self.engine.raw_connection()
 
         self.session = sessionmaker(bind=self.engine)()
         self.connection = self.engine.connect()
