@@ -19,11 +19,11 @@ def get_cell_scalar(
 def get_column(
         triangle: Triangle,
         column: str,
-        lob: str
+        lob: [str, None]
 ) -> Triangle:
 
     if lob is None:
         triangle_column = triangle[column]
     else:
-        triangle_column = triangle[triangle['lob'] == lob][column]
+        triangle_column = triangle[triangle['LOB'] == lob][column]
     return triangle_column
