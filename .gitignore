@@ -2,7 +2,9 @@ sql_test.py
 faslr.ini
 scratch*.py
 .idea/
-*.log
+*.coverage
 *.db
+*.log
+coverage.xml
 docs/_build/
 debian/files
