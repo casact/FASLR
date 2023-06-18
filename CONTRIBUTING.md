@@ -30,9 +30,35 @@ I would recommend using PyCharm since it enforces PEP8 and comes with many other
 
 If your IDE has the ability to mark the directory [FASLR/faslr](https://github.com/casact/FASLR/tree/main/faslr) as the Namespace Package, please do so.
 
+## Commit Guide
+
+Commit messages should be prefixed with a semantic tag followed by a brief summary of the commit's purpose. If necessary, you may add paragraphs to describe what you are doing. Below is a list of prefixes loosely based off of [this guide](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716):
+
+- `FEAT`: A new feature for the user.
+- `FIX`: Bug fixes.
+- `DOCS`: Changes to the documentation.
+- `STYLE`: Formatting, missing semi colons, etc; no production code change.
+- `REFACTOR`: Refactoring production code, e.g. renaming a variable.
+- `TEST`: Making changes to the test suite, no production code change.
+- `CHORE`: Updating grunt tasks etc.; no production code change.
+- `DEPR`: Deprecation of existing features.
+
+The semantic tag should be capitalized, followed by a colon. The portion that follows after that should begin with a capital letter and end with a period. For example:
+
+```
+FEAT: Add a label to describe triangle metadata. 
+^--^  ^----------------------------------------^
+|     |
+|     +-> Summary.
+|
++-------> Type: chore, docs, feat, fix, refactor, style, or test.
+```
+
 ## Unit Testing
 
-The unit tests for the project can be found in [FASLR/faslr/tests](https://github.com/casact/FASLR/tree/main/faslr/tests). These are tested using pytest.
+The unit tests for the project can be found in [FASLR/faslr/tests](https://github.com/casact/FASLR/tree/main/faslr/tests). These are tested using [pytest](https://docs.pytest.org/en/7.3.x/).
+
+A special package called [pytest-qt](https://pytest-qt.readthedocs.io/en/latest/intro.html), which is part of the pytest framework, is used to test the GUI components of FASLR. This is used to simulate user actions, such as clicks and button presses.
 
 ## Pull Requests
 
