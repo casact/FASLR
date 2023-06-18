@@ -13,7 +13,6 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtGui import (
     QAction,
-    QFont,
     QKeySequence
 )
 
@@ -130,9 +129,12 @@ class TriangleView(FTableView):
     def __init__(self):
         super().__init__()
 
+        self.context_menu = None
+
         self.copy_action = QAction("&Copy", self)
         self.copy_action.setShortcut(QKeySequence("Ctrl+c"))
         self.copy_action.setStatusTip("Copy selection to clipboard.")
+        self.addAction(self.copy_action)
         # noinspection PyUnresolvedReferences
         self.copy_action.triggered.connect(self.copy_selection)
 
@@ -161,6 +163,9 @@ class TriangleView(FTableView):
         #     """
         # )
 
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.contextMenuEvent) # noqa
+
         self.setStyleSheet(
             """
             QTableCornerButton::section {
@@ -176,7 +181,10 @@ class TriangleView(FTableView):
         if s.isValid():
             self.verticalHeader().setMinimumWidth(s.width())
 
-    def contextMenuEvent(self, event):
+    def contextMenuEvent(
+            self,
+            event
+    ) -> None:
         """
         When right-clicking a cell, activate context menu.
 
@@ -184,8 +192,6 @@ class TriangleView(FTableView):
         :return:
         """
 
-        print(event)
-
-        menu = QMenu()
-        menu.addAction(self.copy_action)
-        menu.exec(event.globalPos())
+        self.context_menu = QMenu(self)
+        self.context_menu.addAction(self.copy_action)
+        self.context_menu.exec(self.viewport().mapToGlobal(event))
