@@ -1,6 +1,11 @@
 # Generates the example database (used for tutorials, testing)
 
 import os
+import sys
+from os.path import dirname
+faslr_path = dirname(dirname(dirname(dirname(os.path.realpath(__file__)))))
+sys.path.append(faslr_path)
+
 import faslr.utilities # noqa
 import pandas as pd
 import sqlalchemy as sa
@@ -11,7 +16,6 @@ from faslr.constants import SAMPLE_DB_NAME
 
 from faslr.schema import (
     CountryTable,
-    IndexTable,
     LocationTable,
     StateTable,
     LOBTable,
