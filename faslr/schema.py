@@ -263,7 +263,7 @@ class ProjectTable(Base):
     )
 
     index = relationship(
-        "IndexViewTable",
+        "IndexTable",
         back_populates='project'
     )
 
