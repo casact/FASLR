@@ -34,12 +34,17 @@ from faslr.style.triangle import (
 
 
 class TriangleModel(FAbstractTableModel):
-
     def __init__(
             self,
             triangle: Triangle,
             value_type: str
     ):
+        """
+        Subclass of the FAbstractTableModel used to hold triangle data.
+        :param triangle: A chainladder Triangle object.
+        :param value_type: The type of values to be displayed, e.g., "value" to display scalars such as premium or
+        loss, and "ratio" to display link ratios.
+        """
         super(
             TriangleModel,
             self
@@ -127,6 +132,9 @@ class TriangleModel(FAbstractTableModel):
 
 class TriangleView(FTableView):
     def __init__(self):
+        """
+        Subclass of the FTableView to visualize the triangle data modeled by TriangleModel.
+        """
         super().__init__()
 
         self.context_menu = None
