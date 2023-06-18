@@ -26,6 +26,8 @@ jobs:
       run: pip install -r requirements.txt
     - name: Reinstall opencv
       run: pip uninstall opencv-python && pip install opencv-python-headless
+    - name: Generate Sample DB
+      run: python3 ./samples/db/generate_sample_db.py
     - name: Run tests and collect coverage
       run: pytest --cov=./ --cov-report=xml
     #- name: Upload coverage reports to Codecov with GitHub Action
