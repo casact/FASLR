@@ -68,18 +68,39 @@ class ProjectDialog(QDialog):
         self.layout.addRow("State:", self.state_edit)
         self.layout.addRow("Line of Business:", self.lob_edit)
 
-        button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
+        button_layout = self.ok_button | self.cancel_button
 
         self.button_box = QDialogButtonBox(button_layout)
+
+        self.button_box.button(self.ok_button).setEnabled(False)
         # noinspection PyUnresolvedReferences
-        self.button_box.accepted.connect(lambda main_window=self.main_window: self.make_project(main_window))
+        self.button_box.accepted.connect(
+            lambda main_window=self.main_window: self.make_project(main_window)
+        )
         # noinspection PyUnresolvedReferences
         self.button_box.rejected.connect(self.reject)
+
+        self.country_edit.textEdited.connect(self.validate_input) # noqa
+        self.state_edit.textEdited.connect(self.validate_input) # noqa
+        self.lob_edit.textEdited.connect(self.validate_input) # noqa
 
         self.layout.addWidget(self.button_box)
 
         self.setLayout(self.layout)
 
+    def validate_input(self) -> None:
+        """
+        Checks whether all inputs are filled out, if so, enables the OK button.
+        :return: None
+        """
+
+        if self.country_edit.text() != '' and self.state_edit.text() != '' and self.lob_edit.text() != '':
+                self.button_box.button(self.ok_button).setEnabled(True)
+        else:
+            self.button_box.button(self.ok_button).setEnabled(False)
     def make_project(
             self,
             main_window: MainWindow
