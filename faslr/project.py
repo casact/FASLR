@@ -42,14 +42,21 @@ from PyQt6.QtWidgets import (
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no coverage
     from faslr.__main__ import MainWindow
 
 
 class ProjectDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(
+            self,
+            parent=None
+    ):
         super().__init__(parent)
-        self.main_window = parent.parent
+
+        if parent:
+            self.main_window = parent
+        else:
+            self.main_window = None
 
         self.country_edit = QLineEdit()
         self.state_edit = QLineEdit()
