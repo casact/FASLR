@@ -1,3 +1,5 @@
 class FCore:
     def __init__(self):
-        pass
+
+        self.db = None
+        self.connection_status = "Disconnected"
