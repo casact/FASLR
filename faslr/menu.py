@@ -138,7 +138,9 @@ class MainMenuBar(QMenuBar):
 
     def new_project(self) -> None:
         # function to display new project dialog box
-        dlg = ProjectDialog(self)
+        dlg = ProjectDialog(
+            parent=self.parent
+        )
         dlg.exec()
 
     def display_settings(self) -> None:
