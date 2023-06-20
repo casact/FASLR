@@ -1,3 +1,7 @@
 from faslr.core.application import (
-    FApplication
+    FApplication,
+)
+
+from faslr.core.core import (
+    FCore
 )
