@@ -16,11 +16,16 @@ from faslr.constants import (
     TEMPLATES_PATH
 )
 
+from faslr.core import (
+    FCore
+)
+
 from faslr.menu import (
     MainMenuBar
 )
 
 from faslr.project import (
+    ProjectModel,
     ProjectTreeView
 )
 
@@ -28,10 +33,6 @@ from faslr.style.main import (
     MAIN_WINDOW_HEIGHT,
     MAIN_WINDOW_WIDTH,
     MAIN_WINDOW_TITLE
-)
-
-from PyQt6.QtGui import (
-    QStandardItemModel
 )
 
 from PyQt6.QtCore import (
@@ -55,38 +56,18 @@ from shutil import copyfile
 
 from faslr.utilities.sample import load_sample
 
-# Get OS information from the user.
-os_name = platform.platform()
-
-# Get max thread count.
-max_threads = QThreadPool().maxThreadCount()
-
-# Initialize logging
-logging.basicConfig(
-    filename=os.path.join(ROOT_PATH, 'faslr.log'),
-    filemode='w',
-    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-    datefmt='%H:%M:%S',
-    level=logging.DEBUG)
-
-logging.info("Begin logging.")
-logging.info("FASLR initialized on " + os_name)
-logging.info("%d threads available for computation." % max_threads)
-
-# initialize configuration file if it does not exist
-if not os.path.exists(CONFIG_PATH):
-    logging.info("No configuration file detected. Initializing a new one from template.")
-    config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
-    copyfile(config_template_path, CONFIG_PATH)
-
-# If a startup db has been indicated, get the path.
-startup_db = get_startup_db_path()
-
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(
+            self,
+            application: QApplication = None,
+            core: FCore = None
+    ):
         super().__init__()
         logging.info("Main window initialized.")
+
+        self.application = application
+        self.core = core
 
         # Flag to determine whether there is an active database connection. Most project-related functions
         # should be disabled unless a connection is established.
@@ -115,10 +96,7 @@ class MainWindow(QMainWindow):
         self.project_pane = ProjectTreeView(parent=self)
         self.project_pane.setHeaderHidden(False)
 
-        self.project_model = QStandardItemModel()
-        self.project_model.setHorizontalHeaderLabels(["Project", "Project_UUID"])
-
-        self.project_root = self.project_model.invisibleRootItem()
+        self.project_model = ProjectModel()
 
         self.project_pane.setModel(self.project_model)
 
@@ -222,9 +200,40 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
 
-    app = QApplication(sys.argv)
+    # Get OS information from the user.
+    os_name = platform.platform()
 
-    window = MainWindow()
+    # Get max thread count.
+    max_threads = QThreadPool().maxThreadCount()
+
+    # Initialize logging
+    logging.basicConfig(
+        filename=os.path.join(ROOT_PATH, 'faslr.log'),
+        filemode='w',
+        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+        datefmt='%H:%M:%S',
+        level=logging.DEBUG)
+
+    logging.info("Begin logging.")
+    logging.info("FASLR initialized on " + os_name)
+    logging.info("%d threads available for computation." % max_threads)
+
+    # initialize configuration file if it does not exist
+    if not os.path.exists(CONFIG_PATH):
+        logging.info("No configuration file detected. Initializing a new one from template.")
+        config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
+        copyfile(config_template_path, CONFIG_PATH)
+
+    # If a startup db has been indicated, get the path.
+    startup_db = get_startup_db_path()
+
+    app = QApplication(sys.argv)
+    core = FCore()
+
+    window = MainWindow(
+        application=app,
+        core=core
+    )
 
     window.show()
 
