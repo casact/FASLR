@@ -13,7 +13,7 @@ from faslr.connection import (
 from faslr.constants import (
     CONFIG_PATH,
     ROOT_PATH,
-    TEMPLATES_PATH
+    CONFIG_TEMPLATES_PATH
 )
 
 from faslr.core import (
@@ -65,6 +65,9 @@ class MainWindow(QMainWindow):
     ):
         super().__init__()
         logging.info("Main window initialized.")
+
+        # If a startup db has been indicated, get the path.
+        startup_db = get_startup_db_path()
 
         self.application = application
         self.core = core
@@ -220,12 +223,15 @@ if __name__ == "__main__":
 
     # initialize configuration file if it does not exist
     if not os.path.exists(CONFIG_PATH):
-        logging.info("No configuration file detected. Initializing a new one from template.")
-        config_template_path = os.path.join(TEMPLATES_PATH, 'config_template.ini')
-        copyfile(config_template_path, CONFIG_PATH)
 
-    # If a startup db has been indicated, get the path.
-    startup_db = get_startup_db_path()
+        logging.info(
+            msg="No configuration file detected. Initializing a new one from template."
+        )
+
+        copyfile(
+            src=CONFIG_TEMPLATES_PATH,
+            dst=CONFIG_PATH
+        )
 
     app = QApplication(sys.argv)
     core = FCore()
