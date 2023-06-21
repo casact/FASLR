@@ -22,6 +22,8 @@ CONFIG_PATH = os.path.join(ROOT_PATH, 'faslr.ini')
 # Path for template files, i.e., the generic configuration file
 TEMPLATES_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'templates')
 
+CONFIG_TEMPLATES_PATH = os.path.join(TEMPLATES_PATH, 'config_template.ini')
+
 # Path for icons
 ICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/')
 
