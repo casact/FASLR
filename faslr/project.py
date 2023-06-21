@@ -26,7 +26,8 @@ from PyQt6.QtGui import (
     QAction,
     QColor,
     QKeySequence,
-    QStandardItem
+    QStandardItem,
+    QStandardItemModel
 )
 
 from PyQt6.QtWidgets import (
@@ -188,7 +189,7 @@ class ProjectDialog(QDialog):
             country.appendRow([state, QStandardItem(state_uuid)])
             state.appendRow([lob, QStandardItem(lob_uuid)])
 
-            main_window.project_root.appendRow([
+            main_window.project_model.project_root.appendRow([
                 country,
                 QStandardItem(country_uuid)
             ])
@@ -529,8 +530,16 @@ class ProjectTreeView(QTreeView):
 
                 country_item.appendRow(state_row)
 
-            self.parent.project_root.appendRow(country_row)
+            self.parent.project_model.project_root.appendRow(country_row)
 
         self.parent.project_pane.expandAll()
 
         connection.close()
+
+class ProjectModel(QStandardItemModel):
+    def __init__(self):
+        super().__init__()
+
+        self.setHorizontalHeaderLabels(["Project", "Project_UUID"])
+
+        self.project_root = self.invisibleRootItem()
