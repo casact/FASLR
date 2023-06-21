@@ -10,7 +10,8 @@ BUILD_VERSION = __version__
 
 if "PYCHARM_HOSTED" in os.environ:
     QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
-else:
+# Don't cover this, can't test without leaving PyCharm.
+else:  # pragma no coverage
     QT_FILEPATH_OPTION = QFileDialog.Option.ShowDirsOnly
 
 # Path of the faslr repo
@@ -51,7 +52,8 @@ try:
         branch,
         short=6
     )
-except TypeError:
+# Don't cover this block - won't be able to test it without leaving current commit
+except TypeError:  # pragma no coverage
     CURRENT_BRANCH = "Detached HEAD"
     BRANCH_SHA = "None"
 
