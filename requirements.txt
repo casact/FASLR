@@ -6,10 +6,17 @@ ipython == 8.11.0
 matplotlib == 3.7.0
 numpy == 1.23.5
 pandas == 1.5.3
+PyQt6 == 6.4.2
+PyQt6-Qt6 == 6.4.2
+PyQt6-sip == 13.4.1
+sqlalchemy == 2.0.4
+
+# Documentation
+sphinx_design == 0.3.0
 pydata-sphinx-theme == 0.11.0
+
+# Testing
+pynput == 1.7.6
 pytest == 7.2.1
 pytest-cov == 4.0.0
 pytest-qt == 4.2.0
-PyQt6 == 6.4.2
-sphinx_design == 0.3.0
-sqlalchemy == 2.0.4
