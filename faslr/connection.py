@@ -7,7 +7,8 @@ import sqlalchemy as sa
 
 from faslr.constants import (
     CONFIG_PATH,
-    QT_FILEPATH_OPTION
+    QT_FILEPATH_OPTION,
+    ROOT_PATH
 )
 
 from faslr.schema import (
@@ -71,7 +72,11 @@ class ConnectionDialog(QDialog):
         self.new_connection = QRadioButton("Create new database")
         self.layout.addWidget(self.new_connection)
 
-        button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
+        button_layout = self.ok_button | self.cancel_button
 
         self.button_box = QDialogButtonBox(button_layout)
 
@@ -82,6 +87,8 @@ class ConnectionDialog(QDialog):
 
         self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
+
+        self.file_dialog = QFileDialog()
 
     def make_connection(
             self,
@@ -117,7 +124,7 @@ class ConnectionDialog(QDialog):
         filename = QFileDialog.getSaveFileName(
             parent=self,
             caption='SaveFile',
-            directory='untitled.db',
+            directory=ROOT_PATH,
             filter="Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION
         )
@@ -152,12 +159,14 @@ class ConnectionDialog(QDialog):
         """
         Opens a connection to an existing database.
         """
-        db_filename = QFileDialog.getOpenFileName(
+        db_filename = self.file_dialog.getOpenFileName(
             parent=self,
             caption='OpenFile',
+            directory=ROOT_PATH,
             filter='',
             initialFilter="Sqlite Database (*.db)",
-            options=QT_FILEPATH_OPTION)[0]
+            options=QT_FILEPATH_OPTION
+        )[0]
 
         if not db_filename == "":
 
@@ -261,7 +270,7 @@ def populate_project_tree(
 
             country_item.appendRow(state_row)
 
-        main_window.project_root.appendRow(country_row)
+        main_window.project_model.project_root.appendRow(country_row)
 
     main_window.project_pane.expandAll()
 
@@ -301,7 +310,7 @@ def connect_db(db_path: str) -> (Session, Connection):
     return session, connection
 
 
-def get_startup_db_path():
+def get_startup_db_path() -> str:
     """
     Extracts the db path when the user opts to connect to one automatically upon startup.
     """
