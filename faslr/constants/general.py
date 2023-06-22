@@ -8,11 +8,13 @@ from PyQt6.QtWidgets import QFileDialog
 
 BUILD_VERSION = __version__
 
-if "PYCHARM_HOSTED" in os.environ:
-    QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
-# Don't cover this, can't test without leaving PyCharm.
-else:  # pragma no coverage
-    QT_FILEPATH_OPTION = QFileDialog.Option.ShowDirsOnly
+# if "PYCHARM_HOSTED" in os.environ:
+#     QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
+# # Don't cover this, can't test without leaving PyCharm.
+# else:  # pragma no coverage
+#     QT_FILEPATH_OPTION = QFileDialog.Option.ShowDirsOnly
+
+QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
 
 # Path of the faslr repo
 ROOT_PATH = dirname(dirname(os.path.realpath(__file__)))
