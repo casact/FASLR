@@ -4,7 +4,7 @@ import sys
 from os.path import dirname
 from shutil import copyfile
 
-faslr_path = dirname(dirname(dirname(dirname(os.path.realpath(__file__)))))
+faslr_path = dirname(dirname(dirname(os.path.realpath(__file__))))
 sys.path.append(faslr_path)
 
 from faslr.constants import (
