@@ -7,8 +7,8 @@ import sqlalchemy as sa
 
 from faslr.constants import (
     CONFIG_PATH,
-    QT_FILEPATH_OPTION,
-    ROOT_PATH
+    DEFAULT_DIALOG_PATH,
+    QT_FILEPATH_OPTION
 )
 
 from faslr.schema import (
@@ -124,7 +124,7 @@ class ConnectionDialog(QDialog):
         filename = QFileDialog.getSaveFileName(
             parent=self,
             caption='SaveFile',
-            directory=ROOT_PATH,
+            directory=DEFAULT_DIALOG_PATH,
             filter="Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION
         )
@@ -162,7 +162,7 @@ class ConnectionDialog(QDialog):
         db_filename = self.file_dialog.getOpenFileName(
             parent=self,
             caption='OpenFile',
-            directory=ROOT_PATH,
+            directory=DEFAULT_DIALOG_PATH,
             filter='',
             initialFilter="Sqlite Database (*.db)",
             options=QT_FILEPATH_OPTION

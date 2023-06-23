@@ -27,6 +27,10 @@ TEMPLATES_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'tem
 
 CONFIG_TEMPLATES_PATH = os.path.join(TEMPLATES_PATH, 'config_template.ini')
 
+# Default path for file saves and opens
+
+DEFAULT_DIALOG_PATH = dirname(ROOT_PATH)
+
 # Path for icons
 ICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/')
 

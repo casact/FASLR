@@ -26,6 +26,7 @@ from faslr.constants.general import (
     CURRENT_BRANCH,
     CURRENT_COMMIT,
     CURRENT_COMMIT_LONG,
+    DEFAULT_DIALOG_PATH,
     DISCUSSIONS_URL,
     DOCUMENTATION_URL,
     GITHUB_URL,
