@@ -19,7 +19,18 @@ from faslr.utilities import (
 )
 
 from PyQt6.QtCore import (
-    Qt
+    Qt,
+    QTimer,
+    QPoint
+)
+
+from PyQt6.QtWidgets import (
+    QApplication
+)
+
+from pynput.keyboard import (
+    Key,
+    Controller
 )
 
 from typing import TYPE_CHECKING
@@ -204,21 +215,58 @@ def test_strikeout(qtbot:QtBot) -> None:
     assert strikeout_test.strikeOut() == True
 
 # Attempt to test context menu feature of the TriangleView
-# def test_context_menu(triangle_model, qtbot):
-#     triangle_view = TriangleView()
-#     qtbot.addWidget(triangle_view)
-#     triangle_view.setModel(triangle_model)
-#     triangle_view.show()
-#     qtbot.wait_for_window_shown(triangle_view)
-#
-#     QTimer.singleShot(1000, lambda:triangle_view.customContextMenuRequested.emit(QPoint(0,0)))
-    # position = QPoint(0,0)
-    # triangle_view.customContextMenuRequested.emit(position)
 
-    # with qtbot.waitSignal(triangle_view.customContextMenuRequested, timeout=1000):
-    #     print("111")
-    # qtbot.keyClick(Qt.Key.Key_Escape)
-    # qtbot.keyClick(Qt.Key.Key_Escape)
+
+def test_context_menu(
+        triangle_model: TriangleModel,
+        qtbot: QtBot
+) -> None:
+    """
+    Test the invocation and closing of the triangle view context menu.
+
+    :param triangle_model: A TriangleModel object.
+    :param qtbot: The QtBot fixture.
+    :return: None
+    """
+
+    def handle_menu() -> None:
+        """
+        Simulates closing the menu.
+        :return: None
+        """
+
+        keyboard = Controller()
+
+        # Refers to the active context menu.
+        menu = QApplication.activePopupWidget()
+        qtbot.addWidget(menu)
+
+        # Simulate the escape key to exit the menu.
+        keyboard.press(Key.esc)
+        keyboard.release(Key.esc)
+
+    triangle_view = TriangleView()
+    qtbot.addWidget(triangle_view)
+    triangle_view.setModel(triangle_model)
+    triangle_view.show()
+    qtbot.wait_for_window_shown(triangle_view)
+
+    QTimer.singleShot(
+        1000,
+        handle_menu
+    )
+
+    # Use an arbitrary position on the widget, any will do just to invoke the context menu.
+    position = QPoint(
+        0,
+        0
+    )
+
+    triangle_view.customContextMenuRequested.emit(position) # noqa
+
+    # Previous attempt to invoke the context menu. This cannot be done currently due to an outstanding Qt bug
+    # from 2016. See https://github.com/casact/FASLR/issues/96 for details. We should switch back to this
+    # in the event that the bug is ever fixed - that way we won't risk keystrokes interfering with the tests.
 
     # if triangle_view.context_menu is not None:
     #     triangle_view.context_menu.close()
