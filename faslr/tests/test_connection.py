@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from faslr.connection import (
     ConnectionDialog,
     FaslrConnection,
@@ -28,6 +30,38 @@ from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QApplication
 
 from pytestqt.qtbot import QtBot
+
+
+@pytest.fixture()
+def new_db() -> str:
+    """
+    Setup and teardown for newly created database/
+    :return: str
+    """
+    db_name = 'unittest.db'
+    yield db_name
+    db_path = DEFAULT_DIALOG_PATH + '/' + db_name
+
+    if os.path.isfile(db_path):
+        os.remove(db_path)
+
+
+@ pytest.fixture()
+def override_db() -> str:
+    """
+    Setup and teardown for newly created database when filename already exists.
+    :return: str
+    """
+
+    db_name = 'unittest.db'
+    db_path = DEFAULT_DIALOG_PATH + '/' + db_name
+
+    Path(db_path).touch()
+
+    yield db_name
+
+    if os.path.isfile(db_path):
+        os.remove(db_path)
 
 
 def test_connection_dialog_existing(qtbot: QtBot) -> None:
@@ -78,7 +112,7 @@ def test_connection_dialog_existing(qtbot: QtBot) -> None:
     main_window.close()
 
 
-def test_connection_dialog_new(qtbot: QtBot) -> None:
+def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
     """
     Test whether the connection dialog can create a new database and connect to it.
 
@@ -86,7 +120,7 @@ def test_connection_dialog_new(qtbot: QtBot) -> None:
     :return: None
     """
 
-    db_name = 'unittest.db'
+    db_name = new_db
 
     def handle_dialog():
         keyboard = Controller()
@@ -120,13 +154,11 @@ def test_connection_dialog_new(qtbot: QtBot) -> None:
 
     main_window.close()
 
-    db_path = DEFAULT_DIALOG_PATH + '/' + db_name
 
-    if os.path.isfile(db_path):
-        os.remove(db_path)
-
-
-def test_connection_dialog_replace(qtbot: QtBot) -> None:
+def test_connection_dialog_replace(
+        qtbot: QtBot,
+        override_db: pytest.fixture()
+) -> None:
     """
     Test the scenario when you decide to create a new database, but when replacing a file that already exists.
 
@@ -134,10 +166,7 @@ def test_connection_dialog_replace(qtbot: QtBot) -> None:
     :return: None
     """
 
-    db_name = 'unittest.db'
-    db_path = DEFAULT_DIALOG_PATH + '/' + db_name
-
-    Path(db_path).touch()
+    db_name = override_db
 
     def handle_override() -> None:
         """
@@ -190,9 +219,6 @@ def test_connection_dialog_replace(qtbot: QtBot) -> None:
     )
 
     main_window.close()
-
-    if os.path.isfile(db_path):
-        os.remove(db_path)
 
 
 def test_connection_dialog_cancel(qtbot: QtBot) -> None:
