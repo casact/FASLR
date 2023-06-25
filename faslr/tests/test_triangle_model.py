@@ -19,9 +19,9 @@ from faslr.utilities import (
 )
 
 from PyQt6.QtCore import (
+    QPoint,
     Qt,
-    QTimer,
-    QPoint
+    QTimer
 )
 
 from PyQt6.QtWidgets import (
@@ -40,11 +40,15 @@ if TYPE_CHECKING:
     from pytestqt.qtbot import QtBot
 
 
+copy_expectation = '\t4,666\t9,861\t13,971\t18,127\t22,032\t23,511\t24,146\t24,592\t24,817\t\r\n'
+
+
 # Several tests can share the same triangle model.
 @pytest.fixture()
 def xyz() -> Triangle:
     xyz = load_sample('xyz')['Paid Claims']
     return xyz
+
 
 @pytest.fixture()
 def triangle_model(
@@ -57,6 +61,7 @@ def triangle_model(
     )
 
     return triangle_model
+
 
 # A separate Triangle Model is used to test the ratio value types.
 @pytest.fixture()
@@ -72,6 +77,7 @@ def ratio_model(
 
     return ratio_model
 
+
 value_expectation = "11,620"
 
 ratio_expectation = "1.351"
@@ -79,6 +85,7 @@ ratio_expectation = "1.351"
 nan_expectation = ""
 
 alignment_expectation = Qt.AlignmentFlag.AlignRight
+
 
 def test_triangle_model(
         triangle_model: TriangleModel
@@ -109,7 +116,7 @@ def test_triangle_view(
     qtbot.waitExposed(triangle_view)
 
     triangle_view.setModel(triangle_model)
-    idx = triangle_model.index(0,5)
+    idx = triangle_model.index(0, 5)
 
     rect = triangle_view.visualRect(idx)
 
@@ -126,7 +133,7 @@ def test_triangle_view(
     assert value_test == value_expectation
 
     nan_test = triangle_model.data(
-        triangle_model.index(0,0),
+        triangle_model.index(0, 0),
         role=Qt.ItemDataRole.DisplayRole
     )
 
@@ -135,7 +142,7 @@ def test_triangle_view(
     assert nan_test == nan_expectation
 
     alignment_test = triangle_model.data(
-        triangle_model.index(0,0),
+        triangle_model.index(0, 0),
         role=Qt.ItemDataRole.TextAlignmentRole
     )
 
@@ -150,6 +157,14 @@ def test_triangle_view(
     # Check for correct color displayed in the lower diagonal of the triangle.
     assert lower_diag_color_test == LOWER_DIAG_COLOR
 
+    # rect = QRect(0, 0)
+    triangle_view.selectRow(1)
+    triangle_view.copy_selection()
+    copy_test = QApplication.clipboard().text()
+
+    assert copy_test == copy_expectation
+
+
 def test_triangle_model_ratio(
         ratio_model: TriangleModel
 ) -> None:
@@ -161,7 +176,7 @@ def test_triangle_model_ratio(
     """
 
     ratio_test = ratio_model.data(
-        ratio_model.index(0,2),
+        ratio_model.index(0, 2),
         role=Qt.ItemDataRole.DisplayRole
     )
 
@@ -170,7 +185,7 @@ def test_triangle_model_ratio(
     assert ratio_test == ratio_expectation
 
 
-def test_strikeout(qtbot:QtBot) -> None:
+def test_strikeout(qtbot: QtBot) -> None:
     """
     Check whether double-clicking a link ratio strikes it out.
     :param qtbot: The QtBot fixture.
@@ -186,7 +201,7 @@ def test_strikeout(qtbot:QtBot) -> None:
 
     qtbot.addWidget(test_tab)
 
-    idx = test_tab.factor_model.index(7,1)
+    idx = test_tab.factor_model.index(7, 1)
 
     item_data = test_tab.factor_model.data(
         index=idx,
@@ -212,7 +227,7 @@ def test_strikeout(qtbot:QtBot) -> None:
 
     print("value type: " + test_tab.factor_model.value_type)
 
-    assert strikeout_test.strikeOut() == True
+    assert strikeout_test.strikeOut()
 
 # Attempt to test context menu feature of the TriangleView
 
