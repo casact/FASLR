@@ -19,6 +19,8 @@ from faslr.constants import (
     OCTICONS_PATH
 )
 
+from faslr.core import FCore
+
 from faslr.engine import EngineDialog
 
 from faslr.project import ProjectDialog
@@ -44,11 +46,13 @@ if TYPE_CHECKING:
 class MainMenuBar(QMenuBar):
     def __init__(
             self,
-            parent: MainWindow = None
+            parent: MainWindow = None,
+            core: FCore = None
     ):
         super().__init__(parent)
 
         self.parent = parent
+        self.core = core
 
         self.connection_action = QAction(QIcon(ICONS_PATH + "db.svg"), "&Connection", self)
         self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
@@ -69,7 +73,7 @@ class MainMenuBar(QMenuBar):
         self.engine_action = QAction("&Select Engine")
         self.engine_action.setShortcut("Ctrl+shift+e")
         self.engine_action.setStatusTip("Select a reserving engine.")
-        self.engine_action.triggered.connect(self.display_engine)
+        self.engine_action.triggered.connect(self.display_engine) # noqa
 
         self.settings_action = QAction("&Settings")
         self.settings_action.setShortcut("Ctrl+Shift+t")
@@ -154,7 +158,7 @@ class MainMenuBar(QMenuBar):
     def toggle_project_actions(self) -> None:
         # disable project-based menu items until connection is established
 
-        if self.parent.connection_established:
+        if self.core.connection_established:
             self.new_action.setEnabled(True)
 
         else:

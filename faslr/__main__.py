@@ -6,7 +6,6 @@ import sys
 from faslr.analysis import AnalysisTab
 
 from faslr.connection import (
-    get_startup_db_path,
     populate_project_tree
 )
 
@@ -66,16 +65,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         logging.info("Main window initialized.")
 
-        # If a startup db has been indicated, get the path.
-        startup_db = get_startup_db_path()
-
         self.application = application
         self.core = core
-
-        # Flag to determine whether there is an active database connection. Most project-related functions
-        # should be disabled unless a connection is established.
-        self.connection_established = False
-        self.db = None
 
         self.resize(
             MAIN_WINDOW_WIDTH,
@@ -88,7 +79,10 @@ class MainWindow(QMainWindow):
 
         self.body_layout = QHBoxLayout()
 
-        self.menu_bar = MainMenuBar(parent=self)
+        self.menu_bar = MainMenuBar(
+            parent=self,
+            core=self.core
+        )
 
         self.setStatusBar(QStatusBar(self))
 
@@ -171,9 +165,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_container)
 
         # if a startup db is indicated, connect to it and populate the project tree with its contents
-        if startup_db != "None":
+        if core.startup_db != "None":
             populate_project_tree(
-                db_filename=startup_db,
+                db_filename=core.startup_db,
                 main_window=self
             )
 
@@ -234,11 +228,11 @@ if __name__ == "__main__":
         )
 
     app = QApplication(sys.argv)
-    core = FCore()
+    fcore = FCore()
 
     window = MainWindow(
         application=app,
-        core=core
+        core=fcore
     )
 
     window.show()
