@@ -10,6 +10,7 @@ from faslr.connection import (
 )
 
 from faslr.constants import DEFAULT_DIALOG_PATH
+from faslr.core import FCore
 
 from faslr.__main__ import MainWindow
 
@@ -91,9 +92,11 @@ def test_connection_dialog_existing(qtbot: QtBot) -> None:
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
 
-    main_window = MainWindow()
+    core = FCore()
 
-    connection_dialog = ConnectionDialog(parent=main_window.menu_bar)
+    connection_dialog = ConnectionDialog(
+        core=core
+    )
 
     # Set the radio button to indicate we want to connect to an existing database.
     connection_dialog.existing_connection.setChecked(True)
@@ -108,8 +111,6 @@ def test_connection_dialog_existing(qtbot: QtBot) -> None:
         Qt.MouseButton.LeftButton,
         delay=1
     )
-
-    main_window.close()
 
 
 def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
@@ -136,8 +137,10 @@ def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
 
-    main_window = MainWindow()
-    connection_dialog = ConnectionDialog(parent=main_window.menu_bar)
+    core = FCore()
+    connection_dialog = ConnectionDialog(
+        core=core
+    )
 
     connection_dialog.new_connection.setChecked(True)
 
@@ -151,8 +154,6 @@ def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
         Qt.MouseButton.LeftButton,
         delay=1
     )
-
-    main_window.close()
 
 
 def test_connection_dialog_replace(
@@ -205,8 +206,8 @@ def test_connection_dialog_replace(
 
         QTimer.singleShot(500, handle_override)
 
-    main_window = MainWindow()
-    connection_dialog = ConnectionDialog(parent=main_window.menu_bar)
+    core = FCore()
+    connection_dialog = ConnectionDialog(core=core)
 
     connection_dialog.new_connection.setChecked(True)
 
@@ -218,8 +219,6 @@ def test_connection_dialog_replace(
         delay=1
     )
 
-    main_window.close()
-
 
 def test_connection_dialog_cancel(qtbot: QtBot) -> None:
     """
@@ -229,8 +228,8 @@ def test_connection_dialog_cancel(qtbot: QtBot) -> None:
     :return: None
     """
 
-    main_window = MainWindow()
-    connection_dialog = ConnectionDialog(parent=main_window.menu_bar)
+    core = FCore()
+    connection_dialog = ConnectionDialog(core=core)
 
     connection_dialog.reject()
 

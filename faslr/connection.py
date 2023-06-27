@@ -46,6 +46,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING: # pragma: no cover
     from faslr.__main__ import MainWindow
+    from faslr.core import FCore
     from faslr.menu import MainMenuBar
 
 
@@ -57,10 +58,14 @@ class ConnectionDialog(QDialog):
 
     def __init__(
             self,
-            parent=None
+            parent: MainMenuBar = None,
+            core: FCore = None
     ):
         super().__init__(parent)
         logging.info("Connection window initialized.")
+
+        self.core = core
+        self.parent = parent
 
         self.setWindowTitle("Connection")
         self.layout = QVBoxLayout()
@@ -98,13 +103,16 @@ class ConnectionDialog(QDialog):
         Depending on what the user selects, triggers function to either connect to an existing database
         or to a new one.
         """
-        main_window = menu_bar.parent
+        if menu_bar:
+            main_window = menu_bar.parent
+        else:
+            main_window = None
 
         if self.existing_connection.isChecked():
-            menu_bar.db = self.open_existing_db(main_window=main_window)
+            self.core.db = self.open_existing_db(main_window=main_window)
 
         elif self.new_connection.isChecked():
-            main_window.db = self.create_new_db(menu_bar=menu_bar)
+            self.core.db = self.create_new_db(menu_bar=menu_bar)
 
     def create_new_db(
             self,
@@ -147,8 +155,10 @@ class ConnectionDialog(QDialog):
             self.close()
 
         if db_filename != "":
-            menu_bar.parent.connection_established = True
-            menu_bar.toggle_project_actions()
+            self.core.connection_established = True
+
+            if self.parent:
+                self.parent.toggle_project_actions()
 
         return db_filename
 
@@ -168,7 +178,7 @@ class ConnectionDialog(QDialog):
             options=QT_FILEPATH_OPTION
         )[0]
 
-        if not db_filename == "":
+        if main_window and (not db_filename == ""):
 
             populate_project_tree(
                 db_filename=db_filename,
@@ -286,6 +296,9 @@ class FaslrConnection:
             self,
             db_path: str
     ):
+
+        if not os.path.isfile(db_path):
+            raise FileNotFoundError("Invalid db path specified, file does not exist.")
 
         self.engine = sa.create_engine(
             'sqlite:///' + db_path,
