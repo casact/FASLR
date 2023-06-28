@@ -128,7 +128,10 @@ class MainMenuBar(QMenuBar):
 
     def edit_connection(self) -> None:
         # function triggers the connection dialog box to connect to a database
-        dlg = ConnectionDialog(self)
+        dlg = ConnectionDialog(
+            self,
+            core=self.core
+        )
         dlg.exec()
 
     def display_engine(self) -> None:
