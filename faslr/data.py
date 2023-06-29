@@ -163,6 +163,14 @@ class DataPane(QWidget):
             desc: str,
             triangle: Triangle
     ) -> None:
+        """
+        Adds a data view record and saves data to the database.
+
+        :param name: A human-readable label to identify the data view.
+        :param desc: A longer description of the data view contents.
+        :param triangle: A ChainLadder triangle.
+        :return: None
+        """
 
         created = dt.datetime.today()
         modified = dt.datetime.today()
@@ -195,7 +203,7 @@ class DataPane(QWidget):
             modified,
     ):
 
-        faslr_conn = FaslrConnection(db_path=self.main_window.db)
+        faslr_conn = FaslrConnection(db_path=self.core.db)
 
         project_view = ProjectViewTable(
             name=name,
@@ -969,6 +977,9 @@ class ProjectDataView(FTableView):
         self.open_action.setStatusTip("Open view in new window.")
         self.open_action.triggered.connect(self.open_triangle) # noqa
 
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.contextMenuEvent)  # noqa
+
     def open_triangle(
             self,
             val: QModelIndex
@@ -1015,4 +1026,4 @@ class ProjectDataView(FTableView):
 
         menu = QMenu()
         menu.addAction(self.open_action)
-        menu.exec(event.globalPos())
+        menu.exec(self.viewport().mapToGlobal(event))
