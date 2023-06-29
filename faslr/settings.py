@@ -54,9 +54,14 @@ class SettingsDialog(QDialog):
     Dialog box for settings. The left pane contains the list of available settings, and the right pane
     is a layout that contains various options one may be able to configure for the corresponding setting.
     """
-    def __init__(self, parent=None, config_path=None):
+    def __init__(
+            self,
+            parent=None,
+            config_path=CONFIG_PATH
+    ):
         super().__init__(parent)
         logging.info("Settings window initialized.")
+
 
         self.config_path = config_path
         self.config = configparser.ConfigParser()
