@@ -314,6 +314,10 @@ def connect_db(db_path: str) -> (Session, Connection):
     """
     Connects the db. Shortens amount of code required to do so.
     """
+
+    if not os.path.isfile(db_path):
+        raise FileNotFoundError("Invalid database path specified. File does not exist.")
+
     engine = sa.create_engine(
         'sqlite:///' + db_path,
         echo=True
