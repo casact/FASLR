@@ -1,5 +1,5 @@
 # FASLR
-[![codecov](https://codecov.io/gh/genedan/FASLR/branch/main/graph/badge.svg?token=B2tp2sywL2)](https://codecov.io/gh/genedan/FASLR)
+[![codecov](https://codecov.io/gh/casact/FASLR/branch/main/graph/badge.svg?token=B2tp2sywL2)](https://codecov.io/gh/casact/FASLR)
 
 Free Actuarial System for Loss Reserving
 
