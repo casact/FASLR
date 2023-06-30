@@ -7,6 +7,7 @@ import sqlalchemy as sa
 
 from faslr.constants import (
     CONFIG_PATH,
+    DB_NOT_FOUND_TEXT,
     DEFAULT_DIALOG_PATH,
     QT_FILEPATH_OPTION
 )
@@ -298,7 +299,7 @@ class FaslrConnection:
     ):
 
         if not os.path.isfile(db_path):
-            raise FileNotFoundError("Invalid db path specified, file does not exist.")
+            raise FileNotFoundError(DB_NOT_FOUND_TEXT)
 
         self.engine = sa.create_engine(
             'sqlite:///' + db_path,
@@ -316,7 +317,7 @@ def connect_db(db_path: str) -> (Session, Connection):
     """
 
     if not os.path.isfile(db_path):
-        raise FileNotFoundError("Invalid database path specified. File does not exist.")
+        raise FileNotFoundError(DB_NOT_FOUND_TEXT)
 
     engine = sa.create_engine(
         'sqlite:///' + db_path,

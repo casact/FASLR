@@ -3,6 +3,9 @@ from faslr.constants.analysis import (
     VALUE_TYPES_COMBO_BOX_WIDTH
 )
 
+from faslr.constants.connection import (
+    DB_NOT_FOUND_TEXT
+)
 
 from faslr.constants.development import (
     LDF_AVERAGES,
