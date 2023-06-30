@@ -1,5 +1,5 @@
 # FASLR: Free Actuarial System for Loss Reserving
-[![codecov](https://codecov.io/gh/casact/FASLR/branch/main/graph/badge.svg?token=B2tp2sywL2)](https://codecov.io/gh/casact/FASLR)
+[![codecov](https://codecov.io/gh/casact/FASLR/branch/main/graph/badge.svg?token=B2tp2sywL2)](https://codecov.io/gh/casact/FASLR) [![Join the chat at https://app.gitter.im/#/room/#faslr:gitter.im](https://badges.gitter.im/Join%20Chat.svg)](https://app.gitter.im/#/room/#faslr:gitter.im)
 
 FASLR (pronounced: [fazlur](https://en.wikipedia.org/wiki/Fazlur_Rahman_Khan)) is a Qt-based frontend for open-source loss reserving packages. Current plans are to support the [Chainladder](https://github.com/casact/chainladder-python) package.
 
