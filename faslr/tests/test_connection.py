@@ -9,6 +9,10 @@ from faslr.connection import (
     get_startup_db_path
 )
 
+from faslr.constants import (
+    DB_NOT_FOUND_TEXT
+)
+
 from faslr.constants import DEFAULT_DIALOG_PATH
 from faslr.core import FCore
 
@@ -31,6 +35,9 @@ from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QApplication
 
 from pytestqt.qtbot import QtBot
+
+
+sample_db_path = DEFAULT_DIALOG_PATH + '/sample.db'
 
 
 @pytest.fixture()
@@ -94,8 +101,13 @@ def test_connection_dialog_existing(qtbot: QtBot) -> None:
 
     core = FCore()
 
-    connection_dialog = ConnectionDialog(
+    main_window = MainWindow(
         core=core
+    )
+
+    connection_dialog = ConnectionDialog(
+        core=core,
+        parent=main_window.menu_bar
     )
 
     # Set the radio button to indicate we want to connect to an existing database.
@@ -243,7 +255,7 @@ def test_faslr_connection(qtbot: QtBot) -> None:
     """
 
     faslr_connection = FaslrConnection(
-        db_path='sample.db'
+        db_path=sample_db_path
     )
 
     assert isinstance(faslr_connection.engine, Engine)
@@ -251,6 +263,14 @@ def test_faslr_connection(qtbot: QtBot) -> None:
     assert isinstance(faslr_connection.connection, Connection)
 
     faslr_connection.session.close()
+
+    with pytest.raises(FileNotFoundError) as excinfo:
+
+        faslr_connection = FaslrConnection(
+            db_path='blahblahblah.db'
+        )
+
+    assert DB_NOT_FOUND_TEXT in str(excinfo.value)
 
 
 def test_connect_db() -> None:
@@ -260,12 +280,20 @@ def test_connect_db() -> None:
     :return: None
     """
 
-    session_test, connection_test = connect_db('sample.db')
+    session_test, connection_test = connect_db(sample_db_path)
 
     assert isinstance(session_test, Session)
     assert isinstance(connection_test, Connection)
 
     session_test.close()
+
+    with pytest.raises(FileNotFoundError) as excinfo:
+
+        connect_db(
+            db_path='blahblahblah.db'
+        )
+
+    assert DB_NOT_FOUND_TEXT in str(excinfo.value)
 
 
 def test_get_startup_db_path() -> None:
