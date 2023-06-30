@@ -32,3 +32,5 @@ jobs:
       run: python3 faslr/tests/copy_config.py
     - name: Run tests and collect coverage
       run: pytest --cov=./ --cov-report=xml
+    - name: Upload coverage reports to Codecov with GitHub Action
+      uses: codecov/codecov-action@v3
