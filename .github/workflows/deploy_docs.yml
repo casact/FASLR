@@ -26,4 +26,4 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_Key }}
-        script: bash ./faslr/docs/build_docs.sh
+        script: bash /root/faslr/docs/build_docs.sh
