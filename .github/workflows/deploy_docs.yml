@@ -1,0 +1,28 @@
+name: Deploy Docs
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deploy Docs
+    defaults:
+      run:
+        working-directory: .
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install ubuntu packages
+      run: sudo apt-get update
+    - name: Install requirements
+      run: sudo apt-get install -y libegl1
+    - name: Install requirements
+      run: pip install -r requirements.txt
+    - name: Deploy Docs
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_Key }}
+        script: bash ./faslr/docs/build_docs.sh
