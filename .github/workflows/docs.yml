@@ -1,0 +1,22 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Docs
+    defaults:
+      run:
+        working-directory: .
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install ubuntu packages
+      run: sudo apt-get update
+    - name: Install requirements
+      run: pip install -r requirements.txt
+    - name: Navigate to docs
+      run: cd faslr/docs
