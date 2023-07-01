@@ -21,7 +21,7 @@ jobs:
     - name: Install requirements
       run: pip install -r requirements.txt
     - name: Deploy Docs
-      uses: genedan/ssh-action@main
+      uses: genedan/faslr@main
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
