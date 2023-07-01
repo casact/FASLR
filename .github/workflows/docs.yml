@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Docs
 
 on: [push, pull_request]
 
@@ -19,4 +19,4 @@ jobs:
     - name: Install requirements
       run: pip install -r requirements.txt
     - name: Navigate to docs
-      run: cd faslr/docs
+      run: cd docs
