@@ -26,6 +26,12 @@ Discussion Board
 
 Topics, and questions that don't fit neatly into a ticket can be discussed on the project's `discussion board <https://github.com/casact/FASLR/discussions>`_.
 
+=========
+Chat Room
+=========
+
+If you'd like to participate in instant-messaging like discussions, join the project's `chat room <https://app.gitter.im/#/room/#faslr:gitter.im>`_.
+
 =================
 Project Finances
 =================
