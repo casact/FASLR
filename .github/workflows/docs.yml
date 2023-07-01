@@ -20,5 +20,10 @@ jobs:
       run: sudo apt-get install -y libegl1
     - name: Install requirements
       run: pip install -r requirements.txt
-    - name: Make HTML
-      run: cd docs; make html
+    - name: Docs
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_Key }}
+        script: bash /root/faslr/docs/build_docs.sh
