@@ -20,3 +20,5 @@ jobs:
       run: pip install -r requirements.txt
     - name: Navigate to docs
       run: cd docs
+    - name: Make HTML
+      run: make html
