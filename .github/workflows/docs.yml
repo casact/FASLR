@@ -20,7 +20,5 @@ jobs:
       run: sudo apt-get install -y libegl1
     - name: Install requirements
       run: pip install -r requirements.txt
-    - name: Navigate to docs
-      run: cd docs
     - name: Make HTML
       run: cd docs; make html
