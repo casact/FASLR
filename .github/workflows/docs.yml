@@ -21,4 +21,4 @@ jobs:
     - name: Navigate to docs
       run: cd docs
     - name: Make HTML
-      run: make html
+      run: cd docs; make html
