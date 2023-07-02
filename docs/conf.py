@@ -91,6 +91,12 @@ html_theme_options = {
             "url": "https://faslr.com/db",
             "icon": "fa-solid fa-database",
             "type": "fontawesome",
+        },
+        {
+            "name": "Chat",
+            "url": "https://app.gitter.im/#/room/#faslr:gitter.im",
+            "icon": "fa-brands fa-gitter",
+            "type": "fontawesome"
         }
     ],
     "favicons": [
