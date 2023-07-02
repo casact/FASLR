@@ -27,7 +27,7 @@ sed -i "s/sample.db/FASLR/g" db/orphans.html;
 sed -i "s/sample.db/FASLR/g" db/routines.html;
 sed -i "s/.sample//g" db/relationships.html;
 sed -i "s/.sample//g" db/columns.html;
-sed -i "s/.sample//g"db/anomalies.html;
+sed -i "s/.sample//g" db/anomalies.html;
 sed -i "s/.sample//g" db/constraints.html;
 sed -i "s/.sample//g" db/orphans.html;
 sed -i "s/.sample//g" db/routines.html;
