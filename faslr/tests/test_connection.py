@@ -1,5 +1,4 @@
 import os
-
 import pytest
 
 from faslr.connection import (
@@ -10,7 +9,7 @@ from faslr.connection import (
 )
 
 from faslr.constants import (
-    DB_NOT_FOUND_TEXT
+    DB_NOT_FOUND_TEXT,
 )
 
 from faslr.constants import DEFAULT_DIALOG_PATH
@@ -26,8 +25,8 @@ from sqlalchemy.orm.session import Session
 from pathlib import Path
 
 from pynput.keyboard import (
-    Key,
-    Controller
+    Controller,
+    Key
 )
 
 from PyQt6.QtCore import QTimer, Qt
@@ -72,7 +71,10 @@ def override_db() -> str:
         os.remove(db_path)
 
 
-def test_connection_dialog_existing(qtbot: QtBot) -> None:
+def test_connection_dialog_existing(
+        qtbot: QtBot,
+        setup_config: str
+) -> None:
     """
     Test whether the connection dialog can initiate a connection to an existing database. In this case,
     the sample database.
@@ -99,7 +101,7 @@ def test_connection_dialog_existing(qtbot: QtBot) -> None:
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
 
-    core = FCore()
+    core = FCore(config_path=setup_config)
 
     main_window = MainWindow(
         core=core
@@ -125,7 +127,11 @@ def test_connection_dialog_existing(qtbot: QtBot) -> None:
     )
 
 
-def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
+def test_connection_dialog_new(
+        qtbot: QtBot,
+        new_db: str,
+        setup_config: str
+) -> None:
     """
     Test whether the connection dialog can create a new database and connect to it.
 
@@ -149,7 +155,10 @@ def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
 
-    core = FCore()
+    core = FCore(
+        config_path=setup_config
+    )
+
     connection_dialog = ConnectionDialog(
         core=core
     )
@@ -170,7 +179,8 @@ def test_connection_dialog_new(qtbot: QtBot, new_db) -> None:
 
 def test_connection_dialog_replace(
         qtbot: QtBot,
-        override_db: pytest.fixture()
+        override_db: pytest.fixture(),
+        setup_config: str
 ) -> None:
     """
     Test the scenario when you decide to create a new database, but when replacing a file that already exists.
@@ -218,7 +228,7 @@ def test_connection_dialog_replace(
 
         QTimer.singleShot(500, handle_override)
 
-    core = FCore()
+    core = FCore(config_path=setup_config)
     connection_dialog = ConnectionDialog(core=core)
 
     connection_dialog.new_connection.setChecked(True)
@@ -232,7 +242,10 @@ def test_connection_dialog_replace(
     )
 
 
-def test_connection_dialog_cancel(qtbot: QtBot) -> None:
+def test_connection_dialog_cancel(
+        qtbot: QtBot,
+        setup_config: str
+) -> None:
     """
     Test whether pressing cancel on the connection dialog exits it.
 
@@ -240,17 +253,17 @@ def test_connection_dialog_cancel(qtbot: QtBot) -> None:
     :return: None
     """
 
-    core = FCore()
+    core = FCore(config_path=setup_config)
     connection_dialog = ConnectionDialog(core=core)
+    qtbot.addWidget(connection_dialog)
 
     connection_dialog.reject()
 
 
-def test_faslr_connection(qtbot: QtBot) -> None:
+def test_faslr_connection() -> None:
     """
     Test the initialization of the FaslrConnection class and its attributes.
 
-    :param qtbot: The QtBot fixture.
     :return: None
     """
 
@@ -266,7 +279,7 @@ def test_faslr_connection(qtbot: QtBot) -> None:
 
     with pytest.raises(FileNotFoundError) as excinfo:
 
-        faslr_connection = FaslrConnection(
+        FaslrConnection(
             db_path='blahblahblah.db'
         )
 
@@ -296,8 +309,10 @@ def test_connect_db() -> None:
     assert DB_NOT_FOUND_TEXT in str(excinfo.value)
 
 
-def test_get_startup_db_path() -> None:
+def test_get_startup_db_path(
+        setup_config: str
+) -> None:
 
-    startup_db = get_startup_db_path()
+    startup_db = get_startup_db_path(config_path=setup_config)
 
     assert startup_db == 'None'
