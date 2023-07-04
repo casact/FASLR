@@ -45,7 +45,7 @@ from sqlalchemy.engine.base import Connection
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING: # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from faslr.__main__ import MainWindow
     from faslr.core import FCore
     from faslr.menu import MainMenuBar
@@ -113,11 +113,10 @@ class ConnectionDialog(QDialog):
             self.core.db = self.open_existing_db(main_window=main_window)
 
         elif self.new_connection.isChecked():
-            self.core.db = self.create_new_db(menu_bar=menu_bar)
+            self.core.db = self.create_new_db()
 
     def create_new_db(
-            self,
-            menu_bar: MainMenuBar
+            self
     ) -> str:
         """
         Creates a new backend database.
@@ -328,11 +327,12 @@ def connect_db(db_path: str) -> (Session, Connection):
     return session, connection
 
 
-def get_startup_db_path() -> str:
+def get_startup_db_path(
+        config_path: str = CONFIG_PATH
+) -> str:
     """
     Extracts the db path when the user opts to connect to one automatically upon startup.
     """
-    config_path = CONFIG_PATH
     config = configparser.ConfigParser()
     config.read(config_path)
     config.sections()
