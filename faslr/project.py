@@ -43,14 +43,14 @@ from PyQt6.QtWidgets import (
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-if TYPE_CHECKING: # pragma: no coverage
+if TYPE_CHECKING:  # pragma: no coverage
     from faslr.__main__ import MainWindow
 
 
 class ProjectDialog(QDialog):
     def __init__(
             self,
-            parent=None
+            parent: MainWindow = None
     ):
         super().__init__(parent)
 
@@ -99,16 +99,17 @@ class ProjectDialog(QDialog):
         """
 
         if self.country_edit.text() != '' and self.state_edit.text() != '' and self.lob_edit.text() != '':
-                self.button_box.button(self.ok_button).setEnabled(True)
+            self.button_box.button(self.ok_button).setEnabled(True)
         else:
             self.button_box.button(self.ok_button).setEnabled(False)
+
     def make_project(
             self,
             main_window: MainWindow
     ) -> None:
 
         # connect to the database
-        session, connection = connect_db(db_path=main_window.db)
+        session, connection = connect_db(db_path=main_window.core.db)
 
         # Take values from the form
         country_text = self.country_edit.text()
@@ -391,6 +392,8 @@ class ProjectTreeView(QTreeView):
             tab_widget=self.parent.analysis_pane,
             item_widget=DataPane(
                 main_window=self.parent,
+                parent=self.parent.analysis_pane,
+                core=self.parent.core,
                 project_id=project_id
             )
         )
@@ -421,7 +424,7 @@ class ProjectTreeView(QTreeView):
         # print(val.column())
         ix_col_0 = self.model().sibling(val.row(), 1, val)
         print(ix_col_0.data())
-        print(self.parent.db)
+        print(self.parent.core.db)
         # print(self.table.selectedIndexes())
 
     def delete_project(self) -> None:
@@ -430,7 +433,7 @@ class ProjectTreeView(QTreeView):
         uuid = self.currentIndex().siblingAtColumn(1).data()
         current_item = self.model().itemFromIndex(self.currentIndex())
         # connect to the database
-        session, connection = connect_db(db_path=self.parent.db)
+        session, connection = connect_db(db_path=self.parent.core.db)
         
         # delete the item from the database with uuid
 
@@ -535,6 +538,7 @@ class ProjectTreeView(QTreeView):
         self.parent.project_pane.expandAll()
 
         connection.close()
+
 
 class ProjectModel(QStandardItemModel):
     def __init__(self):
