@@ -31,6 +31,8 @@ CONFIG_TEMPLATES_PATH = os.path.join(TEMPLATES_PATH, 'config_template.ini')
 
 DEFAULT_DIALOG_PATH = dirname(ROOT_PATH)
 
+SAMPLE_DIALOG_PATH = dirname(ROOT_PATH) + '/faslr/samples/'
+
 # Path for icons
 ICONS_PATH = os.path.join(dirname(dirname(os.path.realpath(__file__))), 'style/icons/')
 

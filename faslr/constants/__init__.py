@@ -39,6 +39,7 @@ from faslr.constants.general import (
     QT_FILEPATH_OPTION,
     ROOT_PATH,
     SAMPLE_DB_NAME,
+    SAMPLE_DIALOG_PATH,
     TEMPLATES_PATH
 )
 
