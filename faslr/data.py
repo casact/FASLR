@@ -26,7 +26,8 @@ from faslr.constants import (
     ICONS_PATH,
     LOSS_FIELDS,
     ORIGIN_FIELDS,
-    QT_FILEPATH_OPTION
+    QT_FILEPATH_OPTION,
+    SAMPLE_DIALOG_PATH
 )
 
 from faslr.utilities import open_item_tab
@@ -549,6 +550,7 @@ class ImportArgumentsTab(QWidget):
         filename = QFileDialog.getOpenFileName(
             parent=self,
             caption='Open File',
+            directory=SAMPLE_DIALOG_PATH,
             filter='CSV (*.csv)',
             options=QT_FILEPATH_OPTION
         )[0]
