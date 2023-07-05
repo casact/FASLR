@@ -50,7 +50,7 @@ def f_core(sample_db):
 #     data_pane = DataPane(core=f_core, parent=parent_tab)
 
 
-def test_data_pane(qtbot) -> None:
+def test_data_pane_w_reject(qtbot) -> None:
 
     data_pane = DataPane()
     qtbot.addWidget(data_pane)
@@ -60,20 +60,135 @@ def test_data_pane(qtbot) -> None:
 
     def wizard_handler() -> None:
 
+        dialog = data_pane.wizard
+        qtbot.addWidget(dialog)
+
+        qtbot.mouseClick(
+            dialog.button_box.button(dialog.cancel_btn),
+            Qt.MouseButton.LeftButton,
+            delay=1
+        )
+
+    QTimer.singleShot(
+        500,
+        wizard_handler
+    )
+
+    qtbot.mouseClick(
+        data_pane.upload_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+    data_pane.close()
+
+
+def test_data_pane_w_accept(
+        qtbot,
+        f_core
+) -> None:
+    parent_tab = QTabWidget()
+
+    data_pane = DataPane(
+        core=f_core,
+        parent=parent_tab
+    )
+    qtbot.addWidget(data_pane)
+
+    parent_tab.addTab(data_pane, "Data Pane")
+    parent_tab.show()
+    qtbot.wait_for_window_shown(parent_tab)
+
+    # Simulate opening and closing of data pane.
+
+    def import_handler() -> None:
+        keyboard = Controller()
+
         dialog = QApplication.activeModalWidget()
         qtbot.addWidget(dialog)
 
-        qtbot.waitUntil(dialog.isVisible(), timeout=5000)
+        qtbot.waitUntil(
+            callback=dialog.isVisible,
+            timeout=5000
+        )
 
-        # qtbot.mouseClick(dialog.button_box.button(dialog.cancel_btn), Qt.MouseButton.LeftButton, delay=1)
-        dialog.reject()
-    # QTimer.singleShot(
-    #     500,
-    #     wizard_handler
-    # )
-    data_pane.upload_btn.click()
-    qtbot.mouseClick(data_pane.upload_btn, Qt.MouseButton.LeftButton, delay=1)
-    data_pane.close()
+        keyboard.type('friedland_us_auto_steady_state.csv')
+        keyboard.press(Key.enter)
+        keyboard.release(Key.enter)
+
+    # data_pane.upload_btn.click()
+
+    qtbot.mouseClick(
+        data_pane.upload_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    wizard = data_pane.wizard
+    qtbot.addWidget(wizard)
+
+    QTimer.singleShot(
+        500,
+        import_handler
+    )
+
+    qtbot.mouseClick(
+        wizard.args_tab.upload_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    qtbot.mouseClick(
+        wizard.button_box.button(wizard.ok_btn),
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+
+
+def test_data_pane_w_no_name(qtbot) -> None:
+    data_pane = DataPane()
+    qtbot.addWidget(data_pane)
+    data_pane.show()
+
+    # Simulate opening and closing of data pane.
+
+    def import_handler() -> None:
+        keyboard = Controller()
+
+        dialog = QApplication.activeModalWidget()
+        qtbot.addWidget(dialog)
+
+        qtbot.waitUntil(
+            callback=dialog.isVisible,
+            timeout=5000
+        )
+
+        keyboard.press(Key.esc)
+        keyboard.release(Key.esc)
+        keyboard.press(Key.esc)
+        keyboard.release(Key.esc)
+
+
+    qtbot.mouseClick(
+        data_pane.upload_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    wizard = data_pane.wizard
+    qtbot.addWidget(wizard)
+
+    QTimer.singleShot(
+        500,
+        import_handler
+    )
+
+    qtbot.mouseClick(
+        wizard.args_tab.upload_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
 
 
 def test_data_view_w_model(qtbot, f_core):
@@ -126,6 +241,3 @@ def test_data_view_w_model(qtbot, f_core):
     data_pane.data_view.customContextMenuRequested.emit(position)
 
     data_pane.data_view.doubleClicked.emit(idx)
-
-
-    # data_pane.data_view.viewport()
