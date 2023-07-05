@@ -15,6 +15,14 @@ class FDoubleSpinBox(QWidget):
         value: float = None,
         single_step: float = None
     ):
+        """
+        A combination of a label with an accompanying double spin box.
+
+        :param label: The label to go with the double spin box.
+        :param value: The starting value of the spin box.
+        :param single_step: The magnitude of the double spin box step.
+        """
+
         super().__init__()
 
         self.layout = QHBoxLayout()
@@ -36,6 +44,14 @@ class FSpinBox(QWidget):
             value: int,
             single_step: int
     ):
+        """
+        A combination of a label with an accompanying spin box.
+
+        :param label: The label to go with the spin box.
+        :param value: The starting value of the spin box.
+        :param single_step: The magnitude of the spin box step.
+        """
+
         super().__init__()
 
         self.layout = QHBoxLayout()
@@ -56,6 +72,11 @@ class FComboBox(QWidget):
             self,
             label: str = None
     ):
+        """
+        A combination of a label with a combo box.
+
+        :param label: The label to go with the combo box.
+        """
         super().__init__()
 
         self.layout = QHBoxLayout()
@@ -71,6 +92,10 @@ class FComboBox(QWidget):
 
 class FHContainer(QWidget):
     def __init__(self):
+        """
+        A widget that can serve as a container to a QHboxLayout. For example, if you have multiple widgets
+        in a horizontal layout, this widget can contain them.
+        """
         super().__init__()
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
