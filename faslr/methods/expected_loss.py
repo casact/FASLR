@@ -12,7 +12,7 @@ from faslr.common import (
 
 from faslr.grid_header import GridTableView
 
-from faslr.indexation import (
+from faslr.index import (
     calculate_index_factors,
     IndexInventory,
     IndexTableModel,
