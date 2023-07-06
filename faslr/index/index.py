@@ -49,7 +49,7 @@ from typing import (
     TYPE_CHECKING
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma no coverage
     from faslr.methods.expected_loss import IndexListView
     from pandas import DataFrame
 
@@ -107,7 +107,7 @@ class IndexTableModel(FAbstractTableModel):
     def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
 
         if role == IndexConstantRole:
-            values = [(1 + value ) ** i for i in range(self.rowCount())]
+            values = [(1 + value) ** i for i in range(self.rowCount())]
             values.reverse()
             self._data['Change'] = value
             self._data['Factor'] = values
@@ -264,7 +264,6 @@ class IndexInventory(QDialog):
         self.inventory_view = IndexInventoryView()
 
         self.inventory_model = IndexInventoryModel(indexes=self.indexes)
-
 
         self.inventory_view.setModel(self.inventory_model)
         self.inventory_view.selectRow(0)
