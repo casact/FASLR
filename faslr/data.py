@@ -896,7 +896,7 @@ class ProjectDataModel(FAbstractTableModel):
         if self.parent.main_window:
 
             faslr_connection = FaslrConnection(
-                db_path=self.parent.main_window.db
+                db_path=self.parent.main_window.core.db
             )
 
             df = read_sql(fc=faslr_connection)
