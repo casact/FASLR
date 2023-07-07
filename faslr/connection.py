@@ -180,6 +180,8 @@ class ConnectionDialog(QDialog):
 
         if main_window and (not db_filename == ""):
 
+            main_window.core.connection_established = True
+
             populate_project_tree(
                 db_filename=db_filename,
                 main_window=main_window
