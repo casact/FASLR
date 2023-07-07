@@ -32,21 +32,6 @@ from pytestqt.qtbot import QtBot
 
 
 @pytest.fixture()
-def sample_db() -> str:
-    """
-    Make a copy of the sample db, so we do not alter the original.
-    The tests will use this copy as the backend db.
-    :return: The path to the copy of the sample db.
-    """
-    db_filename = DEFAULT_DIALOG_PATH + '/sample.db'
-    test_db_filename = DEFAULT_DIALOG_PATH + '/sample_test.db'
-    shutil.copy(db_filename, test_db_filename)
-    yield test_db_filename
-
-    os.remove(test_db_filename)
-
-
-@pytest.fixture()
 def f_core(
         sample_db: str,
         setup_config: str
