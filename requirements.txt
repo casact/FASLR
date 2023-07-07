@@ -9,6 +9,8 @@ pandas == 1.5.3
 PyQt6 == 6.4.2
 PyQt6-Qt6 == 6.4.2
 PyQt6-sip == 13.4.1
+scikit-learn == 1.2.1
+scipy == 1.10.1
 sqlalchemy == 2.0.4
 
 # Documentation
