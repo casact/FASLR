@@ -61,7 +61,7 @@ from typing import (
     TYPE_CHECKING
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma no coverage
     from chainladder import Triangle
 
 matplotlib.use('Qt5Agg')
@@ -101,7 +101,7 @@ class TailPane(QWidget):
         self.toggled_chart = 'curve_btn'
 
         # list to hold each tail candidate
-        self.tail_candidates = []
+        self.tail_candidates: [TailConfig] = []
         self.setWindowTitle("Tail Analysis")
 
         # number of tabs that have been created, used to create default names for the candidate tabs
@@ -131,7 +131,7 @@ class TailPane(QWidget):
         canvas_container.setLayout(canvas_layout)
 
         # layout to toggle between charts
-        graph_toggle_btns = TailChartToggle(parent=self)
+        self.graph_toggle_btns = TailChartToggle(parent=self)
 
         # Tabs to hold each tail candidate
         self.config_tabs = ConfigTab(parent=self)
@@ -162,7 +162,7 @@ class TailPane(QWidget):
         )
 
         hlayout.addWidget(
-            graph_toggle_btns
+            self.graph_toggle_btns
         )
 
         self.setLayout(vlayout)
@@ -455,35 +455,35 @@ class TailChartToggle(QWidget):
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        curve_btn = self.add_chart_button(
+        self.curve_btn = self.add_chart_button(
             name='curve_btn',
             tool_tip='Development factor comparison',
             icon='graph-down.svg'
         )
 
-        tail_comps_btn = self.add_chart_button(
+        self.tail_comps_btn = self.add_chart_button(
             name='tail_comps_btn',
             tool_tip='Tail factor comparison',
             icon='bar-chart-2.svg'
         )
 
-        extrap_btn = self.add_chart_button(
+        self.extrap_btn = self.add_chart_button(
             name='extrap_btn',
             tool_tip='Extrapolation',
             icon='curve-graph.svg'
         )
 
-        reg_btn = self.add_chart_button(
+        self.reg_btn = self.add_chart_button(
             name='reg_btn',
             tool_tip='Fit period comparison',
             icon='scatter-plot.svg'
         )
 
         for widget in [
-            curve_btn,
-            tail_comps_btn,
-            extrap_btn,
-            reg_btn
+            self.curve_btn,
+            self.tail_comps_btn,
+            self.extrap_btn,
+            self.reg_btn
         ]:
             self.layout.addWidget(widget)
 
@@ -867,6 +867,8 @@ class TailTypeGroupBox(QGroupBox):
         # Default selection is tail constant
         self.constant_btn.setChecked(True)
 
+        self.bg_tail_type.buttonToggled.connect(self.parent.parent.update_plot)
+
 
 class TailParamsGroupBox(QGroupBox):
     """
@@ -947,8 +949,8 @@ class ConfigTab(QTabWidget):
             Qt.Corner.TopRightCorner
         )
 
-        self.add_remove_btns.add_tab_btn.pressed.connect(self.add_candidate) # noqa
-        self.add_remove_btns.remove_tab_btn.pressed.connect(self.remove_candidate)  # noqa
+        self.add_remove_btns.add_btn.pressed.connect(self.add_candidate) # noqa
+        self.add_remove_btns.remove_btn.pressed.connect(self.remove_candidate)  # noqa
 
     def add_candidate(self) -> None:
         """
