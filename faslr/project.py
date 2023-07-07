@@ -360,9 +360,12 @@ class ProjectTreeView(QTreeView):
         self.delete_project_action.setStatusTip("Delete the project.")
         self.delete_project_action.triggered.connect(self.delete_project) # noqa
 
-        # self.doubleClicked.connect(self.get_value) # noqa
+        self.doubleClicked.connect(self.get_value) # noqa
 
-        self.doubleClicked.connect(self.process_double_click) # noqa
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.contextMenuEvent)  # noqa
+
+        # self.doubleClicked.connect(self.process_double_click) # noqa
 
     def process_double_click(
             self,
@@ -410,7 +413,7 @@ class ProjectTreeView(QTreeView):
         menu = QMenu()
         menu.addAction(self.new_analysis_action)
         menu.addAction(self.delete_project_action)
-        menu.exec(event.globalPos())
+        menu.exec(self.viewport().mapToGlobal(event))
 
     def get_value(
             self,
@@ -419,6 +422,8 @@ class ProjectTreeView(QTreeView):
         # Just some scaffolding that helps me navigate positions within the ProjectTreeView model
         # print(val)
         # print(self)
+        print(val.row())
+        print(val.column())
         print(val.data())
         # print(val.row())
         # print(val.column())
