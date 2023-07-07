@@ -39,7 +39,8 @@ from PyQt6.QtWidgets import (
 )
 
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
+
+if TYPE_CHECKING:  # pragma no coverage
     from faslr.__main__ import MainWindow
 
 
@@ -188,6 +189,7 @@ def open_github() -> None:
 
 
 def open_discussions() -> None:
+
     webbrowser.open(
         url=DISCUSSIONS_URL,
         new=0,
@@ -196,6 +198,7 @@ def open_discussions() -> None:
 
 
 def open_issue() -> None:
+
     webbrowser.open(
         url=ISSUES_URL,
         new=0,
