@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 
+
 class AddRemoveButtonWidget(QWidget):
     """
     The add/remove buttons for the ConfigTab. These add/remove the tabs containing the tail candidates.
@@ -67,7 +68,6 @@ class FOKCancel(QDialogButtonBox):
         super().__init__(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
-
 
 
 def make_corner_button(
