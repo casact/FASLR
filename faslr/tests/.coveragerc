@@ -1,0 +1,6 @@
+[report]
+omit =
+    setup.py
+    faslr/samples/db/generate_sample_db.py
+    faslr/tests/copy_config.py
+    faslr/tests/scratch*.py
