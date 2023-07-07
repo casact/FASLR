@@ -104,7 +104,12 @@ class IndexTableModel(FAbstractTableModel):
             if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
 
-    def setData(self, index: QModelIndex, value: typing.Any, role: int = ...) -> bool:
+    def setData(
+            self,
+            index: QModelIndex,
+            value: typing.Any,
+            role: int = ...
+    ) -> bool:
 
         if role == IndexConstantRole:
             values = [(1 + value) ** i for i in range(self.rowCount())]
@@ -166,7 +171,7 @@ class IndexTableView(FTableView):
 class IndexPane(QWidget):
     def __init__(
             self,
-            years: list
+            years: list = None
     ):
         super().__init__()
 
@@ -249,7 +254,7 @@ class IndexInventory(QDialog):
     def __init__(
             self,
             indexes: List[dict],
-            parent: IndexListView  = None
+            parent: IndexListView = None
     ):
         super().__init__()
 
@@ -301,10 +306,13 @@ class IndexInventory(QDialog):
                     continue
 
                 idx_name = self.inventory_model.data(
-                    index=selected_idx, role=Qt.ItemDataRole.DisplayRole
+                    index=selected_idx,
+                    role=Qt.ItemDataRole.DisplayRole
                 )
+
                 idx_item = QStandardItem()
                 idx_item.setText(idx_name)
+
                 self.parent.model.appendRow(idx_item)
                 self.parent.add_remove_btns.remove_btn.setEnabled(True)
 
