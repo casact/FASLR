@@ -63,7 +63,7 @@ from typing import (
     TYPE_CHECKING
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma no coverage
     from chainladder import (
         Chainladder
     )
@@ -1291,6 +1291,7 @@ class ExhibitOutputButtonBox(QWidget):
                 self.remove_link_btn.setEnabled(False)
         else:
             self.col_rename_btn.setEnabled(False)
+
 
 class RenameColumnDialog(QDialog):
     def __init__(
