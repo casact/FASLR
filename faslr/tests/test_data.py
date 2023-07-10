@@ -1,13 +1,9 @@
-import os
-
 import pytest
-import shutil
 
 from faslr.__main__ import (
     MainWindow
 )
 
-from faslr.constants import DEFAULT_DIALOG_PATH
 from faslr.core import FCore
 
 from faslr.data import (
