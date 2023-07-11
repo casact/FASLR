@@ -1310,7 +1310,10 @@ class RenameColumnDialog(QDialog):
         self.new_name = QLineEdit()
         self.layout.addRow("Rename Column:", self.new_name)
 
-        self.button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
+        self.button_layout = self.ok_button | QDialogButtonBox.StandardButton.Cancel
         self.button_box = QDialogButtonBox(self.button_layout)
         self.button_box.accepted.connect(self.send_name) # noqa
         self.button_box.rejected.connect(self.close) # noqa
