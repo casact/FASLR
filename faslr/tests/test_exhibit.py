@@ -1,11 +1,20 @@
 import chainladder as cl
 import pytest
 
-from faslr.exhibit import ExhibitBuilder, ExhibitInputListModel
+from faslr.exhibit import ExhibitBuilder, ExhibitInputListModel, ExhibitOutputTreeView, RenameColumnDialog
 from faslr.utilities.sample import load_sample
 
-from PyQt6.QtCore import QAbstractListModel, Qt
-from PyQt6.QtWidgets import QListView
+from PyQt6.QtCore import QAbstractListModel, Qt, QTimer
+from PyQt6.QtGui import QStandardItemModel
+from PyQt6.QtWidgets import (
+    QApplication,
+    QListView
+)
+
+from pynput.keyboard import (
+    Controller,
+    Key
+)
 
 from pytestqt.qtbot import QtBot
 
@@ -32,7 +41,7 @@ def exhibit_builder(qtbot: QtBot) -> ExhibitBuilder:
     yield exhibit_builder
 
 
-def test_add_output(
+def test_add_remove_output(
         qtbot: QtBot,
         exhibit_builder: ExhibitBuilder
 ) -> None:
@@ -47,6 +56,71 @@ def test_add_output(
 
     qtbot.mouseClick(
         exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the output column and then remove it.
+    output_view: ExhibitOutputTreeView = exhibit_builder.output_view
+    output_model: QStandardItemModel = exhibit_builder.output_model
+    idx = output_model.index(0, 0)
+    output_view.setCurrentIndex(idx)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.remove_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+
+def test_add_rename_column(
+        qtbot: QtBot,
+        exhibit_builder: ExhibitBuilder
+) -> None:
+
+    # Select the first column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(0)
+    list_view.setCurrentIndex(idx)
+
+    exhibit_builder.model_tabs.setCurrentIndex(0)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the output column and then rename it.
+    output_view: ExhibitOutputTreeView = exhibit_builder.output_view
+    output_model: QStandardItemModel = exhibit_builder.output_model
+    idx = output_model.index(0, 0)
+    output_view.setCurrentIndex(idx)
+
+    def handle_dialog():
+
+        keyboard = Controller()
+
+        dialog: RenameColumnDialog = QApplication.activeWindow()
+
+        keyboard.type("Test Name")
+
+        qtbot.mouseClick(
+            dialog.button_box.button(dialog.ok_button),
+            Qt.MouseButton.LeftButton,
+            delay=1
+        )
+
+
+    QTimer.singleShot(
+        500,
+        handle_dialog
+    )
+
+
+    qtbot.mouseClick(
+        exhibit_builder.output_buttons.col_rename_btn,
         Qt.MouseButton.LeftButton,
         delay=1
     )
