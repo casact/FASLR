@@ -1,7 +1,13 @@
 import chainladder as cl
 import pytest
 
-from faslr.exhibit import ExhibitBuilder, ExhibitInputListModel, ExhibitOutputTreeView, RenameColumnDialog
+from faslr.exhibit import (
+    ExhibitBuilder,
+    ExhibitGroupDialog,
+    ExhibitInputListModel,
+    ExhibitOutputTreeView,
+    RenameColumnDialog
+)
 from faslr.utilities.sample import load_sample
 
 from PyQt6.QtCore import QAbstractListModel, Qt, QTimer
@@ -121,6 +127,85 @@ def test_add_rename_column(
 
     qtbot.mouseClick(
         exhibit_builder.output_buttons.col_rename_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+
+def test_add_group(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
+
+    def handle_dialog() -> None:
+
+        keyboard = Controller()
+
+        dialog: ExhibitGroupDialog = QApplication.activeWindow()
+
+        keyboard.type("Test Group")
+
+        qtbot.mouseClick(
+            dialog.button_box.button(dialog.ok_button),
+            Qt.MouseButton.LeftButton,
+            delay=1
+        )
+
+    # Select the first column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(0)
+    list_view.setCurrentIndex(idx)
+
+    exhibit_builder.model_tabs.setCurrentIndex(0)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the first column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(0)
+    list_view.setCurrentIndex(idx)
+
+    exhibit_builder.model_tabs.setCurrentIndex(0)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the second column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(1)
+    list_view.setCurrentIndex(idx)
+
+    # Select the both output columns and add group
+    output_view: ExhibitOutputTreeView = exhibit_builder.output_view
+    output_model: QStandardItemModel = exhibit_builder.output_model
+    idx = output_model.index(0, 0)
+    idx2 = output_model.index(1, 0)
+    selection_model = output_view.selectionModel()
+    selection_model.select(idx, selection_model.SelectionFlag.Select)
+    selection_model.select(idx2, selection_model.SelectionFlag.Select)
+
+    QTimer.singleShot(
+        500,
+        handle_dialog
+    )
+
+    qtbot.mouseClick(
+        exhibit_builder.output_buttons.add_link_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # remove group
+
+    qtbot.mouseClick(
+        exhibit_builder.output_buttons.remove_link_btn,
         Qt.MouseButton.LeftButton,
         delay=1
     )
