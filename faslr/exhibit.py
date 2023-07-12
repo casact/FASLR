@@ -1097,7 +1097,10 @@ class ExhibitGroupDialog(QDialog):
         self.group_edit = QLineEdit()
         self.layout.addRow("Column Group Name:", self.group_edit)
 
-        self.button_layout = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
+        self.button_layout = self.ok_button | self.cancel_button
         self.button_box = QDialogButtonBox(self.button_layout)
         self.button_box.accepted.connect(self.add_group) # noqa
         self.button_box.rejected.connect(self.close) # noqa
