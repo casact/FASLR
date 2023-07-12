@@ -162,10 +162,10 @@ def test_add_group(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
         delay=1
     )
 
-    # Select the first column and add it.
+    # Select the second column and add it.
     list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
     list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
-    idx = list_model.index(0)
+    idx = list_model.index(1)
     list_view.setCurrentIndex(idx)
 
     exhibit_builder.model_tabs.setCurrentIndex(0)
@@ -175,12 +175,6 @@ def test_add_group(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
         Qt.MouseButton.LeftButton,
         delay=1
     )
-
-    # Select the second column and add it.
-    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
-    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
-    idx = list_model.index(1)
-    list_view.setCurrentIndex(idx)
 
     # Select the both output columns and add group
     output_view: ExhibitOutputTreeView = exhibit_builder.output_view
@@ -209,3 +203,60 @@ def test_add_group(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
         Qt.MouseButton.LeftButton,
         delay=1
     )
+
+
+def test_move_down_up(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
+
+    # Select the first column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(0)
+    list_view.setCurrentIndex(idx)
+
+    exhibit_builder.model_tabs.setCurrentIndex(0)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the second column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(1)
+    list_view.setCurrentIndex(idx)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the first output column and then move down
+    output_view: ExhibitOutputTreeView = exhibit_builder.output_view
+    output_model: QStandardItemModel = exhibit_builder.output_model
+    idx = output_model.index(0, 0)
+    selection_model = output_view.selectionModel()
+    selection_model.select(idx, selection_model.SelectionFlag.Select)
+
+    qtbot.mouseClick(
+        exhibit_builder.output_buttons.col_dwn_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Now move up
+
+    idx = output_model.index(1, 0)
+    output_view.setCurrentIndex(idx)
+
+    # print(output_view.selectedIndexes()[0].row())
+
+    qtbot.mouseClick(
+        exhibit_builder.output_buttons.col_up_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+
