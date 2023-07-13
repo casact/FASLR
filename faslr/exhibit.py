@@ -458,7 +458,6 @@ class ExhibitView(GridTableView):
 
         else:
 
-
             self.hheader.removeCellLabel(
                 row=0,
                 column=col_pos
@@ -579,7 +578,6 @@ class ExhibitView(GridTableView):
             is_group = True
             for i in range(item.rowCount()):
                 cols.append(item.child(i).text())
-
 
         self.model().setData(
             index=index,
@@ -1074,7 +1072,6 @@ class ExhibitBuilder(QWidget):
             item = parent.takeRow(current_row)
             parent.insertRow(current_row + 1, item)
 
-
         self.output_view.selectionModel().select(
             item[0].index(),
             QItemSelectionModel.SelectionFlag.Select
@@ -1447,6 +1444,7 @@ def find_column_position(
             column_pos += children - 1
 
     return column_pos
+
 
 def get_item_labels(
         item: [ExhibitOutputTreeItem, QStandardItem]
