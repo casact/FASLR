@@ -6,6 +6,7 @@ from faslr.utilities.style_parser import parse_styler
 
 from pandas import Period
 
+
 def test_parse_styler():
     """
     Makes sure parse_styler generates a dataframe with the correct colors.
