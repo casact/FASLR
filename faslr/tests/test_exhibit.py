@@ -260,3 +260,59 @@ def test_move_down_up(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
     )
 
 
+def test_exhibit_data(qtbot: QtBot, exhibit_builder: ExhibitBuilder) -> None:
+
+    # Select the AY column and add it.
+    list_view: QListView = exhibit_builder.model_tabs.currentWidget().list_view
+    list_model: ExhibitInputListModel = exhibit_builder.input_models[0].list_model
+    idx = list_model.index(0)
+    list_view.setCurrentIndex(idx)
+
+    exhibit_builder.model_tabs.setCurrentIndex(0)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the Paid Claims column and add it.
+    idx = list_model.index(2)
+    list_view.setCurrentIndex(idx)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    # Select the Paid Claims CDF column and add it.
+    idx = list_model.index(3)
+    list_view.setCurrentIndex(idx)
+
+    qtbot.mouseClick(
+        exhibit_builder.input_btns.add_column_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    ay_idx = exhibit_builder.preview_model.index(0, 0)
+    ay_display_test = exhibit_builder.preview_model.data(ay_idx, role=Qt.ItemDataRole.DisplayRole)
+    ay_align_test = exhibit_builder.preview_model.data(ay_idx, role=Qt.ItemDataRole.TextAlignmentRole)
+
+    assert ay_display_test == '1998'
+
+    assert ay_align_test == Qt.AlignmentFlag.AlignCenter
+
+    paid_claims_idx = exhibit_builder.preview_model.index(0, 1)
+    paid_claims_display_test = exhibit_builder.preview_model.data(paid_claims_idx, role=Qt.ItemDataRole.DisplayRole)
+    paid_claims_align_test = exhibit_builder.preview_model.data(paid_claims_idx, role=Qt.ItemDataRole.TextAlignmentRole)
+
+    assert paid_claims_display_test == '15,822'
+
+    assert paid_claims_align_test == Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+
+    paid_cdf_idx = exhibit_builder.preview_model.index(0, 2)
+    paid_cdf_display_test = exhibit_builder.preview_model.data(paid_cdf_idx, role=Qt.ItemDataRole.DisplayRole)
+
+    assert paid_cdf_display_test == '1.000'
