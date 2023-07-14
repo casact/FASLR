@@ -65,8 +65,12 @@ class AddRemoveButtonWidget(QWidget):
 
 class FOKCancel(QDialogButtonBox):
     def __init__(self):
+
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
         super().__init__(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+             self.ok_button | self.cancel_button
         )
 
 
