@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import chainladder as cl
 import pandas as pd
 import pytest
 
@@ -9,7 +10,10 @@ from faslr.index import (
     IndexInventory
 )
 
+from faslr.methods.expected_loss import ExpectedLossIndex, ExpectedLossWidget
+
 from faslr.utilities import (
+    load_sample,
     ppa_loss_trend,
     subset_dict,
 )
@@ -86,6 +90,37 @@ def index_pane(
     qtbot.addWidget(index_pane)
 
     yield index_pane
+
+
+@pytest.fixture()
+def expected_loss(
+        qtbot: QtBot
+) -> ExpectedLossWidget:
+
+    """
+    An expected loss widget used for the testing of attaching an index to a model.
+
+    :param qtbot: The QtBot fixture.
+    :return: None
+    """
+
+    triangle = load_sample('auto_bi')
+    reported = triangle['Reported Claims']
+    paid = triangle['Paid Claims']
+
+    reported_dev = cl.TailConstant(tail=1.005).fit_transform(reported)
+    reported_ult = cl.Chainladder().fit(reported_dev)
+
+    paid_dev = cl.TailConstant(tail=1.05).fit_transform(paid)
+    paid_ult = cl.Chainladder().fit(paid_dev)
+
+    widget = ExpectedLossWidget(
+        triangles=[reported_ult, paid_ult]
+    )
+
+    qtbot.addWidget(widget)
+
+    yield widget
 
 
 def test_index_pane(
@@ -239,5 +274,40 @@ def test_calculate_index_factors(
     )
 
 
+def test_add_indexes(
+        qtbot: QtBot,
+        expected_loss: ExpectedLossWidget
+) -> None:
+    """
+    Tests the adding of an index to a model via the index inventory.
 
+    :param qtbot: The QtBot fixture.
+    :param expected_loss: The expected_loss fixture.
+    :return: None
+    """
 
+    def handle_dialog():
+
+        dialog: IndexInventory = QApplication.activeWindow()
+
+        qtbot.addWidget(dialog)
+
+        qtbot.mouseClick(
+            dialog.button_box.button(dialog.button_box.ok_button),
+            Qt.MouseButton.LeftButton,
+            delay=1
+        )
+
+    index_tab: ExpectedLossIndex = expected_loss.main_tabs.widget(0)
+
+    # Add a single premium index.
+    QTimer.singleShot(
+        500,
+        handle_dialog
+    )
+
+    qtbot.mouseClick(
+        index_tab.index_selector.premium_indexes.add_remove_btns.add_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
