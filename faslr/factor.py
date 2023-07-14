@@ -44,6 +44,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QMenu,
     QProxyStyle,
+    QPushButton,
     QSpinBox,
     QStyle,
     QStyleOptionHeader,
@@ -785,8 +786,10 @@ class LDFAverageBox(QDialog):
 
         self.button_box = QDialogButtonBox()
 
+        self.add_average_button = QPushButton("Add Average")
+
         self.button_box.addButton(
-            "Add Average",
+            self.add_average_button,
             QDialogButtonBox.ButtonRole.ActionRole
         )
         self.button_box.addButton(QDialogButtonBox.StandardButton.Ok)
@@ -854,18 +857,22 @@ class AddLDFDialog(QDialog):
         self.year_spin.setMinimum(1)
         self.year_spin.setValue(1)
         self.avg_label = QLineEdit()
-        button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
+        self.button_box = QDialogButtonBox(
+            self.ok_button | self.cancel_button
         )
 
         self.layout.addRow("Type: ", self.type_combo)
         self.layout.addRow("Years: ", self.year_spin)
         self.layout.addRow("Label: ", self.avg_label)
-        self.layout.addWidget(button_box)
+        self.layout.addWidget(self.button_box)
         self.setLayout(self.layout)
 
-        button_box.rejected.connect(self.cancel_close) # noqa
-        button_box.accepted.connect(self.add_average) # noqa
+        self.button_box.rejected.connect(self.cancel_close) # noqa
+        self.button_box.accepted.connect(self.add_average) # noqa
 
     def cancel_close(self):
         self.close()
