@@ -2,16 +2,21 @@ import sys
 
 import pytest
 
-from faslr.methods.development import DevelopmentTab
+from faslr.factor import AddLDFDialog
+from faslr.methods.development import DevelopmentTab, LDFAverageBox
 from faslr.style.triangle import (
     LOWER_DIAG_COLOR,
     EXCL_FACTOR_COLOR,
     MAIN_TRIANGLE_COLOR
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import QApplication
 from faslr.utilities.sample import load_sample
 
+from pynput.keyboard import (
+    Controller,
+    Key
+)
 from pytestqt.qtbot import QtBot
 
 
@@ -103,3 +108,84 @@ def test_factor_data(development_tab):
     assert first_alignment == Qt.AlignmentFlag.AlignRight
 
     assert first_back == MAIN_TRIANGLE_COLOR
+
+
+# def test_add_vol_wtd(qtbot: QtBot, development_tab: DevelopmentTab) -> None:
+#     """
+#     Opens the ldf average box and adds the three-ear vol wtd. average.
+#
+#     :param qtbot:
+#     :param development_tab:
+#     :return:
+#     """
+#
+#     def handle_dialog():
+#
+#         dialog: LDFAverageBox  = QApplication.activeWindow()
+#
+#         dialog.
+#
+#         qtbot.
+
+
+def test_add_ldf_average(qtbot: QtBot, development_tab: DevelopmentTab) -> None:
+
+    def handle_add_avg_box():
+
+        keyboard = Controller()
+
+        dialog: AddLDFDialog = QApplication.activeWindow()
+
+        qtbot.addWidget(dialog)
+
+        keyboard.tap(Key.tab)
+        keyboard.tap(Key.tab)
+        keyboard.type("Test Average")
+        keyboard.tap(Key.enter)
+
+    qtbot.mouseClick(
+        development_tab.add_ldf_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    QTimer.singleShot(
+        500,
+        handle_add_avg_box
+    )
+
+    qtbot.mouseClick(
+        development_tab.ldf_average_box.add_average_button,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+
+def test_add_ldf_cancel(qtbot: QtBot, development_tab: DevelopmentTab) -> None:
+
+    def handle_add_avg_box():
+
+        keyboard = Controller()
+
+        dialog: AddLDFDialog = QApplication.activeWindow()
+
+        qtbot.addWidget(dialog)
+
+        dialog.button_box.rejected.emit()
+
+    qtbot.mouseClick(
+        development_tab.add_ldf_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    QTimer.singleShot(
+        500,
+        handle_add_avg_box
+    )
+
+    qtbot.mouseClick(
+        development_tab.ldf_average_box.add_average_button,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
