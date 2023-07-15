@@ -1,36 +1,36 @@
-#name: Unit Tests
-#
-#on: [push, pull_request]
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#    name: Test Coverage
-#    defaults:
-#      run:
-#        working-directory: .
-#    env:
-#      DISPLAY: ':99.0'
-#    steps:
-#    - uses: actions/checkout@v1
-#    - uses: actions/setup-python@v2
-#      with:
-#        python-version: '3.10'
-#    - name: Install ubuntu packages
-#      run: sudo apt-get update
-#    - name: Install requirements
-#      run: sudo apt-get install -y libegl1 libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xinput0 libxcb-xfixes0 x11-utils libxcb-cursor0
-#    - name: Run xvfb
-#      run: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
-#    - name: Install requirements
-#      run: pip install -r requirements.txt
-#    - name: Reinstall opencv
-#      run: pip uninstall opencv-python && pip install opencv-python-headless
-#    - name: Generate Sample DB
-#      run: python3 faslr/samples/db/generate_sample_db.py
-#    - name: Copy config file
-#      run: python3 faslr/tests/copy_config.py
-#    - name: Run tests and collect coverage
-#      run: pytest --cov-config=faslr/tests/.coveragerc --cov=./ --cov-report=term --cov-report=xml
-#    - name: Upload coverage reports to Codecov with GitHub Action
-#      uses: codecov/codecov-action@v3
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Test Coverage
+    defaults:
+      run:
+        working-directory: .
+    env:
+      DISPLAY: ':99.0'
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install ubuntu packages
+      run: sudo apt-get update
+    - name: Install requirements
+      run: sudo apt-get install -y libegl1 libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xinput0 libxcb-xfixes0 x11-utils libxcb-cursor0
+    - name: Run xvfb
+      run: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
+    - name: Install requirements
+      run: pip install -r requirements.txt
+    - name: Reinstall opencv
+      run: pip uninstall opencv-python && pip install opencv-python-headless
+    - name: Generate Sample DB
+      run: python3 faslr/samples/db/generate_sample_db.py
+    - name: Copy config file
+      run: python3 faslr/tests/copy_config.py
+    - name: Run tests and collect coverage
+      run: pytest --cov-config=faslr/tests/.coveragerc --cov=./ --cov-report=term --cov-report=xml
+    - name: Upload coverage reports to Codecov with GitHub Action
+      uses: codecov/codecov-action@v3
