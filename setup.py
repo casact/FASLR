@@ -3,6 +3,7 @@ import setuptools
 
 # from faslr.constants import BUILD_VERSION
 
+
 def get_property(
         prop: str,
         project: str
@@ -13,6 +14,7 @@ def get_property(
         open(project + '/_version.py').read())
 
     return result.group(1)
+
 
 project_name = 'faslr'
 
