@@ -8,3 +8,8 @@ from .index import (
     IndexInventoryModel,
     IndexInventoryView
 )
+
+from .index_matrix import (
+    index_matrix,
+    relative_index
+)
