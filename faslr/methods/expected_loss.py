@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+import typing
+
+import numpy as np
 import pandas as pd
 
 from faslr.base_table import (
     FAbstractTableModel,
+    FTableView
+)
+
+from faslr.style.triangle import (
+    PERCENT_STYLE,
+    RATIO_STYLE
 )
 
 from faslr.common import (
@@ -45,6 +54,7 @@ from PyQt6.QtGui import QStandardItemModel
 
 from PyQt6.QtWidgets import (
     QAbstractItemView,
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QListView,
@@ -584,6 +594,120 @@ class IndexListView(QWidget):
             # Disable index removal button.
             self.add_remove_btns.remove_btn.setEnabled(False)
 
+
 class IndexListModel(QStandardItemModel):
     def __init__(self):
         super().__init__()
+
+
+class ExpectedLossMatrixModel(FAbstractTableModel):
+    """
+    Table model that handles loss ratios (or analogous measures) indexed by each year.
+    """
+    def __init__(
+            self,
+            matrices: dict
+    ):
+        super().__init__()
+
+        self.matrices = matrices
+
+        self._data = self.matrices["Loss Trend Index"]
+
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
+
+            if np.isnan(value):
+                return ""
+            # else:
+            #     if col == "Factor":
+            #         value = RATIO_STYLE.format(value)
+            #     else:
+            #         value = PERCENT_STYLE.format(value)
+            else:
+                return RATIO_STYLE.format(value)
+
+    def headerData(
+            self,
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> typing.Any:
+
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Orientation.Vertical:
+                return str(self._data.index[p_int])
+
+    def setData(
+            self,
+            index:
+            QModelIndex,
+            value: typing.Any,
+            role: int = ...
+    ) -> bool:
+
+        if role == Qt.ItemDataRole.EditRole:
+
+            self._data = self.matrices[value]
+
+        self.layoutChanged.emit()
+
+        return True
+
+class ExpectedLossMatrixView(FTableView):
+    """
+    Table view that handles loss ratios (or analogous measures) indexed by each year.
+    """
+    def __init__(self):
+        super().__init__()
+
+
+class ExpectedLossMatrixWidget(QWidget):
+    def __init__(
+            self,
+            matrices: dict
+    ):
+        super().__init__()
+
+        self.setWindowTitle("Expected Loss Matrix")
+        self.layout = QVBoxLayout()
+        self.matrices = matrices
+
+        self.selection_box = QComboBox()
+
+        self.selection_box.addItems(
+            [
+                "Loss Trend Index",
+                "Rate Change Index",
+                "Tort Reform Index"
+            ]
+        )
+
+        self.matrix_model = ExpectedLossMatrixModel(
+            matrices=self.matrices
+        )
+        self.matrix_view = ExpectedLossMatrixView()
+        self.matrix_view.setModel(self.matrix_model)
+
+        self.layout.addWidget(self.selection_box)
+        self.layout.addWidget(self.matrix_view)
+        self.setLayout(self.layout)
+
+        self.selection_box.currentTextChanged.connect(self.update_matrix)
+
+    def update_matrix(self) -> None:
+
+        idx = QModelIndex()
+        self.matrix_model.setData(
+            index=idx,
+            value=self.selection_box.currentText(),
+            role=Qt.ItemDataRole.EditRole
+        )
