@@ -5,8 +5,16 @@ from faslr.base_table import (
 
 from chainladder import Triangle
 
+from faslr.common.table import make_corner_button
+
+from faslr.style.triangle import (
+    BLANK_TEXT,
+    LOWER_DIAG_COLOR,
+    RATIO_STYLE,
+    VALUE_STYLE
+)
+
 from PyQt6.QtCore import (
-    QSize,
     Qt,
     QVariant
 )
@@ -17,19 +25,7 @@ from PyQt6.QtGui import (
 )
 
 from PyQt6.QtWidgets import (
-    QAbstractButton,
-    QLabel,
-    QMenu,
-    QStyle,
-    QStyleOptionHeader,
-    QVBoxLayout
-)
-
-from faslr.style.triangle import (
-    BLANK_TEXT,
-    LOWER_DIAG_COLOR,
-    RATIO_STYLE,
-    VALUE_STYLE
+    QMenu
 )
 
 
@@ -148,15 +144,7 @@ class TriangleView(FTableView):
 
         self.installEventFilter(self)
 
-        btn = self.findChild(QAbstractButton)
-        btn.installEventFilter(self)
-        btn_label = QLabel("AY")
-        btn_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        btn_layout = QVBoxLayout()
-        btn_layout.setContentsMargins(0, 0, 0, 0)
-        btn_layout.addWidget(btn_label)
-        btn.setLayout(btn_layout)
-        opt = QStyleOptionHeader()
+        self.corner_button = make_corner_button(parent=self)
 
         # Set the styling for the table corner so that it matches the rest of the headers.
         # self.setStyleSheet(
@@ -172,22 +160,7 @@ class TriangleView(FTableView):
         # )
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.contextMenuEvent) # noqa
-
-        self.setStyleSheet(
-            """
-            QTableCornerButton::section {
-                border: 1px outset darkgrey;
-            }
-            """
-        )
-
-        s = QSize(btn.style().sizeFromContents(
-            QStyle.ContentsType.CT_HeaderSection, opt, QSize(), btn).
-                  expandedTo(QSize()))
-
-        if s.isValid():
-            self.verticalHeader().setMinimumWidth(s.width())
+        self.customContextMenuRequested.connect(self.contextMenuEvent)  # noqa
 
     def contextMenuEvent(
             self,
