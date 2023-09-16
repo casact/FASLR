@@ -10,6 +10,10 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.common.table import (
+    make_corner_button
+)
+
 from faslr.style.triangle import (
     PERCENT_STYLE,
     RATIO_STYLE
@@ -47,17 +51,21 @@ from faslr.utilities import (
 
 from PyQt6.QtCore import (
     QModelIndex,
+    QSize,
     Qt
 )
 
 from PyQt6.QtGui import QStandardItemModel
 
 from PyQt6.QtWidgets import (
+    QAbstractButton,
     QAbstractItemView,
     QComboBox,
     QHBoxLayout,
     QLabel,
     QListView,
+    QStyle,
+    QStyleOptionHeader,
     QTabWidget,
     QWidget,
     QVBoxLayout
@@ -662,12 +670,16 @@ class ExpectedLossMatrixModel(FAbstractTableModel):
 
         return True
 
+
 class ExpectedLossMatrixView(FTableView):
     """
     Table view that handles loss ratios (or analogous measures) indexed by each year.
     """
     def __init__(self):
         super().__init__()
+
+        self.corner_btn = make_corner_button(parent=self)
+
 
 
 class ExpectedLossMatrixWidget(QWidget):
@@ -682,6 +694,7 @@ class ExpectedLossMatrixWidget(QWidget):
         self.matrices = matrices
 
         self.selection_box = QComboBox()
+        self.selection_box.setFixedWidth(160)
 
         self.selection_box.addItems(
             [
@@ -697,7 +710,7 @@ class ExpectedLossMatrixWidget(QWidget):
         self.matrix_view = ExpectedLossMatrixView()
         self.matrix_view.setModel(self.matrix_model)
 
-        self.layout.addWidget(self.selection_box)
+        self.layout.addWidget(self.selection_box, alignment=Qt.AlignmentFlag.AlignRight)
         self.layout.addWidget(self.matrix_view)
         self.setLayout(self.layout)
 
