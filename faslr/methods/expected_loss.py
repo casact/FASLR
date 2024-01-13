@@ -14,11 +14,6 @@ from faslr.common.table import (
     make_corner_button
 )
 
-from faslr.style.triangle import (
-    PERCENT_STYLE,
-    RATIO_STYLE
-)
-
 from faslr.common import (
     AddRemoveButtonWidget
 )
@@ -51,21 +46,17 @@ from faslr.utilities import (
 
 from PyQt6.QtCore import (
     QModelIndex,
-    QSize,
     Qt
 )
 
 from PyQt6.QtGui import QStandardItemModel
 
 from PyQt6.QtWidgets import (
-    QAbstractButton,
     QAbstractItemView,
     QComboBox,
     QHBoxLayout,
     QLabel,
     QListView,
-    QStyle,
-    QStyleOptionHeader,
     QTabWidget,
     QWidget,
     QVBoxLayout
@@ -86,6 +77,7 @@ sample_indexes = {
     ppa_premium_trend['Name'][0]: ppa_premium_trend
 }
 
+
 class ExpectedLossModel(FAbstractTableModel):
     def __init__(
             self,
@@ -100,7 +92,6 @@ class ExpectedLossModel(FAbstractTableModel):
         self.paid_cdf = fetch_cdf(triangles[1])
         self.reported_ultimate = fetch_ultimate(triangles[0])
         self.paid_ultimate = fetch_ultimate(triangles[1])
-
 
         self._data = pd.DataFrame({
             'Accident Year': self.origin,
@@ -427,7 +418,6 @@ class IndexSelector(QWidget):
 
         selected_indexes = index_list_view.index_view.selectedIndexes()
 
-
         if not selected_indexes:
             # If user clicks on whitespace below list, do nothing.
             if index_list_view.model.rowCount() != 0:
@@ -555,29 +545,31 @@ class IndexListView(QWidget):
 
             idx_df = calculate_index_factors(index=idx_df)
 
-            self.parent.parent.parent.selection_model.setData(
-                index=QModelIndex(),
-                value=idx_df['Factor'],
-                role=Qt.ItemDataRole.EditRole
-            )
+            # If view belongs to an expected loss model, add a column to the selection model.
 
-            column_position = self.parent.parent.parent.selection_model.columnCount()
+            if self.parent.parent.parent:
 
-            self.parent.parent.parent.selection_model.insertColumn(column_position+1)
-            self.parent.parent.parent.selection_model.layoutChanged.emit()
-            self.parent.parent.parent.selection_view.hheader.model().insertColumn(column_position + 1)
+                self.parent.parent.parent.selection_model.setData(
+                    index=QModelIndex(),
+                    value=idx_df['Factor'],
+                    role=Qt.ItemDataRole.EditRole
+                )
 
-            if self.prem_loss == "premium":
-                header_prefix = "Premium Index:\n"
-            else:
-                header_prefix = "Loss Index:\n"
-            self.parent.parent.parent.selection_view.hheader.setCellLabel(
-                row=0,
-                column=9,
-                label=header_prefix + idx_name
-            )
+                column_position = self.parent.parent.parent.selection_model.columnCount()
 
+                self.parent.parent.parent.selection_model.insertColumn(column_position+1)
+                self.parent.parent.parent.selection_model.layoutChanged.emit()
+                self.parent.parent.parent.selection_view.hheader.model().insertColumn(column_position + 1)
 
+                if self.prem_loss == "premium":
+                    header_prefix = "Premium Index:\n"
+                else:
+                    header_prefix = "Loss Index:\n"
+                self.parent.parent.parent.selection_view.hheader.setCellLabel(
+                    row=0,
+                    column=9,
+                    label=header_prefix + idx_name
+                )
 
     def remove_premium_index(self) -> None:
 
@@ -681,7 +673,6 @@ class ExpectedLossMatrixView(FTableView):
         self.corner_btn = make_corner_button(parent=self)
 
 
-
 class ExpectedLossMatrixWidget(QWidget):
     def __init__(
             self,
@@ -714,7 +705,7 @@ class ExpectedLossMatrixWidget(QWidget):
         self.layout.addWidget(self.matrix_view)
         self.setLayout(self.layout)
 
-        self.selection_box.currentTextChanged.connect(self.update_matrix)
+        self.selection_box.currentTextChanged.connect(self.update_matrix) # noqa
 
     def update_matrix(self) -> None:
 
