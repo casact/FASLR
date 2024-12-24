@@ -4,8 +4,9 @@ chainladder == 0.8.23
 GitPython == 3.1.43
 ipython == 8.31.0
 matplotlib == 3.10.0
-numpy == 1.23.5
-pandas == 1.5.3
+numba==0.60.0
+numpy == 1.26.4
+pandas == 2.2.3
 PyQt6 == 6.4.2
 PyQt6-Qt6 == 6.4.2
 PyQt6-sip == 13.4.1
