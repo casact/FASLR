@@ -23,4 +23,4 @@ pynput == 1.7.7
 pytest == 8.3.4
 pytest-cov == 6.0.0
 pytest-qt == 4.4.0
-pytest-mock == 3.11.1
+pytest-mock == 3.14.0
