@@ -1,6 +1,6 @@
 # Python 3.10.6
 
-chainladder == 0.8.14
+chainladder == 0.8.23
 GitPython == 3.1.43
 ipython == 8.11.0
 matplotlib == 3.7.0
@@ -10,7 +10,7 @@ PyQt6 == 6.4.2
 PyQt6-Qt6 == 6.4.2
 PyQt6-sip == 13.4.1
 scikit-learn == 1.6.0
-scipy == 1.9.3
+scipy == 1.14.1
 setuptools==75.6.0
 sqlalchemy == 2.0.36
 
