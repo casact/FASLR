@@ -1,7 +1,7 @@
 # Python 3.10.6
 
 chainladder == 0.8.14
-GitPython == 3.1.31
+GitPython == 3.1.43
 ipython == 8.11.0
 matplotlib == 3.7.0
 numpy == 1.23.5
