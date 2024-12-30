@@ -15,6 +15,10 @@ from faslr.utilities.collections import (
     subset_dict
 )
 
+from faslr.utilities.dataframe import (
+    df_set_false
+)
+
 from faslr.utilities.sample import (
     auto_bi_olep,
     load_sample,

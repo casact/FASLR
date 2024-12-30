@@ -16,6 +16,8 @@ from faslr.constants import (
     TEMP_LDF_LIST
 )
 
+from faslr.utilities import df_set_false
+
 from pandas import DataFrame
 
 from PyQt6.QtCore import (
@@ -121,7 +123,7 @@ class FactorModel(FAbstractTableModel):
         # boolean values to indicate which factors in the corresponding triangle should be excluded
         # it is first initialized to be all False, indicating no factors excluded initially
         self.excl_frame = self.link_frame.copy()
-        self.excl_frame.loc[:] = False
+        self.excl_frame = df_set_false(df=self.excl_frame)
 
         # Get the position of a blank row to be inserted between the end of the triangle
         # and before the development factors

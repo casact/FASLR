@@ -14,6 +14,10 @@ from faslr.style.triangle import (
     VALUE_STYLE
 )
 
+from faslr.utilities import (
+    df_set_false
+)
+
 from PyQt6.QtCore import (
     Qt,
     QVariant
@@ -53,7 +57,7 @@ class TriangleModel(FAbstractTableModel):
         self.n_rows = self.rowCount()
         self.n_columns = self.columnCount()
         self.excl_frame = self._data.copy()
-        self.excl_frame.loc[:] = False
+        self.excl_frame = df_set_false(df=self.excl_frame)
 
     def data(
             self,
