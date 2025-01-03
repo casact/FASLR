@@ -18,7 +18,7 @@ def relative_index(
     res = {}
     for x in range(len(years)):
         if years[x] < base_yr:
-            adj = np.array(index[x+1:idx + 1]).prod() ** - 1
+            adj = float(np.array(index[x+1:idx + 1]).prod()) ** - 1
         else:
             adj = np.array(index[idx + 1:x + 1]).prod()
         res[str(years[x])] = adj
