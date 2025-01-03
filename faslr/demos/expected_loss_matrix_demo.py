@@ -20,6 +20,10 @@ if TYPE_CHECKING:
 trend = 0.03425
 
 sample_years = [
+    1998,
+    1999,
+    2000,
+    2001,
     2002,
     2003,
     2004,
@@ -31,6 +35,10 @@ sample_years = [
 
 rate_changes = [
     0,
+    0,
+    0,
+    0,
+    0,
     .05,
     .075,
     .15,
@@ -40,6 +48,10 @@ rate_changes = [
 ]
 
 tort_changes = [
+    0,
+    0,
+    0,
+    0,
     0,
     0,
     0,
@@ -80,6 +92,10 @@ df_loss = df_trend * df_tort
 df_prem = df_rl
 
 df_loss['claims'] = [
+    15901,
+    25123,
+    37435,
+    39543,
     48953,
     47404,
     77662,
@@ -90,6 +106,10 @@ df_loss['claims'] = [
 ]
 
 df_prem['premium'] = [
+    20000,
+    31500,
+    45000,
+    50000,
     61183,
     69175,
     99322,
