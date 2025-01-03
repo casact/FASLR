@@ -103,6 +103,8 @@ class ExpectedLossModel(FAbstractTableModel):
             'Paid Ultimate': self.paid_ultimate
         })
 
+        self._data = self._data.set_index('Accident Year')
+
         self._data['Initial Selected'] = (self._data['Reported Ultimate'] + self._data['Paid Ultimate']) / 2
 
         self._data['On-Level Earned Premium'] = auto_bi_olep
@@ -138,6 +140,21 @@ class ExpectedLossModel(FAbstractTableModel):
                 display_value = str(value)
 
             return display_value
+
+    def headerData(
+            self,
+            p_int,
+            qt_orientation,
+            role=None
+    ):
+
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            # if qt_orientation == Qt.Orientation.Horizontal:
+            #     return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Orientation.Vertical:
+                return str(self._data.index[p_int])
 
     def insertColumn(
             self,
@@ -362,10 +379,22 @@ class ExpectedLossIndex(QWidget):
 
         self.index_model = IndexTableModel(years=None)
 
+        self.index_preview = QTabWidget()
+        # self.index_preview.setStyleSheet(
+        #     """
+        #     QTabWidget::pane {
+        #     margin: 0px, 0px, 0px, 0px;
+        #     }
+        #     """
+        # )
         self.index_view = IndexTableView()
         self.index_view.setModel(self.index_model)
 
-        index_view_layout.addWidget(self.index_view)
+        self.dummytab = QWidget()
+        self.index_preview.addTab(self.index_view, "Column")
+        self.index_preview.addTab(self.dummytab, "Matrix")
+
+        index_view_layout.addWidget(self.index_preview)
         index_view_container.setContentsMargins(
             11,
             30,
