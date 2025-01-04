@@ -9,6 +9,12 @@ from faslr.index import (
 
 from faslr.methods.expected_loss import ExpectedLossMatrixWidget
 
+from faslr.utilities.sample import (
+    XYZ_RATE_CHANGES,
+    XYZ_SAMPLE_YEARS,
+    XYZ_TORT_CHANGES
+)
+
 from PyQt6.QtWidgets import (
     QApplication
 )
@@ -19,47 +25,11 @@ if TYPE_CHECKING:
 
 trend = 0.03425
 
-sample_years = [
-    1998,
-    1999,
-    2000,
-    2001,
-    2002,
-    2003,
-    2004,
-    2005,
-    2006,
-    2007,
-    2008
-]
+sample_years = XYZ_SAMPLE_YEARS
 
-rate_changes = [
-    0,
-    0,
-    0,
-    0,
-    0,
-    .05,
-    .075,
-    .15,
-    .10,
-    -.2,
-    -.2
-]
+rate_changes = XYZ_RATE_CHANGES
 
-tort_changes = [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    - (1 - .67 / .75),
-    -.25,
-    0
-]
+tort_changes = XYZ_TORT_CHANGES
 
 trend_factors = [
     1 + trend for x in range(len(sample_years))
