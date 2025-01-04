@@ -3,6 +3,20 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from faslr.base_table import (
+    FAbstractTableModel,
+    FTableView
+)
+
+from faslr.style.triangle import RATIO_STYLE
+
+from PyQt6.QtCore import (
+    QModelIndex,
+    Qt
+)
+
+import typing
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -45,3 +59,42 @@ def index_matrix(
 
     return df_res
 
+class IndexMatrixModel(FAbstractTableModel):
+    def __init__(
+            self,
+            matrix: DataFrame
+    ):
+        super().__init__()
+
+        self._data = matrix
+
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
+
+            if np.isnan(value):
+                return ""
+            else:
+                return RATIO_STYLE.format(value)
+
+    def headerData(
+            self,
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> typing.Any:
+
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Orientation.Vertical:
+                return str(self._data.index[p_int])
+
+class IndexMatrixView(FTableView):
+    def __init__(self):
+        super().__init__()
