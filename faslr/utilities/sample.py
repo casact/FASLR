@@ -3,6 +3,12 @@ import pandas as pd
 import os
 from chainladder import Triangle
 
+from faslr.samples.xyz_expected_loss import (
+    XYZ_RATE_CHANGES,
+    XYZ_SAMPLE_YEARS,
+    XYZ_TORT_CHANGES,
+)
+
 
 samples = {
     'mack97': 'mack_1997.csv',
