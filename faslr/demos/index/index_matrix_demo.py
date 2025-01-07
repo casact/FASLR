@@ -8,8 +8,7 @@ import sys
 
 from faslr.index import (
     index_matrix,
-    IndexMatrixModel,
-    IndexMatrixView
+    IndexMatrixWidget
 )
 
 from faslr.utilities.sample import (
@@ -35,12 +34,11 @@ df_rl: DataFrame = index_matrix(
     index=rate_factors
 )
 
-index_matrix_model = IndexMatrixModel(
-    matrix=df_rl
-)
-
-index_matrix_view = IndexMatrixView()
-
 app = QApplication(sys.argv)
+
+index_matrix_widget = IndexMatrixWidget(matrix=df_rl)
+index_matrix_widget.setWindowTitle("Index Matrix Demo")
+
+index_matrix_widget.show()
 
 app.exec()
