@@ -8,11 +8,20 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.common.table import (
+    make_corner_button
+)
+
 from faslr.style.triangle import RATIO_STYLE
 
 from PyQt6.QtCore import (
     QModelIndex,
     Qt
+)
+
+from PyQt6.QtWidgets import (
+    QVBoxLayout,
+    QWidget
 )
 
 import typing
@@ -98,3 +107,24 @@ class IndexMatrixModel(FAbstractTableModel):
 class IndexMatrixView(FTableView):
     def __init__(self):
         super().__init__()
+
+        self.corner_btn = make_corner_button(parent=self)
+
+class IndexMatrixWidget(QWidget):
+    def __init__(
+            self,
+            matrix: DataFrame
+    ):
+        super().__init__()
+
+        self.matrix = matrix
+
+        self.layout = QVBoxLayout()
+
+        self.index_matrix_model = IndexMatrixModel(matrix=self.matrix)
+        self.index_matrix_view = IndexMatrixView()
+        self.index_matrix_view.setModel(self.index_matrix_model)
+
+        self.layout.addWidget(self.index_matrix_view)
+
+        self.setLayout(self.layout)
