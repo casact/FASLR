@@ -23,6 +23,8 @@ from faslr.grid_header import GridTableView
 from faslr.index import (
     calculate_index_factors,
     IndexInventory,
+    IndexMatrixModel,
+    IndexMatrixView,
     IndexTableModel,
     IndexTableView
 )
@@ -390,9 +392,11 @@ class ExpectedLossIndex(QWidget):
         self.index_view = IndexTableView()
         self.index_view.setModel(self.index_model)
 
-        self.dummytab = QWidget()
+        self.matrix_preview = IndexMatrixView()
+        self.matrix_model = IndexMatrixModel(matrix=None)
+
         self.index_preview.addTab(self.index_view, "Column")
-        self.index_preview.addTab(self.dummytab, "Matrix")
+        self.index_preview.addTab(self.matrix_preview, "Matrix")
 
         index_view_layout.addWidget(self.index_preview)
         index_view_container.setContentsMargins(

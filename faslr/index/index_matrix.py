@@ -113,7 +113,7 @@ class IndexMatrixView(FTableView):
 class IndexMatrixWidget(QWidget):
     def __init__(
             self,
-            matrix: DataFrame
+            matrix: DataFrame = None
     ):
         super().__init__()
 
