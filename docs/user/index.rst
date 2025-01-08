@@ -32,10 +32,10 @@ The FASLR user guide covers basic setup and installation, user interface feature
    :maxdepth: 1
    :caption: Exhibits
 
-    exhibit/index
+   exhibit/index
 
 .. toctree::
    :maxdepth: 1
    :caption: Extensions
 
-    extensions/index
+   extensions/index

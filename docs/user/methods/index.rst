@@ -7,3 +7,4 @@ Section to cover reserving methods.
    :maxdepth: 1
 
    development/index
+   tail/index
