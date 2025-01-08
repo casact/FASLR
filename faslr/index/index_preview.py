@@ -3,4 +3,5 @@ from PyQt6.QtWidgets import (
 )
 
 class IndexPreview(QTabWidget):
-
+    def __init__(self):
+        super().__init__()
