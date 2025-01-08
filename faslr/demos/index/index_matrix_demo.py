@@ -36,7 +36,9 @@ df_rl: DataFrame = index_matrix(
 
 app = QApplication(sys.argv)
 
-index_matrix_widget = IndexMatrixWidget(matrix=df_rl)
+index_matrix_widget = IndexMatrixWidget(
+    matrix=df_rl
+)
 index_matrix_widget.setWindowTitle("Index Matrix Demo")
 
 index_matrix_widget.show()
