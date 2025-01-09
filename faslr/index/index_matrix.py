@@ -71,7 +71,7 @@ def index_matrix(
 class IndexMatrixModel(FAbstractTableModel):
     def __init__(
             self,
-            matrix: DataFrame
+            matrix: DataFrame = None
     ):
         super().__init__()
 
@@ -117,7 +117,13 @@ class IndexMatrixWidget(QWidget):
     ):
         super().__init__()
 
-        self.matrix = matrix
+        if matrix:
+
+            self.matrix = matrix
+
+        else:
+
+            self.matrix = pd.DataFrame()
 
         self.layout = QVBoxLayout()
 
