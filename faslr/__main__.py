@@ -1,3 +1,6 @@
+"""
+Launches the main application. This module is the entry point for running FASLR.
+"""
 import logging
 import os
 import platform
@@ -116,30 +119,6 @@ class MainWindow(QMainWindow):
         self.analysis_pane.setMovable(True)
         self.analysis_pane.addTab(self.auto_tab, "Auto")
         self.analysis_pane.addTab(self.xyz_tab, "XYZ")
-
-        # This styling is mostly done to add a border right beneath the tab
-        # self.analysis_pane.setStyleSheet(
-        #     """
-        #     QTabWidget::pane {
-        #       border: 1px solid darkgrey;
-        #       top:-1px;
-        #       background: rgb(245, 245, 245);
-        #     }
-        #
-        #     QTabBar::tab {
-        #       background: rgb(230, 230, 230);
-        #       border: 1px solid darkgrey;
-        #       padding: 5px;
-        #       padding-left: 10px;
-        #       height: 30px;
-        #     }
-        #
-        #     QTabBar::tab:selected {
-        #       background: rgb(245, 245, 245);
-        #       margin-bottom: -1px;
-        #     }
-        #     """
-        # )
 
         # noinspection PyUnresolvedReferences
         self.analysis_pane.tabCloseRequested.connect(self.remove_tab)
