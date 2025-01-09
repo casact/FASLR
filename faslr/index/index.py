@@ -54,6 +54,46 @@ if TYPE_CHECKING:  # pragma no coverage
     from pandas import DataFrame
 
 
+class FIndex:
+    def __init__(
+            self,
+            name: str,
+            description: str,
+            origin: list,
+            changes: list
+    ):
+        self.name = name
+        self.description = description
+        self.origin = origin
+        self.changes = changes
+
+    @property
+    def df(self) -> DataFrame:
+
+        df_idx = pd.DataFrame(
+            data={
+                'Origin': self.origin,
+                'Change': self.changes,
+                'Factor': self.factors
+            }
+        )
+
+        return df_idx
+
+    @property
+    def factors(self) -> list:
+
+        row_count = len(self.origin)
+        factors = [1 for x in range(row_count)]
+        for i in range(row_count - 1, -1, -1):
+            if i == row_count - 1:
+                pass
+            else:
+                factors[i] = factors[i + 1] * (1 + self.changes[i + 1])
+
+        return factors
+
+
 class IndexTableModel(FAbstractTableModel):
     def __init__(
             self,
