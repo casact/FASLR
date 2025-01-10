@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 
 from faslr.index import (
-    index_matrix,
+    FIndex,
     IndexMatrixWidget
 )
 
@@ -25,19 +25,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pandas import DataFrame
 
-rate_factors = [
-    x + 1 for x in XYZ_RATE_CHANGES
-]
-
-df_rl: DataFrame = index_matrix(
-    years=XYZ_SAMPLE_YEARS,
-    index=rate_factors
+index = FIndex(
+    origin=XYZ_SAMPLE_YEARS,
+    changes=XYZ_RATE_CHANGES
 )
 
 app = QApplication(sys.argv)
 
 index_matrix_widget = IndexMatrixWidget(
-    matrix=df_rl
+    matrix=index.matrix
 )
 index_matrix_widget.setWindowTitle("Index Matrix Demo")
 
