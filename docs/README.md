@@ -11,3 +11,4 @@ Due to the documentation's current reliance on [PyData Sphinx Theme](https://pyd
 
 # Deployment
 
+New versions of the docs are deployed via SSH by logging into the server, and then running the file **build_docs.sh** that is also located in this directory. This build script will pull the repo contents and then run the sphinx command **make html**.
