@@ -22,6 +22,7 @@ from faslr.grid_header import GridTableView
 
 from faslr.index import (
     calculate_index_factors,
+    FIndex,
     IndexInventory,
     IndexMatrixModel,
     IndexMatrixView,
@@ -393,7 +394,8 @@ class ExpectedLossIndex(QWidget):
         self.index_view.setModel(self.index_model)
 
         self.matrix_preview = IndexMatrixView()
-        self.matrix_model = IndexMatrixModel(matrix=None)
+        self.matrix_model = IndexMatrixModel()
+        self.matrix_preview.setModel(self.matrix_model)
 
         self.index_preview.addTab(self.index_view, "Column")
         self.index_preview.addTab(self.matrix_preview, "Matrix")
@@ -456,20 +458,23 @@ class IndexSelector(QWidget):
             if index_list_view.model.rowCount() != 0:
                 return
 
-        index = sample_indexes[selected_indexes[0].data()]
+        index_dict = sample_indexes[selected_indexes[0].data()]
 
-        idx_dict = subset_dict(
-            input_dict=index,
-            keys=['Origin', 'Change']
+        index = FIndex(
+            origin=index_dict['Origin'],
+            changes=index_dict['Change']
         )
-
-        df_idx = pd.DataFrame(idx_dict)
 
         model_idx = QModelIndex()
         self.parent.index_model.setData(
             index=model_idx,
             role=Qt.ItemDataRole.EditRole,
-            value=df_idx
+            value=index.df
+        )
+        self.parent.matrix_model.setData(
+            index=model_idx,
+            role=Qt.ItemDataRole.EditRole,
+            value=index.matrix
         )
 
 
