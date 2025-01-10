@@ -1,5 +1,6 @@
 from .index import (
     calculate_index_factors,
+    FIndex,
     IndexConstantDialog,
     IndexTableView,
     IndexTableModel,
@@ -10,9 +11,9 @@ from .index import (
 )
 
 from .index_matrix import (
-    index_matrix,
+    # index_matrix,
     IndexMatrixModel,
     IndexMatrixView,
     IndexMatrixWidget,
-    relative_index
+    # relative_index
 )
