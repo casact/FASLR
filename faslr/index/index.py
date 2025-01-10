@@ -57,15 +57,31 @@ if TYPE_CHECKING:  # pragma no coverage
 class FIndex:
     def __init__(
             self,
-            name: str,
-            description: str,
             origin: list,
-            changes: list
+            changes: list,
+            name: str = None,
+            description: str = None,
     ):
         self.name = name
         self.description = description
         self.origin = origin
         self.changes = changes
+
+    @staticmethod
+    def relative_index(
+            base_yr: int,
+            years: list,
+            index: list
+    ) -> dict:
+        idx = years.index(base_yr)
+        res = {}
+        for x in range(len(years)):
+            if years[x] < base_yr:
+                adj = float(np.array(index[x + 1:idx + 1]).prod()) ** - 1
+            else:
+                adj = np.array(index[idx + 1:x + 1]).prod()
+            res[str(years[x])] = adj
+        return res
 
     @property
     def df(self) -> DataFrame:
@@ -93,6 +109,25 @@ class FIndex:
 
         return factors
 
+    @property
+    def matrix(self) -> DataFrame:
+        d: list = []  # holds the data used to initialize the resulting dataframe
+
+        incremental_factors = [x + 1.0 for x in self.changes]
+
+        for year in self.origin:
+            d += [self.relative_index(
+                base_yr=year,
+                years=self.origin,
+                index=incremental_factors
+            )]
+
+        df_matrix: DataFrame = pd.DataFrame(
+            data=d,
+            index=self.origin
+        )
+
+        return df_matrix
 
 class IndexTableModel(FAbstractTableModel):
     def __init__(
