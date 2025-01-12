@@ -30,6 +30,13 @@ XYZ_RATE_CHANGES = [
     -.2
 ]
 
+XYZ_RATE_INDEX = {
+    'Name': ['XYZ Auto BI Rate Index'],
+    'Description': ['Rate change index for XYZ Auto BI'],
+    'Origin': XYZ_SAMPLE_YEARS,
+    'Change': XYZ_RATE_CHANGES
+}
+
 XYZ_TORT_CHANGES = [
     0,
     0,
@@ -43,3 +50,17 @@ XYZ_TORT_CHANGES = [
     -.25,
     0
 ]
+
+XYZ_TORT_INDEX = {
+    'Name': ['XYZ Auto BI Tort Index'],
+    'Description': ['Adjustments to XYZ Auto BI claims due to tort reform.'],
+    'Origin': XYZ_SAMPLE_YEARS,
+    'Change': XYZ_TORT_CHANGES
+}
+
+XYZ_TREND_INDEX = {
+    'Name': ['XYZ Auto BI Loss Trend'],
+    'Description': ['3.425% trend for XYZ Auto BI claims.'],
+    'Origin': XYZ_SAMPLE_YEARS,
+    'Change': [.03425 for x in range(len(XYZ_SAMPLE_YEARS))]
+}

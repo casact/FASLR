@@ -5,8 +5,11 @@ from chainladder import Triangle
 
 from faslr.samples.xyz_expected_loss import (
     XYZ_RATE_CHANGES,
+    XYZ_RATE_INDEX,
     XYZ_SAMPLE_YEARS,
+    XYZ_TREND_INDEX,
     XYZ_TORT_CHANGES,
+    XYZ_TORT_INDEX
 )
 
 
