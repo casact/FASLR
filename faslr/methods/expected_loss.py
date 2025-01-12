@@ -35,16 +35,19 @@ from faslr.style.triangle import (
     VALUE_STYLE
 )
 
+from faslr.utilities.sample import (
+    XYZ_RATE_INDEX,
+    XYZ_TORT_INDEX,
+    XYZ_TREND_INDEX
+)
+
 from faslr.utilities import (
     auto_bi_olep,
     fetch_cdf,
     fetch_latest_diagonal,
     fetch_origin,
     fetch_ultimate,
-    ppa_loss_trend,
-    ppa_premium_trend,
     subset_dict,
-    tort_index
 )
 
 from PyQt6.QtCore import (
@@ -75,9 +78,9 @@ if TYPE_CHECKING:
     from chainladder import Chainladder
 
 sample_indexes = {
-    tort_index['Name'][0]: tort_index,
-    ppa_loss_trend['Name'][0]: ppa_loss_trend,
-    ppa_premium_trend['Name'][0]: ppa_premium_trend
+    XYZ_TORT_INDEX['Name'][0]: XYZ_TORT_INDEX,
+    XYZ_TREND_INDEX['Name'][0]: XYZ_TREND_INDEX,
+    XYZ_RATE_INDEX['Name'][0]: XYZ_RATE_INDEX
 }
 
 
@@ -554,9 +557,9 @@ class IndexListView(QWidget):
 
         index_inventory = IndexInventory(
             indexes=[
-                tort_index,
-                ppa_loss_trend,
-                ppa_premium_trend
+                XYZ_TORT_INDEX,
+                XYZ_TREND_INDEX,
+                XYZ_RATE_INDEX
             ],
             parent=self
         )
