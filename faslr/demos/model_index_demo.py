@@ -13,6 +13,8 @@ widget = ExpectedLossIndex(
     origin=list(range(2000, 2009))
 )
 
+widget.setWindowTitle("Model Index Demo")
+
 widget.show()
 
 app.exec()
