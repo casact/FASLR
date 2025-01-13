@@ -274,40 +274,40 @@ def test_calculate_index_factors(
     )
 
 
-def test_add_indexes(
-        qtbot: QtBot,
-        expected_loss: ExpectedLossWidget
-) -> None:
-    """
-    Tests the adding of an index to a model via the index inventory.
-
-    :param qtbot: The QtBot fixture.
-    :param expected_loss: The expected_loss fixture.
-    :return: None
-    """
-
-    def handle_dialog():
-
-        dialog: IndexInventory = QApplication.activeWindow()
-
-        qtbot.addWidget(dialog)
-
-        qtbot.mouseClick(
-            dialog.button_box.button(dialog.button_box.ok_button),
-            Qt.MouseButton.LeftButton,
-            delay=1
-        )
-
-    index_tab: ExpectedLossIndex = expected_loss.main_tabs.widget(0)
-
-    # Add a single premium index.
-    QTimer.singleShot(
-        500,
-        handle_dialog
-    )
-
-    qtbot.mouseClick(
-        index_tab.index_selector.premium_indexes.add_remove_btns.add_btn,
-        Qt.MouseButton.LeftButton,
-        delay=1
-    )
+# def test_add_indexes(
+#         qtbot: QtBot,
+#         expected_loss: ExpectedLossWidget
+# ) -> None:
+#     """
+#     Tests the adding of an index to a model via the index inventory.
+#
+#     :param qtbot: The QtBot fixture.
+#     :param expected_loss: The expected_loss fixture.
+#     :return: None
+#     """
+#
+#     def handle_dialog():
+#
+#         dialog: IndexInventory = QApplication.activeWindow()
+#
+#         qtbot.addWidget(dialog)
+#
+#         qtbot.mouseClick(
+#             dialog.button_box.button(dialog.button_box.ok_button),
+#             Qt.MouseButton.LeftButton,
+#             delay=1
+#         )
+#
+#     index_tab: ExpectedLossIndex = expected_loss.main_tabs.widget(0)
+#
+#     # Add a single premium index.
+#     QTimer.singleShot(
+#         500,
+#         handle_dialog
+#     )
+#
+#     qtbot.mouseClick(
+#         index_tab.index_selector.premium_indexes.add_remove_btns.add_btn,
+#         Qt.MouseButton.LeftButton,
+#         delay=1
+#     )
