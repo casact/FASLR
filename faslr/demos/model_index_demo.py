@@ -1,6 +1,6 @@
 import sys
 
-from faslr.methods.expected_loss import ExpectedLossIndex
+from faslr.model import FModelIndex
 
 from PyQt6.QtWidgets import (
     QApplication
@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
 
 app = QApplication(sys.argv)
 
-widget = ExpectedLossIndex(
+widget = FModelIndex(
     parent=None,
     origin=list(range(2000, 2009))
 )
