@@ -10,7 +10,11 @@ from faslr.index import (
     IndexInventory
 )
 
-from faslr.methods.expected_loss import ExpectedLossIndex, ExpectedLossWidget
+from faslr.model import FModelIndex
+
+from faslr.methods.expected_loss import (
+    ExpectedLossWidget
+)
 
 from faslr.utilities import (
     load_sample,
