@@ -77,7 +77,7 @@ class IndexMatrixModel(FAbstractTableModel):
 
         if not (matrix is None):
 
-            self.matrix = matrix
+            self._data = matrix
 
         else:
 
