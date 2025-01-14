@@ -16,12 +16,18 @@ from faslr.constants import SAMPLE_DB_NAME
 
 from faslr.schema import (
     CountryTable,
+    IndexTable,
+    IndexValuesTable,
     LocationTable,
     StateTable,
     LOBTable,
     ProjectTable,
     ProjectViewTable,
     ProjectViewData
+)
+
+from faslr.utilities.sample import (
+    XYZ_RATE_INDEX
 )
 
 from sqlalchemy.orm import sessionmaker
@@ -121,6 +127,26 @@ data_list = df_steady_state.to_dict('records')
 obj_list = []
 for record in data_list:
     data_obj = ProjectViewData(**record)
+    obj_list.append(data_obj)
+
+session.add_all(obj_list)
+
+new_index = IndexTable(
+    description=XYZ_RATE_INDEX['Name'][0],
+    scope='Global'
+)
+
+session.add(new_index)
+session.flush()
+
+df_rate_changes = pd.DataFrame(data={'year': XYZ_RATE_INDEX['Origin'], 'change': XYZ_RATE_INDEX['Change']})
+df_rate_changes['index_id'] = new_index.index_id
+
+rate_change_list = df_rate_changes.to_dict('records')
+
+obj_list = []
+for record in rate_change_list:
+    data_obj = IndexValuesTable(**record)
     obj_list.append(data_obj)
 
 session.add_all(obj_list)
