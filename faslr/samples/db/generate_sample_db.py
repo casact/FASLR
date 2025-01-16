@@ -27,7 +27,9 @@ from faslr.schema import (
 )
 
 from faslr.utilities.sample import (
-    XYZ_RATE_INDEX
+    XYZ_RATE_INDEX,
+    XYZ_TREND_INDEX,
+    XYZ_TORT_INDEX
 )
 
 from sqlalchemy.orm import sessionmaker
@@ -131,29 +133,44 @@ for record in data_list:
 
 session.add_all(obj_list)
 
-new_index = IndexTable(
-    description=XYZ_RATE_INDEX['Name'][0],
-    scope='Global'
-)
+def insert_index(
+        index: dict,
+        scope: str  # 'Global' or 'Project'
+) -> None:
 
-session.add(new_index)
-session.flush()
+    new_index = IndexTable(
+        description=index['Name'][0],
+        scope=scope
+    )
 
-df_rate_changes = pd.DataFrame(data={'year': XYZ_RATE_INDEX['Origin'], 'change': XYZ_RATE_INDEX['Change']})
-df_rate_changes['index_id'] = new_index.index_id
+    session.add(new_index)
+    session.flush()
 
-rate_change_list = df_rate_changes.to_dict('records')
+    df_index = pd.DataFrame(data={'year': index['Origin'], 'change': index['Change']})
+    df_index['index_id'] = new_index.index_id
 
-obj_list = []
-for record in rate_change_list:
-    data_obj = IndexValuesTable(**record)
-    obj_list.append(data_obj)
+    change_list = df_index.to_dict('records')
 
-session.add_all(obj_list)
+    obj_list = []
+    for record in change_list:
+        data_obj = IndexValuesTable(**record)
+        obj_list.append(data_obj)
+
+    session.add_all(obj_list)
+
+
+indexes_to_add = [
+    XYZ_RATE_INDEX,
+    XYZ_TREND_INDEX,
+    XYZ_TORT_INDEX
+]
+
+for index in indexes_to_add:
+    insert_index(
+        index=index,
+        scope='Global'
+    )
 
 session.commit()
-
-
-
 
 session.close()
