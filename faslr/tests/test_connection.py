@@ -4,16 +4,16 @@ import pytest
 from faslr.connection import (
     ConnectionDialog,
     FaslrConnection,
-    connect_db,
-    get_startup_db_path
+    connect_db
 )
 
 from faslr.constants import (
     DB_NOT_FOUND_TEXT,
 )
 
+from faslr.core import get_startup_db_path
+
 from faslr.constants import DEFAULT_DIALOG_PATH
-from faslr.core import FCore
 
 from faslr.__main__ import MainWindow
 
@@ -101,14 +101,10 @@ def test_connection_dialog_existing(
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
 
-    core = FCore(config_path=setup_config)
-
     main_window = MainWindow(
-        core=core
     )
 
     connection_dialog = ConnectionDialog(
-        core=core,
         parent=main_window.menu_bar
     )
 
@@ -155,12 +151,7 @@ def test_connection_dialog_new(
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
 
-    core = FCore(
-        config_path=setup_config
-    )
-
     connection_dialog = ConnectionDialog(
-        core=core
     )
 
     connection_dialog.new_connection.setChecked(True)
@@ -228,8 +219,7 @@ def test_connection_dialog_replace(
 
         QTimer.singleShot(500, handle_override)
 
-    core = FCore(config_path=setup_config)
-    connection_dialog = ConnectionDialog(core=core)
+    connection_dialog = ConnectionDialog()
 
     connection_dialog.new_connection.setChecked(True)
 
@@ -253,8 +243,7 @@ def test_connection_dialog_cancel(
     :return: None
     """
 
-    core = FCore(config_path=setup_config)
-    connection_dialog = ConnectionDialog(core=core)
+    connection_dialog = ConnectionDialog()
     qtbot.addWidget(connection_dialog)
 
     connection_dialog.reject()

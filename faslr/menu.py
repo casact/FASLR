@@ -19,7 +19,7 @@ from faslr.constants import (
     OCTICONS_PATH
 )
 
-from faslr.core import FCore
+import faslr.core as core
 
 from faslr.engine import EngineDialog
 
@@ -48,12 +48,10 @@ class MainMenuBar(QMenuBar):
     def __init__(
             self,
             parent: MainWindow = None,
-            core: FCore = None
     ):
         super().__init__(parent)
 
         self.parent = parent
-        self.core = core
 
         self.connection_action = QAction(QIcon(ICONS_PATH + "db.svg"), "&Connection", self)
         self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
@@ -130,8 +128,7 @@ class MainMenuBar(QMenuBar):
     def edit_connection(self) -> None:
         # function triggers the connection dialog box to connect to a database
         dlg = ConnectionDialog(
-            self,
-            core=self.core
+            parent=self
         )
         dlg.exec()
 
@@ -162,7 +159,7 @@ class MainMenuBar(QMenuBar):
     def toggle_project_actions(self) -> None:
         # disable project-based menu items until connection is established
 
-        if self.core.connection_established:
+        if core.connection_established:
             self.new_action.setEnabled(True)
 
         else:

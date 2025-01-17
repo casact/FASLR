@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import faslr.core as core
+
 from faslr.connection import connect_db
 
 from faslr.data import (
@@ -109,7 +112,7 @@ class ProjectDialog(QDialog):
     ) -> None:
 
         # connect to the database
-        session, connection = connect_db(db_path=main_window.core.db)
+        session, connection = connect_db(db_path=core.db)
 
         # Take values from the form
         country_text = self.country_edit.text()
@@ -396,7 +399,6 @@ class ProjectTreeView(QTreeView):
             item_widget=DataPane(
                 main_window=self.parent,
                 parent=self.parent.analysis_pane,
-                core=self.parent.core,
                 project_id=project_id
             )
         )
@@ -429,7 +431,7 @@ class ProjectTreeView(QTreeView):
         # print(val.column())
         ix_col_0 = self.model().sibling(val.row(), 1, val)
         print(ix_col_0.data())
-        print(self.parent.core.db)
+        print(core.db)
         # print(self.table.selectedIndexes())
 
     def delete_project(self) -> None:
@@ -438,7 +440,8 @@ class ProjectTreeView(QTreeView):
         uuid = self.currentIndex().siblingAtColumn(1).data()
         current_item = self.model().itemFromIndex(self.currentIndex())
         # connect to the database
-        session, connection = connect_db(db_path=self.parent.core.db)
+        print(core.db)
+        session, connection = connect_db(db_path=core.db)
         
         # delete the item from the database with uuid
 

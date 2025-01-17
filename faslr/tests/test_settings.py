@@ -5,7 +5,7 @@ from faslr.__main__ import MainWindow
 
 from faslr.constants import DEFAULT_DIALOG_PATH
 
-from faslr.core import FCore
+import faslr.core as core
 
 from faslr.settings import (
     SettingsDialog,
@@ -40,8 +40,7 @@ def settings_dialog(
     :return: A settings dialog box.
     """
 
-    core = FCore(config_path=setup_config)
-    main_window = MainWindow(core=core)
+    main_window = MainWindow()
     qtbot.addWidget(main_window)
 
     settings_dialog = SettingsDialog(
@@ -72,8 +71,7 @@ def settings_dialog_full(
     with open(setup_config, 'w') as configfile:
         config.write(configfile)
 
-    core = FCore(config_path=setup_config)
-    main_window = MainWindow(core=core)
+    main_window = MainWindow()
     qtbot.addWidget(main_window)
 
     settings_dialog = SettingsDialog(

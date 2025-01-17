@@ -12,6 +12,8 @@ from faslr.constants import (
     QT_FILEPATH_OPTION
 )
 
+import faslr.core as core
+
 from faslr.schema import (
     CountryTable,
     LOBTable,
@@ -47,7 +49,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     from faslr.__main__ import MainWindow
-    from faslr.core import FCore
     from faslr.menu import MainMenuBar
 
 
@@ -60,12 +61,10 @@ class ConnectionDialog(QDialog):
     def __init__(
             self,
             parent: MainMenuBar = None,
-            core: FCore = None
     ):
         super().__init__(parent)
         logging.info("Connection window initialized.")
 
-        self.core = core
         self.parent = parent
 
         self.setWindowTitle("Connection")
@@ -110,10 +109,10 @@ class ConnectionDialog(QDialog):
             main_window = None
 
         if self.existing_connection.isChecked():
-            self.core.db = self.open_existing_db(main_window=main_window)
+            core.db = self.open_existing_db(main_window=main_window)
 
         elif self.new_connection.isChecked():
-            self.core.db = self.create_new_db()
+            core.db = self.create_new_db()
 
     def create_new_db(
             self
@@ -155,7 +154,7 @@ class ConnectionDialog(QDialog):
             self.close()
 
         if db_filename != "":
-            self.core.connection_established = True
+            core.connection_established = True
 
             if self.parent:
                 self.parent.toggle_project_actions()
@@ -180,7 +179,7 @@ class ConnectionDialog(QDialog):
 
         if main_window and (not db_filename == ""):
 
-            main_window.core.connection_established = True
+            core.connection_established = True
 
             populate_project_tree(
                 db_filename=db_filename,
@@ -316,7 +315,7 @@ def connect_db(db_path: str) -> (Session, Connection):
     """
     Connects the db. Shortens amount of code required to do so.
     """
-
+    print(db_path)
     if not os.path.isfile(db_path):
         raise FileNotFoundError(DB_NOT_FOUND_TEXT)
 
@@ -328,16 +327,3 @@ def connect_db(db_path: str) -> (Session, Connection):
     connection = engine.connect()
     return session, connection
 
-
-def get_startup_db_path(
-        config_path: str = CONFIG_PATH
-) -> str:
-    """
-    Extracts the db path when the user opts to connect to one automatically upon startup.
-    """
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    config.sections()
-    startup_db = config['STARTUP_CONNECTION']['startup_db']
-
-    return startup_db

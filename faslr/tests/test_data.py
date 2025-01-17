@@ -4,8 +4,7 @@ from faslr.__main__ import (
     MainWindow
 )
 
-from faslr.core import FCore
-
+import faslr.core as core
 from faslr.data import (
     DataPane,
     DataImportWizard
@@ -31,7 +30,7 @@ from pytestqt.qtbot import QtBot
 def f_core(
         sample_db: str,
         setup_config: str
-) -> FCore:
+):
     """
     Fixture to initialize the FASLR core.
 
@@ -40,9 +39,6 @@ def f_core(
     :return: The FASLR Core.
     """
 
-    core = FCore(
-        config_path=setup_config
-    )
     core.set_db(sample_db)
 
     yield core
@@ -80,14 +76,13 @@ def data_pane_w_main(
     :return: The DataPane attached to a MainWindow.
     """
 
-    main_window = MainWindow(core=f_core)
+    main_window = MainWindow()
     qtbot.addWidget(main_window)
 
     parent_tab = main_window.analysis_pane
     qtbot.addWidget(parent_tab)
 
     data_pane = DataPane(
-        core=f_core,
         parent=parent_tab,
         main_window=main_window
     )
@@ -102,7 +97,7 @@ def data_pane_w_main(
 @pytest.fixture()
 def us_auto_loaded(
         qtbot: QtBot,
-        f_core: FCore,
+        f_core,
         data_pane_w_main: DataPane
 ) -> [DataPane, DataImportWizard]:
     """
@@ -207,7 +202,7 @@ def test_data_pane_w_reject(
 
 def test_data_pane_w_accept(
         qtbot: QtBot,
-        f_core: FCore,
+        f_core,
         us_auto_loaded: [DataPane, DataImportWizard]
 ) -> None:
     """
@@ -345,7 +340,7 @@ def test_cumulative_checked(
 
 def test_data_view_w_model(
         qtbot: QtBot,
-        f_core: FCore
+        f_core
 ) -> None:
     """
     Test handling the context menu on the DataPane.
@@ -358,7 +353,6 @@ def test_data_view_w_model(
     parent_tab = QTabWidget()
 
     data_pane = DataPane(
-        core=f_core,
         parent=parent_tab
     )
 

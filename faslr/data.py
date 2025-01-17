@@ -16,9 +16,7 @@ from faslr.connection import (
     FaslrConnection
 )
 
-from faslr.core import (
-    FCore
-)
+import faslr.core as core
 
 from faslr.constants import (
     DEVELOPMENT_FIELDS,
@@ -113,13 +111,11 @@ class DataPane(QWidget):
             project_id: str = None,
             parent: QTabWidget = None,
             main_window: MainWindow = None,
-            core: FCore = None
     ):
         super().__init__()
 
         self.wizard = None
         self.main_window = main_window
-        self.core = core
         self.parent = parent
         self.project_id = project_id
         self.triangle = None  # for testing purposes, will store triangle data in db later so remove once that is done
@@ -138,7 +134,6 @@ class DataPane(QWidget):
         self.data_view = ProjectDataView(parent=self)
         self.data_model = ProjectDataModel(
             parent=self,
-            core=core
         )
         self.data_view.setModel(self.data_model)
         self.layout.addWidget(self.data_view)
@@ -204,7 +199,7 @@ class DataPane(QWidget):
             modified,
     ):
 
-        faslr_conn = FaslrConnection(db_path=self.core.db)
+        faslr_conn = FaslrConnection(db_path=core.db)
 
         project_view = ProjectViewTable(
             name=name,
@@ -856,12 +851,10 @@ class ProjectDataModel(FAbstractTableModel):
     def __init__(
             self,
             parent: DataPane = None,
-            core: FCore = None
     ):
         super().__init__()
 
         self.parent = parent
-        self.core = core
 
         column_list = [
             'View Id',
@@ -896,15 +889,15 @@ class ProjectDataModel(FAbstractTableModel):
         if self.parent.main_window:
 
             faslr_connection = FaslrConnection(
-                db_path=self.parent.main_window.core.db
+                db_path=core.db
             )
 
             df = read_sql(fc=faslr_connection)
 
-        elif self.core:
+        elif core:
 
             faslr_connection = FaslrConnection(
-                db_path=self.core.db
+                db_path=core.db
             )
 
             df = read_sql(fc=faslr_connection)
@@ -987,7 +980,7 @@ class ProjectDataView(FTableView):
             val: QModelIndex
     ) -> None:
 
-        fc = FaslrConnection(db_path=self.parent.core.db)
+        fc = FaslrConnection(db_path=core.db)
 
         view_id = self.model().sibling(val.row(), 0, val).data()
         query = fc.session.query(

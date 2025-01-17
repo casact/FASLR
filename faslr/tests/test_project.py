@@ -6,7 +6,7 @@ from faslr.__main__ import (
 
 from faslr.connection import populate_project_tree
 
-from faslr.core import FCore
+import faslr.core as core
 
 from faslr.project import (
     ProjectDialog,
@@ -42,10 +42,11 @@ def main_window(
     :param setup_config: The setup_config fixture.
     :return: The common main window.
     """
-
-    core = FCore(config_path=setup_config)
+    print(sample_db)
     core.set_db(sample_db)
-    main_window = MainWindow(core=core)
+    print("asdfasdfasdf")
+    print(core.db)
+    main_window = MainWindow()
     qtbot.addWidget(main_window)
 
     populate_project_tree(
@@ -102,8 +103,7 @@ def test_project_dialog_main_window(
     :return: None
     """
 
-    core = FCore(config_path=setup_config)
-    main_window = MainWindow(core=core)
+    main_window = MainWindow()
     qtbot.addWidget(main_window)
 
     project_dialog = ProjectDialog(

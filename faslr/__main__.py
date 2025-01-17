@@ -18,9 +18,7 @@ from faslr.constants import (
     CONFIG_TEMPLATES_PATH
 )
 
-from faslr.core import (
-    FCore
-)
+import faslr.core as core
 
 from faslr.menu import (
     MainMenuBar
@@ -63,13 +61,11 @@ class MainWindow(QMainWindow):
     def __init__(
             self,
             application: QApplication = None,
-            core: FCore = None
     ):
         super().__init__()
         logging.info("Main window initialized.")
 
         self.application = application
-        self.core = core
 
         self.resize(
             MAIN_WINDOW_WIDTH,
@@ -83,8 +79,7 @@ class MainWindow(QMainWindow):
         self.body_layout = QHBoxLayout()
 
         self.menu_bar = MainMenuBar(
-            parent=self,
-            core=self.core
+            parent=self
         )
 
         self.setStatusBar(QStatusBar(self))
@@ -150,6 +145,8 @@ class MainWindow(QMainWindow):
                 main_window=self
             )
 
+        print('asdf')
+
     def remove_tab(
             self,
             index: int
@@ -207,11 +204,9 @@ if __name__ == "__main__":
         )
 
     app = QApplication(sys.argv)
-    fcore = FCore()
 
     window = MainWindow(
-        application=app,
-        core=fcore
+        application=app
     )
 
     window.show()

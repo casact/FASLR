@@ -15,10 +15,6 @@ from faslr.constants import (
     SETTINGS_LIST
 )
 
-from faslr.core import (
-    FCore
-)
-
 from PyQt6.QtCore import (
     QAbstractListModel,
     QCoreApplication,
@@ -91,13 +87,10 @@ class SettingsDialog(QDialog):
             self,
             parent: MainMenuBar = None,
             config_path: str = CONFIG_PATH,
-            core: FCore = None
     ):
         super().__init__(parent)
 
         logging.info("Settings window initialized.")
-
-        self.core = core
 
         self.config_path = config_path
         self.config = configparser.ConfigParser()

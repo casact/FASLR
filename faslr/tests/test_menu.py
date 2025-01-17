@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from faslr.__main__ import MainWindow
-from faslr.core import FCore
+import faslr.core as core
 
 from faslr.menu import (
     open_documentation,
@@ -46,10 +46,9 @@ def main_window(
         sample_db
 ) -> MainWindow:
 
-    core = FCore(config_path=setup_config)
     core.set_db(sample_db)
 
-    main_window = MainWindow(core=core)
+    main_window = MainWindow()
 
     qtbot.addWidget(main_window)
 
@@ -171,10 +170,10 @@ def test_toggle_project_actions(
     :param main_window: The main_window fixture.
     """
 
-    main_window.core.connection_established = True
+    core.connection_established = True
     main_window.menu_bar.toggle_project_actions()
 
-    main_window.core.connection_established = False
+    core.connection_established = False
     main_window.menu_bar.toggle_project_actions()
 
 
