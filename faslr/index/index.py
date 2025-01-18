@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import faslr.core as core
 import numpy as np
 import pandas as pd
 import typing
@@ -9,9 +10,16 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.connection import connect_db
+
 from faslr.common import FOKCancel
 
 from faslr.constants import IndexConstantRole
+
+from faslr.schema import (
+    IndexTable,
+    IndexValuesTable
+)
 
 from faslr.style.triangle import (
     RATIO_STYLE,
@@ -50,22 +58,67 @@ from typing import (
 )
 
 if TYPE_CHECKING:  # pragma no coverage
-    from faslr.methods.expected_loss import IndexListView
+    from faslr.model.index import IndexListView
     from pandas import DataFrame
 
 
 class FIndex:
     def __init__(
             self,
-            origin: list,
-            changes: list,
+            origin: list = None,
+            changes: list = None,
             name: str = None,
             description: str = None,
+            from_id: int = None,
+            db: str = core.db
     ):
-        self.name = name
-        self.description = description
-        self.origin = origin
-        self.changes = changes
+        """
+        Represents an index, and all the things you can do with it (i.e., on-level rate index).
+        """
+
+        if (origin is not None) and (changes is not None):
+            self.name = name
+            self.description = description
+            self.origin = origin
+            self.changes = changes
+        else:
+            index_dict = self.get_index_from_id(id_no=from_id, db=db)
+            self.description = index_dict['Description']
+            self.origin = index_dict['Origin']
+            self.changes = index_dict['Changes']
+
+    @staticmethod
+    def get_index_from_id(
+            id_no: int,
+            db: str
+    ) -> dict:
+        """
+        Extracts index information from database by id and passes that info back to the __init__().
+
+        :param id_no: The ID of the index you wish to extract.
+        :type id_no: int
+        :param db: The database from which you are extracting the index.
+        :type db: str
+        """
+
+        res = {} # Holds the result.
+        session, connection = connect_db(db_path=db)
+
+        index_record = session.query(IndexTable).filter(IndexTable.index_id == id_no).one()
+
+        res['Description'] = index_record.description
+
+        values_query = session.query(IndexValuesTable).filter(IndexValuesTable.index_id == id_no).order_by(IndexValuesTable.year)
+        origin = [r.year for r in values_query]
+        changes = [r.change for r in values_query]
+
+        res['Origin'] = origin
+        res['Changes'] = changes
+
+        connection.close()
+
+        return res
+
 
     @staticmethod
     def relative_index(
