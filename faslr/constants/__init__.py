@@ -37,8 +37,10 @@ from faslr.constants.general import (
     ISSUES_URL,
     OCTICONS_PATH,
     QT_FILEPATH_OPTION,
+    REPO_PATH,
     ROOT_PATH,
     SAMPLE_DB_NAME,
+    SAMPLE_DB_DEFAULT_PATH,
     SAMPLE_DIALOG_PATH,
     TEMPLATES_PATH
 )

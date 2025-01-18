@@ -16,8 +16,11 @@ BUILD_VERSION = __version__
 
 QT_FILEPATH_OPTION = QFileDialog.Option.DontUseNativeDialog
 
-# Path of the faslr repo
+# Path of the main faslr code moduels (e.g., FASLR/faslr)
 ROOT_PATH = dirname(dirname(os.path.realpath(__file__)))
+
+# Path of the FASLR main repo (e.g., FASLR)
+REPO_PATH = dirname(ROOT_PATH)
 
 # Path of the configuration file
 CONFIG_PATH = os.path.join(ROOT_PATH, 'faslr.ini')
@@ -75,3 +78,5 @@ CURRENT_COMMIT = repo.git.rev_parse(
 )
 
 SAMPLE_DB_NAME = 'sample.db'
+
+SAMPLE_DB_DEFAULT_PATH = REPO_PATH + '/' + SAMPLE_DB_NAME
