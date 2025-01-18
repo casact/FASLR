@@ -62,11 +62,19 @@ class MainWindow(QMainWindow):
             self,
             application: QApplication = None,
     ):
+        """
+        The main window of FASLR, holds everything - db tree, models ,etc., that the user interacts with.
+
+        :param application: The QApplication instance used to launch FASLR.
+        :type application: QApplication
+
+        """
         super().__init__()
         logging.info("Main window initialized.")
 
-        self.application = application
+        self.application: QApplication = application
 
+        # Set the starting dimensions of the main window.
         self.resize(
             MAIN_WINDOW_WIDTH,
             MAIN_WINDOW_HEIGHT
@@ -86,7 +94,7 @@ class MainWindow(QMainWindow):
 
         self.menu_bar.toggle_project_actions()
 
-        # navigation pane for project hierarchy
+        # Navigation pane for project hierarchy
 
         self.project_pane = ProjectTreeView(parent=self)
         self.project_pane.setHeaderHidden(False)
@@ -95,10 +103,10 @@ class MainWindow(QMainWindow):
 
         self.project_pane.setModel(self.project_model)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter = QSplitter(orientation=Qt.Orientation.Horizontal)
         splitter.addWidget(self.project_pane)
 
-        # triangle placeholder
+        # Triangle placeholder
 
         self.auto_triangle = load_sample('us_industry_auto')
         self.xyz_triangle = load_sample('uspp_incr_case')
@@ -179,7 +187,7 @@ if __name__ == "__main__":
     # Get max thread count.
     max_threads = QThreadPool().maxThreadCount()
 
-    # Initialize logging
+    # Initialize logging.
     logging.basicConfig(
         filename=os.path.join(ROOT_PATH, 'faslr.log'),
         filemode='w',
@@ -191,7 +199,7 @@ if __name__ == "__main__":
     logging.info("FASLR initialized on " + os_name)
     logging.info("%d threads available for computation." % max_threads)
 
-    # initialize configuration file if it does not exist
+    # Initialize configuration file if it does not exist.
     if not os.path.exists(CONFIG_PATH):
 
         logging.info(
