@@ -440,7 +440,6 @@ class ProjectTreeView(QTreeView):
         uuid = self.currentIndex().siblingAtColumn(1).data()
         current_item = self.model().itemFromIndex(self.currentIndex())
         # connect to the database
-        print(core.db)
         session, connection = connect_db(db_path=core.db)
         
         # delete the item from the database with uuid
