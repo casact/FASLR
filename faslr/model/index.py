@@ -36,6 +36,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QListView,
+    QSplitter,
     QTabWidget,
     QVBoxLayout,
     QWidget
@@ -59,12 +60,21 @@ class FModelIndex(QWidget):
             parent: FModelWidget = None,
             origin: list = None
     ):
+        """
+        Widget that serves as a staging area for adding indexes to a model. In the case of composite indexes,
+        it multiplicatively combines the component indexes.
+
+        :param parent: The widget for the parent model, e.g., development, expected loss, BF, etc.
+        :type parent: FModelWidget
+        """
         super().__init__()
 
         self.parent = parent
 
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
+
+        self.splitter = QSplitter(orientation=Qt.Orientation.Horizontal)
 
         self.index_selector = IndexSelector(parent=self)
 
@@ -93,9 +103,9 @@ class FModelIndex(QWidget):
             11,
             11
         )
-
-        self.layout.addWidget(self.index_selector)
-        self.layout.addWidget(index_view_container)
+        self.splitter.addWidget(self.index_selector)
+        self.splitter.addWidget(index_view_container)
+        self.layout.addWidget(self.splitter)
 
 
 class IndexSelector(QWidget):
