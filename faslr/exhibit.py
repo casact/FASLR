@@ -699,7 +699,6 @@ class ExhibitView(GridTableView):
                         label=sub_cols[sub_row]
                     )
             if i == 0 and direction == 'left':
-                print("hi")
                 current_col = 0
             elif i == (iter_count - 2) and direction == 'right':
                 current_col = 0
