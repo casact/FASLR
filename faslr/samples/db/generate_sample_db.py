@@ -139,7 +139,8 @@ def insert_index(
 ) -> None:
 
     new_index = IndexTable(
-        description=index['Name'][0],
+        name=index['Name'][0],
+        description=index['Description'][0],
         scope=scope
     )
 

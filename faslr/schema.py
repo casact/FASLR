@@ -411,6 +411,10 @@ class IndexTable(Base):
         primary_key=True
     )
 
+    name = Column(
+        String
+    )
+
     description = Column(
         String
     )
@@ -431,10 +435,12 @@ class IndexTable(Base):
 
     def __repr__(self):
         return "IndexTable(" \
+            "name='%s', " \
             "description='%s', " \
             "scope='%s', " \
             "project_id='%s'" \
             ")>" % (
+               self.name,
                self.description,
                self.scope,
                self.project_id
