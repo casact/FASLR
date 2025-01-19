@@ -1,24 +1,23 @@
+"""
+Demo of the IndexInventory widget.
+"""
+
 import sys
+from faslr.demos.sample_db import set_sample_db
 
 from faslr.index import (
     IndexInventory
-)
-
-from faslr.utilities import (
-    ppa_loss_trend,
-    tort_index
 )
 
 from PyQt6.QtWidgets import (
     QApplication
 )
 
+set_sample_db()
+
 app = QApplication(sys.argv)
 
-widget = IndexInventory(indexes=[
-    ppa_loss_trend,
-    tort_index
-])
+widget = IndexInventory()
 
 widget.show()
 
