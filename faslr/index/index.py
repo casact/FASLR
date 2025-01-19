@@ -70,7 +70,7 @@ class FIndex:
             name: str = None,
             description: str = None,
             from_id: int = None,
-            db: str = core.db
+            db: str = None
     ):
         """
         Represents an index, and all the things you can do with it (i.e., on-level rate index).
@@ -83,6 +83,7 @@ class FIndex:
             self.changes = changes
         else:
             index_dict = self.get_index_from_id(id_no=from_id, db=db)
+            self.name = index_dict['Name']
             self.description = index_dict['Description']
             self.origin = index_dict['Origin']
             self.changes = index_dict['Changes']
@@ -101,14 +102,23 @@ class FIndex:
         :type db: str
         """
 
+        if db is None:
+            db = core.db
+
         res = {} # Holds the result.
         session, connection = connect_db(db_path=db)
 
         index_record = session.query(IndexTable).filter(IndexTable.index_id == id_no).one()
 
-        res['Description'] = index_record.description
+        res['Name']: str = index_record.name
+        res['Description']: str = index_record.description
 
-        values_query = session.query(IndexValuesTable).filter(IndexValuesTable.index_id == id_no).order_by(IndexValuesTable.year)
+        values_query = (
+            session.query(IndexValuesTable)
+                .filter(IndexValuesTable.index_id == id_no)
+                .order_by(IndexValuesTable.year)
+        )
+
         origin = [r.year for r in values_query]
         changes = [r.change for r in values_query]
 
@@ -182,6 +192,14 @@ class FIndex:
 
         return df_matrix
 
+    @property
+    def meta_dict(self) -> dict:
+
+        return {
+            'Name': [self.name],
+            'Description': [self.description]
+        }
+
 class IndexTableModel(FAbstractTableModel):
     def __init__(
             self,
@@ -244,7 +262,6 @@ class IndexTableModel(FAbstractTableModel):
             values.reverse()
             self._data['Change'] = value
             self._data['Factor'] = values
-            print(self._data)
 
         elif role == Qt.ItemDataRole.EditRole:
 
@@ -381,14 +398,27 @@ class IndexInventory(QDialog):
     """
     def __init__(
             self,
-            indexes: List[dict],
+            indexes: List[dict | FIndex] = None,
             parent: IndexListView = None
     ):
         super().__init__()
 
-        self.parent = parent
+        self.parent: IndexListView = parent
 
-        self.indexes = indexes
+        if indexes:
+            self.indexes: list = indexes
+            self.validate_indexes()
+        else:
+            # Get number of indexes in database.
+            session, connection = connect_db(db_path=core.db)
+            n_index = session.query(IndexTable).count()
+            connection.close()
+
+            self.indexes = []
+            for i in range(n_index):
+                index_to_add = FIndex(from_id=i+1)
+                print(index_to_add.meta_dict)
+                self.indexes += [index_to_add]
 
         self.layout = QVBoxLayout()
 
@@ -419,6 +449,14 @@ class IndexInventory(QDialog):
         self.button_box.rejected.connect(self.close) # noqa
 
         self.setLayout(self.layout)
+
+    def validate_indexes(self) -> None:
+
+        if (all(isinstance(x, dict) for x in self.indexes)) or \
+                (all(isinstance(x, FIndex) for x in self.indexes)):
+            pass
+        else:
+            raise TypeError("Indexes must either be all of type dict or FIndex.")
 
     def add_indexes(self) -> None:
 
@@ -460,8 +498,11 @@ class IndexInventoryView(FTableView):
 class IndexInventoryModel(FAbstractTableModel):
     def __init__(
             self,
-            indexes: List[dict] = None
+            indexes: List[dict | FIndex] = None
     ):
+        """
+        Model that holds the index inventory.
+        """
         super().__init__()
 
         idx_meta_columns = [
@@ -472,6 +513,9 @@ class IndexInventoryModel(FAbstractTableModel):
         self._data = pd.DataFrame(columns=idx_meta_columns)
 
         for idx in indexes:
+            if type(idx) == FIndex:
+                idx = idx.meta_dict
+
             idx_dict = subset_dict(
                 input_dict=idx,
                 keys=idx_meta_columns
