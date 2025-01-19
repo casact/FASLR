@@ -1,19 +1,12 @@
-import os
-import subprocess
-
-from faslr.constants import (
-    ROOT_PATH,
-    SAMPLE_DB_DEFAULT_PATH
-)
-
+"""
+Demo of the FIndex class. Initializes an FIndex object from the first index in the sample database.
+"""
+from faslr.demos.sample_db import set_sample_db
 
 from faslr.index import FIndex
 
-if os.path.exists(SAMPLE_DB_DEFAULT_PATH):
-    pass
-else:
-    subprocess.run(['python', ROOT_PATH + '/samples/db/generate_sample_db.py'])
+set_sample_db()
 
-test_index = FIndex(from_id=1, db=SAMPLE_DB_DEFAULT_PATH)
+test_index = FIndex(from_id=1)
 
 print(test_index.df)
