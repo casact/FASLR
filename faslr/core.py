@@ -19,6 +19,8 @@ def get_startup_db_path(
 
 config_path: str = CONFIG_PATH
 
+use_sample = False
+
 # Flag to determine whether there is an active database connection. Most project-related functions
 # should be disabled unless a connection is established.
 connection_established = False
@@ -28,7 +30,7 @@ db = None
 # If a startup db has been indicated, get the path.
 if os.path.isfile(config_path):
     startup_db: str = get_startup_db_path(config_path=config_path)
-    if startup_db is not None:
+    if (startup_db is not None) and (not use_sample):
         db = startup_db
 else:
     startup_db: None = None
