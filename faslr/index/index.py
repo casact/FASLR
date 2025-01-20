@@ -202,6 +202,64 @@ class FIndex:
             'Description': [self.description]
         }
 
+    def apply_matrix(
+            self,
+            values: list[float]
+    ) -> DataFrame:
+        """
+        Applies the matrix to a list of values, for example trending a list of premiums.
+
+        :param values: The values you want adjusted by the matrix.
+        :type values: list
+        """
+
+        func = lambda x: np.asarray(x) * np.asarray(values)
+
+        res = self.matrix.apply(func)
+
+        return res
+
+
+    def compose(
+            self,
+            findexes: list[FIndex],
+            name: str = None,
+            description: str = None,
+    ) -> FIndex:
+        """
+        Multiplicatively combines several indexes.
+
+        :param findexes: The indexes you want to combine with the parent index.
+        :type findexes: list of FIndexes
+        :param name: The resulting name of the new index.
+        :type name: str
+        :type description: The resulting description of the new index.
+        """
+
+        # Gather all the changes as a list of lists.
+        all_changes = [self.changes] + [x.changes for x in findexes]
+
+        # Basically get a big list of 1 + change for all the changes.
+        intermediate_factors = []
+        for changes in all_changes:
+            intermediate_factors += [[1 + x for x in changes]]
+
+        # Multiply everything together pairwise.
+        combined_changes: list = np.multiply.reduce(intermediate_factors).tolist()
+
+        # Then subtract 1 from each element to get the consolidated index changes.
+        combined_changes = [x - 1 for x in combined_changes]
+
+        # Construct the new index using these changes.
+        return FIndex(
+            name=name,
+            description=description,
+            origin=self.origin,
+            changes=combined_changes
+        )
+
+
+
 
 class FStandardIndexItem(QStandardItem):
     def __init__(
