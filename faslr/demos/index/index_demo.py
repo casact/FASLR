@@ -1,8 +1,6 @@
 import sys
 
 from faslr.index import (
-    IndexTableModel,
-    IndexTableView,
     IndexPane
 )
 
