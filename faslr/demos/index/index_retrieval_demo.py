@@ -5,7 +5,11 @@ Reprex that demonstrates the storage and retrieval of FASLR indexes in a QListVi
 import sys
 
 from faslr.demos.sample_db import set_sample_db
-from faslr.index import FIndex
+from faslr.index import (
+    FIndex,
+    FStandardIndexItem
+)
+
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -20,16 +24,6 @@ from PyQt6.QtGui import (
 
 set_sample_db()
 
-class FStandardItem(QStandardItem):
-    def __init__(
-            self,
-            index: FIndex
-    ):
-        super().__init__()
-
-        self.findex = index
-        self.setText(self.findex.name)
-
 test_index = FIndex(from_id=1)
 test_index2 = FIndex(from_id=2)
 
@@ -42,8 +36,8 @@ class TestWidget(QWidget):
         self.model = QStandardItemModel()
         self.list_view.setModel(self.model)
 
-        item = FStandardItem(index=test_index)
-        item2 = FStandardItem(index=test_index2)
+        item = FStandardIndexItem(findex=test_index)
+        item2 = FStandardIndexItem(findex=test_index2)
         self.model.appendRow(item)
         self.model.appendRow(item2)
 
