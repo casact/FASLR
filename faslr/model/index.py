@@ -47,18 +47,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from faslr.model import FModelWidget
 
-sample_indexes = {
-    XYZ_TORT_INDEX['Name'][0]: XYZ_TORT_INDEX,
-    XYZ_TREND_INDEX['Name'][0]: XYZ_TREND_INDEX,
-    XYZ_RATE_INDEX['Name'][0]: XYZ_RATE_INDEX
-}
-
-
 class FModelIndex(QWidget):
     def __init__(
             self,
-            parent: FModelWidget = None,
-            origin: list = None
+            parent: FModelWidget = None
     ):
         """
         Widget that serves as a staging area for adding indexes to a model. In the case of composite indexes,
@@ -113,9 +105,16 @@ class IndexSelector(QWidget):
             self,
             parent: FModelIndex = None
     ):
+        """
+        Widget used for adding indexes to an actuarial model. If paired with a corresponding IndexTableView or
+        IndexMatrixView, can be used to preview index values by selecting them.
+
+        :param parent: The parent widget of the IndexSelector.
+        :type parent: FModelIndex
+        """
         super().__init__()
 
-        self.parent = parent
+        self.parent: FModelIndex = parent
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -154,23 +153,19 @@ class IndexSelector(QWidget):
             if index_list_view.model.rowCount() != 0:
                 return
 
-        index_dict = sample_indexes[selected_indexes[0].data()]
-
-        index = FIndex(
-            origin=index_dict['Origin'],
-            changes=index_dict['Change']
-        )
+        idx = selected_indexes[0]
+        findex = index_list_view.model.itemFromIndex(idx).findex
 
         model_idx = QModelIndex()
         self.parent.index_model.setData(
             index=model_idx,
             role=Qt.ItemDataRole.EditRole,
-            value=index.df
+            value=findex.df
         )
         self.parent.matrix_model.setData(
             index=model_idx,
             role=Qt.ItemDataRole.EditRole,
-            value=index.matrix
+            value=findex.matrix
         )
 
 class IndexListView(QWidget):
@@ -184,8 +179,11 @@ class IndexListView(QWidget):
     ):
         super().__init__()
 
-        self.parent = parent
-        self.prem_loss = prem_loss
+        self.parent: IndexSelector = parent
+        self.prem_loss: str = prem_loss
+
+        # Stores index data by id
+        self.indexes = []
 
         self.label = QLabel(label)
 
@@ -248,11 +246,6 @@ class IndexListView(QWidget):
         current_count = self.model.rowCount()
 
         index_inventory = IndexInventory(
-            indexes=[
-                XYZ_TORT_INDEX,
-                XYZ_TREND_INDEX,
-                XYZ_RATE_INDEX
-            ],
             parent=self
         )
 
@@ -262,21 +255,9 @@ class IndexListView(QWidget):
 
         if new_count > current_count:
 
-            idx_name = self.index_view.model().data(
-                self.index_view.selectedIndexes()[0],
-                role=Qt.ItemDataRole.DisplayRole
-            )
+            idx = self.index_view.selectedIndexes()[0]
 
-            idx_dict = sample_indexes[idx_name]
-
-            idx_dict = subset_dict(
-                input_dict=idx_dict,
-                keys=['Origin', 'Change']
-            )
-
-            idx_df = pd.DataFrame(idx_dict)
-
-            idx_df = calculate_index_factors(index=idx_df)
+            findex = self.model.itemFromIndex(idx).findex
 
             # If view belongs to an expected loss model, add a column to the selection model.
 
@@ -284,7 +265,7 @@ class IndexListView(QWidget):
 
                 self.parent.parent.parent.selection_model.setData(
                     index=QModelIndex(),
-                    value=idx_df['Factor'],
+                    value=findex.df['Factor'],
                     role=Qt.ItemDataRole.EditRole
                 )
 
@@ -301,7 +282,7 @@ class IndexListView(QWidget):
                 self.parent.parent.parent.selection_view.hheader.setCellLabel(
                     row=0,
                     column=9,
-                    label=header_prefix + idx_name
+                    label=header_prefix + findex.name
                 )
 
     def remove_premium_index(self) -> None:
