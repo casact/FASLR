@@ -1,5 +1,5 @@
 """
-Boilerplate code for writing demos.
+Demo for the About dialog box.
 """
 import sys
 
