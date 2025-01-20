@@ -83,6 +83,7 @@ class FIndex:
             self.changes = changes
         else:
             index_dict = self.get_index_from_id(id_no=from_id, db=db)
+            self.id = from_id
             self.name = index_dict['Name']
             self.description = index_dict['Description']
             self.origin = index_dict['Origin']
@@ -196,9 +197,27 @@ class FIndex:
     def meta_dict(self) -> dict:
 
         return {
+            'ID': [self.id],
             'Name': [self.name],
             'Description': [self.description]
         }
+
+
+class FStandardIndexItem(QStandardItem):
+    def __init__(
+            self,
+            findex: FIndex
+    ):
+        """
+        QStandard Item that also holds a FASLR index, used in IndexListView. This enables retrieval of the FIndex.
+
+        :param findex: An FIndex object.
+        :type findex: FIndex
+        """
+        super().__init__()
+
+        self.findex = findex
+        self.setText(self.findex.name)
 
 class IndexTableModel(FAbstractTableModel):
     def __init__(
@@ -467,17 +486,18 @@ class IndexInventory(QDialog):
             selection = self.inventory_view.selectedIndexes()
 
             for selected_idx in selection:
-                # Only want to execute on first column, the index name.
-                if selected_idx.column() == 1:
+                # Only want to execute on first column, the index ID.
+                if selected_idx.column() >= 1:
                     continue
 
-                idx_name = self.inventory_model.data(
+                idx_id = self.inventory_model.data(
                     index=selected_idx,
                     role=Qt.ItemDataRole.DisplayRole
                 )
 
-                idx_item = QStandardItem()
-                idx_item.setText(idx_name)
+                findex = FIndex(from_id=idx_id)
+
+                idx_item = FStandardIndexItem(findex=findex)
 
                 self.parent.model.appendRow(idx_item)
                 self.parent.add_remove_btns.remove_btn.setEnabled(True)
@@ -506,6 +526,7 @@ class IndexInventoryModel(FAbstractTableModel):
         super().__init__()
 
         idx_meta_columns = [
+            'ID',
             'Name',
             'Description'
         ]
