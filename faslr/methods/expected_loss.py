@@ -13,6 +13,7 @@ from faslr.base_table import (
 from faslr.common.table import (
     make_corner_button
 )
+from faslr.demos.index.findex_demo import comp_loss_trend, adj_loss_ratios
 
 from faslr.grid_header import GridTableView
 
@@ -54,7 +55,8 @@ from typing import (
 
 if TYPE_CHECKING:
     from chainladder import Chainladder
-
+    from faslr.index import FIndex
+    from pandas import DataFrame
 
 
 class ExpectedLossModel(FAbstractTableModel):
@@ -452,3 +454,82 @@ class ExpectedLossMatrixWidget(QWidget):
             value=self.selection_box.currentText(),
             role=Qt.ItemDataRole.EditRole
         )
+
+
+class ExpectedLossRatioWidget(QWidget):
+    def __init__(
+            self,
+            claims: list,
+            premium: list,
+            claim_indexes: list[FIndex],
+            premium_indexes: list
+    ):
+        super().__init__()
+
+        # Create composite indexes
+        if len(claim_indexes) > 1:
+            comp_loss_trend = claim_indexes[0].compose(claim_indexes[1:])
+        else:
+            comp_loss_trend = claim_indexes[0]
+
+        if len(premium_indexes) > 1:
+            comp_prem_trend = premium_indexes[0].compose(premium_indexes[1:])
+        else:
+            comp_prem_trend = premium_indexes[0]
+
+        trended_loss_matrix = comp_loss_trend.apply_matrix(values=claims)
+        on_level_premium_matrix = comp_prem_trend.apply_matrix(values=premium)
+
+        adj_loss_ratios = trended_loss_matrix.div(on_level_premium_matrix)
+
+        self.layout = QVBoxLayout()
+        self.loss_ratio_view = ExpectedLossRatioView()
+        self.loss_ratio_model = ExpectedLossRatioModel(loss_raios=adj_loss_ratios)
+        self.loss_ratio_view.setModel(self.loss_ratio_model)
+
+        self.layout.addWidget(self.loss_ratio_view)
+
+        self.setLayout(self.layout)
+
+
+class ExpectedLossRatioView(FTableView):
+    def __init__(self):
+        super().__init__()
+
+        self.corner_btn = make_corner_button(parent=self)
+
+class ExpectedLossRatioModel(FAbstractTableModel):
+    def __init__(
+            self,
+            loss_raios: DataFrame
+    ):
+        super().__init__()
+
+        self._data = loss_raios
+
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
+
+            if np.isnan(value):
+                return ""
+            else:
+                return RATIO_STYLE.format(value)
+
+    def headerData(
+            self,
+            p_int: int,
+            qt_orientation: Qt.Orientation,
+            role: int = None
+    ) -> typing.Any:
+
+        # section is the index of the column/row.
+        if role == Qt.ItemDataRole.DisplayRole:
+            if qt_orientation == Qt.Orientation.Horizontal:
+                return str(self._data.columns[p_int])
+
+            if qt_orientation == Qt.Orientation.Vertical:
+                return str(self._data.index[p_int])
