@@ -226,11 +226,7 @@ def test_index_inventory(
     :return: None
     """
 
-    index_inventory = IndexInventory(
-        indexes=[
-            ppa_loss_trend
-        ]
-    )
+    index_inventory = IndexInventory()
 
     qtbot.addWidget(index_inventory)
 
@@ -241,7 +237,7 @@ def test_index_inventory(
         role=Qt.ItemDataRole.DisplayRole
     )
 
-    assert index_test == 'PPA Loss Trend'
+    assert index_test == '1'
 
     vertical_test = index_inventory.inventory_model.headerData(
         p_int=0,
