@@ -1,7 +1,7 @@
 # FASLR: Free Actuarial System for Loss Reserving
 [![codecov](https://codecov.io/gh/casact/FASLR/branch/main/graph/badge.svg?token=B2tp2sywL2)](https://codecov.io/gh/casact/FASLR) [![tests](https://github.com/casact/faslr/workflows/Unit%20Tests/badge.svg)](https://github.com/casact/faslr/workflows/Unit%20Tests/badge.svg) [![docs](https://github.com/casact/faslr/workflows/Docs/badge.svg)](https://faslr.com/docs) [![Join the chat at https://app.gitter.im/#/room/#faslr:gitter.im](https://badges.gitter.im/Join%20Chat.svg)](https://app.gitter.im/#/room/#faslr:gitter.im)
 
-FASLR (pronounced: [fazlur](https://en.wikipedia.org/wiki/Fazlur_Rahman_Khan)) is a Qt-based frontend for open-source loss reserving packages. Current plans are to support the [Chainladder](https://github.com/casact/chainladder-python) package.
+FASLR (pronounced: [fazlur](https://en.wikipedia.org/wiki/Fazlur_Rahman_Khan)) is a Linux-based frontend for open-source loss reserving packages. Current plans are to support the [Chainladder](https://github.com/casact/chainladder-python) package.
 
 The actuarial methods and example data used in this project are derived from publicly available papers and data sources. The GUI is developed in Python using the open-source PyQt6 package.
 
@@ -17,7 +17,7 @@ The analysis pane is where the user will be able to conduct a reserve analysis. 
 
 ![basic-interface-filled](docs/_static/basic_ui_09082021.png)
 ![basic-interface-filled](docs/_static/dev_demo.gif)
-![basic-interface](docs/_static/basic_interface.png)
+![basic-interface](https://github.com/genedan/faslr-media/blob/main/tail_scatter.png?raw=true)
 
 ## Department Integration
 
@@ -29,7 +29,7 @@ FASLR will support departments with multiple users, who will have the ability to
 
 Please refer to the document [CONTRIBUTING.md](https://github.com/casact/FASLR/blob/main/CONTRIBUTING.md) for the contributing guidelines.
 
-You can evaluate the working version of FASLR by executing the [main.py](https://github.com/casact/FASLR/blob/main/faslr/main.py) program in the [faslr](https://github.com/casact/FASLR/tree/main/faslr) directory:
+You can evaluate the working version of FASLR by executing the [__main__.py](https://github.com/casact/FASLR/blob/main/faslr/__main__.py) program in the [faslr](https://github.com/casact/FASLR/tree/main/faslr) directory:
 
 ```shell
 cd FASLR
@@ -43,8 +43,6 @@ cd FASLR
 source venv/bin/activate
 python -m faslr
 ```
-
-To learn more about the current structure of the repository, read [ARCHITECTURE.md](https://github.com/casact/FASLR/blob/main/ARCHITECTURE.md).
 
 ## Supported Operating Systems
 
