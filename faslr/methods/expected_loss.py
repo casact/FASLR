@@ -13,7 +13,6 @@ from faslr.base_table import (
 from faslr.common.table import (
     make_corner_button
 )
-from faslr.demos.index.findex_demo import comp_loss_trend, adj_loss_ratios
 
 from faslr.grid_header import GridTableView
 
