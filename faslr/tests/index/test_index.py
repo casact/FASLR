@@ -4,6 +4,7 @@ import chainladder as cl
 import pandas as pd
 import pytest
 
+import faslr.core as core
 from faslr.index import (
     calculate_index_factors,
     IndexPane,
@@ -42,6 +43,24 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pandas import DataFrame
+
+
+@pytest.fixture()
+def f_core(
+        sample_db: str,
+        setup_config: str
+):
+    """
+    Fixture to initialize the FASLR core.
+
+    :param sample_db:
+    :param setup_config:
+    :return: The FASLR Core.
+    """
+
+    core.set_db(sample_db)
+
+    yield core
 
 
 @pytest.fixture()
@@ -217,7 +236,8 @@ def test_index_pane_blank(
 
 
 def test_index_inventory(
-        qtbot: QtBot
+        qtbot: QtBot,
+        f_core
 ) -> None:
     """
     Test the index inventory widget.
