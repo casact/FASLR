@@ -619,9 +619,9 @@ class FactorView(FTableView):
 class LDFAverageModel(QAbstractTableModel):
     def __init__(
             self,
-            data,
+            data: DataFrame,
             parent: FactorModel,
-            checkable_columns=None
+            checkable_columns: int = None
     ):
         super(LDFAverageModel, self).__init__()
 
