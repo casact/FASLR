@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 test_data = pd.DataFrame(
     data=[
         [True, "All-year Straight", "Straight", "9"],
-        [False, "All Years Excl. High/Low", "High/Low", None],
+        [False, "All Years Excl. High/Low", "Straight Excluding High/Low", None],
         [False, "3-year Straight", "Straight",  "3"],
         [False, "5-year Straight", "Straight", "5"],
     ],
