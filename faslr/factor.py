@@ -106,8 +106,6 @@ class FactorModel(FAbstractTableModel):
             columns=self.link_frame.columns
         )
 
-        # self.cdf_row["To Ult"] = np.nan
-
         # Get number of rows in triangle portion of tab.
         self.n_triangle_rows = self.triangle.shape[2] - 1
         self.triangle_spacer_row = self.n_triangle_rows + 2
