@@ -68,6 +68,33 @@ class FAverageBox(QDialog):
         self.layout.addWidget(self.button_box)
 
         self.setLayout(self.layout)
+        self.set_dimensions()
+
+        self.button_box.rejected.connect(self.cancel) # noqa
+
+    def set_dimensions(self):
+        """
+        Automatically size the dialog box.
+        """
+
+        self.view.resizeColumnsToContents()
+
+        width = self.view.horizontalHeader().length() + \
+                self.view.verticalHeader().width() + \
+                self.layout.getContentsMargins()[0] * 3
+
+        height = self.view.verticalHeader().length() + self.view.horizontalHeader().height() + \
+                 self.layout.getContentsMargins()[0] * 5
+
+        self.resize(width, height)
+
+
+    def cancel(self) -> None:
+        """
+        User presses cancel, and the box closes.
+        """
+
+        self.close()
 
 
 class FAverageModel(QAbstractTableModel):
@@ -183,20 +210,3 @@ class FAverageView(QTableView):
 
         self.verticalHeader().hide()
 
-
-class CheckBoxStyle(QProxyStyle):
-    """
-    Proxy style is used to center the checkboxes in the LDF Average dialog box.
-    """
-
-    def subElementRect(
-            self,
-            element,
-            opt,
-            widget=None
-    ):
-        if element == self.SE_ItemViewItemCheckIndicator and not opt.text: # noqa
-            rect = super().subElementRect(element, opt, widget)
-            rect.moveCenter(opt.rect.center())
-            return rect
-        return super().subElementRect(element, opt, widget)
