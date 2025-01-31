@@ -13,6 +13,15 @@ from PyQt6.QtWidgets import (
 
 set_sample_db()
 
+years = [x for x in range(2000,2011)]
+
+ratios = {}
+for year in years:
+    ratios[str(year)] = [.5 for x in years]
+
+
+ratios_df = pd.DataFrame(data=ratios, index=years)
+
 test_averages = pd.DataFrame(
     data=[
         [True, "All-year Straight", "Straight", "9"],
@@ -25,7 +34,10 @@ test_averages = pd.DataFrame(
 
 app = QApplication(sys.argv)
 
-fratio_selection_widget = FRatioSelectionWidget(averages=test_averages)
+fratio_selection_widget = FRatioSelectionWidget(
+    averages=test_averages,
+    ratios=ratios_df
+)
 
 fratio_selection_widget.show()
 
