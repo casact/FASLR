@@ -6,6 +6,8 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+from contextlib import nullcontext
+
 from faslr.base_table import (
     FAbstractTableModel,
     FTableView
@@ -64,7 +66,7 @@ from typing import (
 if TYPE_CHECKING:  # pragma no coverage
     from chainladder import Triangle
 
-matplotlib.use('Qt5Agg')
+# matplotlib.use('qtagg')
 
 curve_alias = {
     'Exponential': 'exponential',
@@ -85,7 +87,8 @@ fit_errors = {
 class TailPane(QWidget):
     def __init__(
             self,
-            triangle: Triangle = None
+            triangle: Triangle = None,
+            xkcd: bool = False
     ):
         """
         Dialog box for conducting tail analyses. Holds configuration sub widgets for various tail-factor models
@@ -95,24 +98,27 @@ class TailPane(QWidget):
         """
         super().__init__()
 
-        self.triangle = triangle
+        self.triangle: triangle = triangle
 
-        # Holds the currently toggled chart
-        self.toggled_chart = 'curve_btn'
+        self.xkcd: bool = xkcd
 
-        # list to hold each tail candidate
+        # Holds the currently toggled chart.
+        self.toggled_chart: str = 'curve_btn'
+
+        # List to hold each tail candidate.
         self.tail_candidates: [TailConfig] = []
         self.setWindowTitle("Tail Analysis")
 
-        # number of tabs that have been created, used to create default names for the candidate tabs
-        self.max_tab_idx = 1
+        # Number of tabs that have been created, used to create default names for the candidate tabs.
+        self.max_tab_idx: int = 1
 
         self.sc = MplCanvas(
             self,
-            dpi=100
+            dpi=100,
+            xkcd=self.xkcd
         )
 
-        # main layout
+        # Main layout.
         vlayout = QVBoxLayout()
         hlayout = QHBoxLayout()
         main_container = QWidget()
@@ -177,257 +183,259 @@ class TailPane(QWidget):
 
     def update_plot(self) -> None:
 
-        self.sc.axes.cla()
-        tcs = []
-        tcds = []
-
-        # fit tail
-        for config in self.tail_candidates:
-
-            gb_tail_type = config.gb_tail_type
-            tail_params = config.gb_tail_params
-
-            if gb_tail_type.constant_btn.isChecked():
-
-                tail_constant = tail_params.constant_config.sb_tail_constant.spin_box.value()
-                decay = tail_params.constant_config.sb_decay.spin_box.value()
-                attach = tail_params.constant_config.sb_attach.spin_box.value()
-                projection = tail_params.constant_config.sb_projection.spin_box.value()
-
-                tc = cl.TailConstant(
-                    tail=tail_constant,
-                    decay=decay,
-                    attachment_age=attach,
-                    projection_period=projection
-                ).fit_transform(self.triangle)
-
-            elif gb_tail_type.curve_btn.isChecked():
-
-                curve_config = tail_params.curve_config
-
-                curve = curve_alias[curve_config.curve_type.combo_box.currentText()]
-                fit_from = curve_config.fit_from.spin_box.value()
-                fit_to = curve_config.fit_to.spin_box.value()
-                extrap_periods = curve_config.extrap_periods.spin_box.value()
-                errors = fit_errors[curve_config.bg_errors.checkedButton().text()]
-                attachment_age = curve_config.attachment_age.spin_box.value()
-                projection_period = curve_config.projection.spin_box.value()
-
-                tc = cl.TailCurve(
-                    curve=curve,
-                    fit_period=(
-                        fit_from,
-                        fit_to
-                    ),
-                    extrap_periods=extrap_periods,
-                    errors=errors,
-                    attachment_age=attachment_age,
-                    projection_period=projection_period
-
-                ).fit_transform(self.triangle)
-
-                tcd = cl.TailCurve(
-                    curve=curve,
-                    fit_period=(
-                        fit_from,
-                        fit_to
-                    ),
-                    extrap_periods=extrap_periods,
-                    errors=errors,
-                    attachment_age=attachment_age,
-                    projection_period=projection_period
-
-                ).fit(self.triangle)
-
-                tcds.append(tcd)
-
-            elif gb_tail_type.bondy_btn.isChecked():
-
-                bondy = tail_params.bondy_config
-                earliest_age = bondy.earliest_age.spin_box.value()
-                attachment_age = bondy.attachment_age.spin_box.value()
-                projection_period = bondy.projection.spin_box.value()
-
-                tc = cl.TailBondy(
-                    earliest_age=earliest_age,
-                    attachment_age=attachment_age,
-                    projection_period=projection_period
-                ).fit_transform(self.triangle)
-
-            elif gb_tail_type.clark_btn.isChecked():
-
-                clark = tail_params.clark_config
-
-                growth = clark_alias[clark.growth.combo_box.currentText()]
-                truncation_age = clark.truncation_age.spin_box.value()
-                attachment_age = clark.attachment_age.spin_box.value()
-                projection_period = clark.projection.spin_box.value()
-
-                tc = cl.TailClark(
-                    growth=growth,
-                    truncation_age=truncation_age,
-                    attachment_age=attachment_age,
-                    projection_period=projection_period
-                ).fit_transform(self.triangle)
-
-            else:
-                raise Exception("Invalid tail type selected.")
-
-            tcs.append(tc)
-
-        if self.toggled_chart == 'curve_btn':
-
-            x = []
-            y = []
-
-            for tc in tcs:
-                x.append(list(tc.cdf_.to_frame(origin_as_datetime=True)))
-                y.append(tc.cdf_.iloc[:len(x), 0].values.flatten().tolist())
-
-            for i in range(len(x)):
-                self.sc.axes.plot(
-                    x[i],
-                    y[i],
-                    label=self.config_tabs.tabText(i)
-                )
-
-            self.sc.axes.legend()
-
-            self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
-
-            self.sc.axes.spines['bottom'].set_color('0')
-
-            self.sc.axes.set_title("Selected Cumulative Development Factor")
-
-            self.sc.draw()
-
-        elif self.toggled_chart == 'tail_comps_btn':
-
-            y = []
-            width = .4
-            for tc in tcs:
-                tail = tc.tail_.squeeze()
-                y.append(tail)
-
-            for i in range(len(y)):
-                x = self.config_tabs.tabText(i)
-
-                self.sc.axes.bar(
-                    x=x,
-                    width=width,
-                    height=y[i]
-                )
-
-            self.sc.axes.set_ylabel('Tail Factor')
-            self.sc.axes.set_title('Tail Factor Comparison')
-
-            self.sc.draw()
-
-        elif self.toggled_chart == 'extrap_btn':
-
-            tri = cl.load_sample('clrd').groupby('LOB').sum().loc['medmal', 'CumPaidLoss']
-
-            # Create a fuction to grab the scalar tail value.
-            def scoring(model):
-                """ Scoring functions must return a scalar """
-                return model.tail_.iloc[0, 0]
-
-            # Create a grid of scenarios
-            param_grid = dict(
-                extrap_periods=list(range(1, 100, 6)),
-                curve=['inverse_power', 'exponential'])
-
-            # Fit Grid
-            model = cl.GridSearch(
-                cl.TailCurve(),
-                param_grid=param_grid,
-                scoring=scoring
-            ).fit(tri)
-
-            # Plot results
-            pvt = model.results_.pivot( # noqa
-                columns='curve',
-                index='extrap_periods',
-                values='score'
-            )
-
-            x = list(pvt.index)
-            y1 = pvt['exponential']
-            y2 = pvt['inverse_power']
+        with plt.xkcd() if self.xkcd else nullcontext():
 
             self.sc.axes.cla()
+            tcs = []
+            tcds = []
 
-            self.sc.axes.plot(
-                x,
-                y1,
-                label='Exponential'
-            )
-
-            self.sc.axes.plot(
-                x,
-                y2,
-                label='Inverse Power'
-            )
-
-            self.sc.axes.set_title(
-                'Curve Fit Sensitivity to Extrapolation Period'
-            )
-
-            self.sc.axes.set_ylabel('Tail factor')
-            self.sc.axes.set_xlabel('Extrapolation Periods')
-            self.sc.axes.legend()
-
-            self.sc.draw()
-
-        else:
-
+            # fit tail
             for config in self.tail_candidates:
-                if not config.gb_tail_type.curve_btn.isChecked():
-                    self.sc.axes.cla()
-                    return
 
-            y = []
+                gb_tail_type = config.gb_tail_type
+                tail_params = config.gb_tail_params
 
-            # base
+                if gb_tail_type.constant_btn.isChecked():
 
-            tcb = cl.Development().fit_transform(self.triangle)
-            obs = (tcb.ldf_ - 1).T.iloc[:, 0]
-            obs[obs < 0] = np.nan
-            ax = np.log(obs).rename('Selected LDF')
-            xb = list(ax.index)
+                    tail_constant = tail_params.constant_config.sb_tail_constant.spin_box.value()
+                    decay = tail_params.constant_config.sb_decay.spin_box.value()
+                    attach = tail_params.constant_config.sb_attach.spin_box.value()
+                    projection = tail_params.constant_config.sb_projection.spin_box.value()
 
-            yb = list(np.log(obs).rename('Selected LDF'))
+                    tc = cl.TailConstant(
+                        tail=tail_constant,
+                        decay=decay,
+                        attachment_age=attach,
+                        projection_period=projection
+                    ).fit_transform(self.triangle)
 
-            self.sc.axes.scatter(xb, yb)
+                elif gb_tail_type.curve_btn.isChecked():
 
-            for tc in tcds:
+                    curve_config = tail_params.curve_config
 
-                y.append(
-                    list(pd.Series(
-                        np.arange(1, tcb.ldf_.shape[-1] + 1) *
-                        tc.slope_.sum().values + # noqa
-                        tc.intercept_.sum().values, # noqa
-                        index=tcb.ldf_.development,
-                        name=f'Ages after 36: {round(tc.tail_.values[0, 0], 3)}') # noqa
+                    curve = curve_alias[curve_config.curve_type.combo_box.currentText()]
+                    fit_from = curve_config.fit_from.spin_box.value()
+                    fit_to = curve_config.fit_to.spin_box.value()
+                    extrap_periods = curve_config.extrap_periods.spin_box.value()
+                    errors = fit_errors[curve_config.bg_errors.checkedButton().text()]
+                    attachment_age = curve_config.attachment_age.spin_box.value()
+                    projection_period = curve_config.projection.spin_box.value()
+
+                    tc = cl.TailCurve(
+                        curve=curve,
+                        fit_period=(
+                            fit_from,
+                            fit_to
+                        ),
+                        extrap_periods=extrap_periods,
+                        errors=errors,
+                        attachment_age=attachment_age,
+                        projection_period=projection_period
+
+                    ).fit_transform(self.triangle)
+
+                    tcd = cl.TailCurve(
+                        curve=curve,
+                        fit_period=(
+                            fit_from,
+                            fit_to
+                        ),
+                        extrap_periods=extrap_periods,
+                        errors=errors,
+                        attachment_age=attachment_age,
+                        projection_period=projection_period
+
+                    ).fit(self.triangle)
+
+                    tcds.append(tcd)
+
+                elif gb_tail_type.bondy_btn.isChecked():
+
+                    bondy = tail_params.bondy_config
+                    earliest_age = bondy.earliest_age.spin_box.value()
+                    attachment_age = bondy.attachment_age.spin_box.value()
+                    projection_period = bondy.projection.spin_box.value()
+
+                    tc = cl.TailBondy(
+                        earliest_age=earliest_age,
+                        attachment_age=attachment_age,
+                        projection_period=projection_period
+                    ).fit_transform(self.triangle)
+
+                elif gb_tail_type.clark_btn.isChecked():
+
+                    clark = tail_params.clark_config
+
+                    growth = clark_alias[clark.growth.combo_box.currentText()]
+                    truncation_age = clark.truncation_age.spin_box.value()
+                    attachment_age = clark.attachment_age.spin_box.value()
+                    projection_period = clark.projection.spin_box.value()
+
+                    tc = cl.TailClark(
+                        growth=growth,
+                        truncation_age=truncation_age,
+                        attachment_age=attachment_age,
+                        projection_period=projection_period
+                    ).fit_transform(self.triangle)
+
+                else:
+                    raise Exception("Invalid tail type selected.")
+
+                tcs.append(tc)
+
+            if self.toggled_chart == 'curve_btn':
+
+                x = []
+                y = []
+
+                for tc in tcs:
+                    x.append(list(tc.cdf_.to_frame(origin_as_datetime=True)))
+                    y.append(tc.cdf_.iloc[:len(x), 0].values.flatten().tolist())
+
+                for i in range(len(x)):
+                    self.sc.axes.plot(
+                        x[i],
+                        y[i],
+                        label=self.config_tabs.tabText(i)
                     )
+
+                self.sc.axes.legend()
+
+                self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
+
+                self.sc.axes.spines['bottom'].set_color('0')
+
+                self.sc.axes.set_title("Selected Cumulative Development Factor")
+
+                self.sc.draw()
+
+            elif self.toggled_chart == 'tail_comps_btn':
+
+                y = []
+                width = .4
+                for tc in tcs:
+                    tail = tc.tail_.squeeze()
+                    y.append(tail)
+
+                for i in range(len(y)):
+                    x = self.config_tabs.tabText(i)
+
+                    self.sc.axes.bar(
+                        x=x,
+                        width=width,
+                        height=y[i]
+                    )
+
+                self.sc.axes.set_ylabel('Tail Factor')
+                self.sc.axes.set_title('Tail Factor Comparison')
+
+                self.sc.draw()
+
+            elif self.toggled_chart == 'extrap_btn':
+
+                tri = cl.load_sample('clrd').groupby('LOB').sum().loc['medmal', 'CumPaidLoss']
+
+                # Create a fuction to grab the scalar tail value.
+                def scoring(model):
+                    """ Scoring functions must return a scalar """
+                    return model.tail_.iloc[0, 0]
+
+                # Create a grid of scenarios
+                param_grid = dict(
+                    extrap_periods=list(range(1, 100, 6)),
+                    curve=['inverse_power', 'exponential'])
+
+                # Fit Grid
+                model = cl.GridSearch(
+                    cl.TailCurve(),
+                    param_grid=param_grid,
+                    scoring=scoring
+                ).fit(tri)
+
+                # Plot results
+                pvt = model.results_.pivot( # noqa
+                    columns='curve',
+                    index='extrap_periods',
+                    values='score'
                 )
 
-            for i in range(len(y)):
+                x = list(pvt.index)
+                y1 = pvt['exponential']
+                y2 = pvt['inverse_power']
+
+                self.sc.axes.cla()
 
                 self.sc.axes.plot(
-                    xb,
-                    y[i],
-                    linestyle='--',
-                    label=self.config_tabs.tabText(i)
+                    x,
+                    y1,
+                    label='Exponential'
                 )
 
-            self.sc.axes.set_xlabel('Development')
-            self.sc.axes.set_title('Fit Period Affect on Tail Estimate')
-            self.sc.axes.legend()
+                self.sc.axes.plot(
+                    x,
+                    y2,
+                    label='Inverse Power'
+                )
 
-            self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
+                self.sc.axes.set_title(
+                    'Curve Fit Sensitivity to Extrapolation Period'
+                )
 
-            self.sc.draw()
+                self.sc.axes.set_ylabel('Tail factor')
+                self.sc.axes.set_xlabel('Extrapolation Periods')
+                self.sc.axes.legend()
+
+                self.sc.draw()
+
+            else:
+
+                for config in self.tail_candidates:
+                    if not config.gb_tail_type.curve_btn.isChecked():
+                        self.sc.axes.cla()
+                        return
+
+                y = []
+
+                # base
+
+                tcb = cl.Development().fit_transform(self.triangle)
+                obs = (tcb.ldf_ - 1).T.iloc[:, 0]
+                obs[obs < 0] = np.nan
+                ax = np.log(obs).rename('Selected LDF')
+                xb = list(ax.index)
+
+                yb = list(np.log(obs).rename('Selected LDF'))
+
+                self.sc.axes.scatter(xb, yb)
+
+                for tc in tcds:
+
+                    y.append(
+                        list(pd.Series(
+                            np.arange(1, tcb.ldf_.shape[-1] + 1) *
+                            tc.slope_.sum().values + # noqa
+                            tc.intercept_.sum().values, # noqa
+                            index=tcb.ldf_.development,
+                            name=f'Ages after 36: {round(tc.tail_.values[0, 0], 3)}') # noqa
+                        )
+                    )
+
+                for i in range(len(y)):
+
+                    self.sc.axes.plot(
+                        xb,
+                        y[i],
+                        linestyle='--',
+                        label=self.config_tabs.tabText(i)
+                    )
+
+                self.sc.axes.set_xlabel('Development')
+                self.sc.axes.set_title('Fit Period Affect on Tail Estimate')
+                self.sc.axes.legend()
+
+                self.sc.axes.xaxis.set_major_locator(plt.MaxNLocator(6))
+
+                self.sc.draw()
 
     def toggle_chart(self, value) -> None:
 
@@ -521,9 +529,11 @@ class MplCanvas(FigureCanvasQTAgg):
             parent: TailPane = None,
             width=5,
             height=4,
-            dpi=100
+            dpi=100,
+            xkcd: bool = False
     ):
-        self.parent = parent
+        self.parent: TailPane = parent
+
 
         fig = Figure(
             figsize=(
@@ -535,9 +545,12 @@ class MplCanvas(FigureCanvasQTAgg):
             edgecolor='#ababab'
         )
 
-        self.axes = fig.add_subplot(111)
+        with plt.xkcd() if xkcd else nullcontext() as gs:
 
-        super(MplCanvas, self).__init__(fig)
+            self.axes = fig.add_subplot(111)
+            fig.subplots_adjust(bottom=.15, top=.9)
+
+            super(MplCanvas, self).__init__(fig)
 
 
 class ConstantConfig(QWidget):

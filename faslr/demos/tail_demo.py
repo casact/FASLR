@@ -7,11 +7,14 @@ from faslr.tail import (
     TailPane
 )
 
-triangle = cl.load_sample('genins')
-# triangle = cl.load_sample('quarterly')['paid']
+# triangle = cl.load_sample('genins')
+triangle = cl.load_sample('quarterly')['paid']
 app = QApplication(sys.argv)
 
-tail_pane = TailPane(triangle=triangle)
+tail_pane = TailPane(
+    triangle=triangle,
+    xkcd=True
+)
 
 tail_pane.show()
 
