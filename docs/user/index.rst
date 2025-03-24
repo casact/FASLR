@@ -39,3 +39,9 @@ The FASLR user guide covers basic setup and installation, user interface feature
    :caption: Extensions
 
    extensions/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: News
+
+   news/xkcd
