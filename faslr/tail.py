@@ -1,6 +1,5 @@
 from __future__ import annotations
 import chainladder as cl
-import matplotlib
 import numpy as np
 import pandas as pd
 
@@ -131,15 +130,15 @@ class TailPane(QWidget):
         )
         vlayout.addWidget(main_container)
 
-        # canvas layout to enable margin adjustments
+        # Canvas layout to enable margin adjustments.
         canvas_layout = QVBoxLayout()
         canvas_container = QWidget()
         canvas_container.setLayout(canvas_layout)
 
-        # layout to toggle between charts
+        # Layout to toggle between charts.
         self.graph_toggle_btns = TailChartToggle(parent=self)
 
-        # Tabs to hold each tail candidate
+        # Tabs to hold each tail candidate.
         self.config_tabs = ConfigTab(parent=self)
 
         tail_config = TailConfig(parent=self)
@@ -437,9 +436,16 @@ class TailPane(QWidget):
 
                 self.sc.draw()
 
-    def toggle_chart(self, value) -> None:
+    def toggle_chart(
+            self,
+            button_name: str
+    ) -> None:
+        """
+        Updates the name of the toggled chart and then runs self.update_plot() using
+        the button name.
+        """
 
-        self.toggled_chart = value
+        self.toggled_chart: str = button_name
 
         self.update_plot()
 
@@ -453,7 +459,8 @@ class TailChartToggle(QWidget):
         Holds button box to toggle diagnostic charts on the TailPane. Intended to be extensible,
         will eventually allow users to add their own buttons via extensions.
 
-        :param parent:
+        :param parent: The parent widget.
+        :type parent: TailPane
         """
         super().__init__()
 
@@ -508,6 +515,17 @@ class TailChartToggle(QWidget):
             tool_tip: str,
             icon: str
     ) -> QPushButton:
+        """
+        Method that creates a chart toggle button. These buttons are used to
+        switch between chart types on the tail pane.
+
+        :param name: The name of the button.
+        :type name: str
+        :param tool_tip: The tooltip text that is displayed when one hovers the mouse over the button.
+        :type tool_tip: str,
+        :param icon: The name of the file, not including the path, used for the button icon.
+        :type icon: str
+        """
 
         btn = QPushButton('')
         btn.setIcon(QIcon(ICONS_PATH + icon))
@@ -534,6 +552,18 @@ class MplCanvas(FigureCanvasQTAgg):
     ):
         self.parent: TailPane = parent
 
+        # Adjust plot margins if xkcd is toggled.
+        if xkcd:
+            plot_margins = {
+                'bottom': .15,
+                'top': .9
+            }
+        else:
+            plot_margins = {
+                'bottom': None,
+                'top': None
+            }
+
 
         fig = Figure(
             figsize=(
@@ -545,10 +575,10 @@ class MplCanvas(FigureCanvasQTAgg):
             edgecolor='#ababab'
         )
 
-        with plt.xkcd() if xkcd else nullcontext() as gs:
+        with plt.xkcd() if xkcd else nullcontext():
 
             self.axes = fig.add_subplot(111)
-            fig.subplots_adjust(bottom=.15, top=.9)
+            fig.subplots_adjust(**plot_margins)
 
             super(MplCanvas, self).__init__(fig)
 
@@ -816,21 +846,21 @@ class TailConfig(QWidget):
     ):
         super().__init__()
 
-        self.parent = parent
+        self.parent: TailPane = parent
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        # Group box to select the tail type
+        # Group box to select the tail type.
         self.gb_tail_type = TailTypeGroupBox(parent=self)
 
-        # Group box to select the tail parameters
+        # Group box to select the tail parameters.
         self.gb_tail_params = TailParamsGroupBox(
             parent=self,
             gb_tail_type=self.gb_tail_type
         )
 
-        # Check box to mark the tail candidate as selected
+        # Check box to mark the tail candidate as selected.
         self.cb_mark_selected = QCheckBox('Mark as selected')
 
         for widget in [
@@ -880,7 +910,7 @@ class TailTypeGroupBox(QGroupBox):
         # Default selection is tail constant
         self.constant_btn.setChecked(True)
 
-        self.bg_tail_type.buttonToggled.connect(self.parent.parent.update_plot)
+        self.bg_tail_type.buttonToggled.connect(self.parent.parent.update_plot) # noqa
 
 
 class TailParamsGroupBox(QGroupBox):
@@ -946,15 +976,18 @@ class ConfigTab(QTabWidget):
         """
         A QTabWidget that holds each tail candidate's configuration parameters
         inside a tab.
+
+        :param parent: The parent tail pane.
+        :type parent: TailPane
         """
         super().__init__()
 
-        self.parent = parent
+        self.parent: TailPane = parent
 
-        # corner widget to hold the two corner buttons
+        # Corner widget to hold the two corner buttons.
         self.add_remove_btns = AddRemoveButtonWidget(
-            p_tool_tip='Add tail candidate',
-            m_tool_tip='Remove tail candidate'
+            p_tool_tip='Add tail candidate.',
+            m_tool_tip='Remove tail candidate.'
         )
 
         self.setCornerWidget(
