@@ -27,14 +27,17 @@ from PyQt6.QtGui import (
 )
 
 from PyQt6.QtWidgets import (
+    QButtonGroup,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QGroupBox,
     QLabel,
     QListView,
     QPushButton,
     QWidget,
     QVBoxLayout,
+    QRadioButton,
     QSplitter,
     QStackedWidget
 )
@@ -113,8 +116,8 @@ class SettingsDialog(QDialog):
 
         button_layout = QDialogButtonBox.StandardButton.Ok
         self.button_box = QDialogButtonBox(button_layout)
-        # noinspection PyUnresolvedReferences
-        self.button_box.accepted.connect(self.accept)
+
+        self.button_box.accepted.connect(self.accept) # noqa
 
         self.list_pane = QListView()
 
@@ -129,14 +132,22 @@ class SettingsDialog(QDialog):
         self.startup_connected_container = QWidget()
         self.startup_unconnected_container = QWidget()
         self.user_container = QWidget()
+        self.plot_container = QWidget()
 
         self.startup_unconnected_layout()
         self.startup_connected_layout()
         self.user_layout()
+        self.plot_layout()
 
-        self.configuration_layout.addWidget(self.startup_connected_container)
-        self.configuration_layout.addWidget(self.startup_unconnected_container)
-        self.configuration_layout.addWidget(self.user_container)
+        for widget in [
+            self.startup_connected_container,
+            self.startup_unconnected_container,
+            self.user_container,
+            self.plot_container
+        ]:
+
+            self.configuration_layout.addWidget(widget)
+
         self.configuration_layout.setCurrentIndex(0)
         self.list_pane.setCurrentIndex(self.list_model.index(0))
         self.update_config_layout(self.list_pane.currentIndex())
@@ -171,6 +182,8 @@ class SettingsDialog(QDialog):
                 self.configuration_layout.setCurrentIndex(1)
         elif index.data() == "User":
             self.configuration_layout.setCurrentIndex(2)
+        elif index.data() == "Plots":
+            self.configuration_layout.setCurrentIndex(3)
 
     def startup_unconnected_layout(self) -> None:
         """
@@ -213,6 +226,33 @@ class SettingsDialog(QDialog):
         # noinspection PyUnresolvedReferences
         self.delete_configuration_button.clicked.connect(self.delete_configuration)
         self.user_container.setLayout(layout)
+
+    def plot_layout(self) -> None:
+
+        layout = QVBoxLayout()
+        button_layout = QVBoxLayout()
+
+        plot_button_group = QButtonGroup()
+        plot_groupbox = QGroupBox("Plotting Style")
+
+        layout.addWidget(plot_groupbox)
+        plot_groupbox.setLayout(button_layout)
+        layout.addStretch()
+
+        regular_radio_button = QRadioButton("Regular")
+        xkcd_radio_button = QRadioButton("xkcd")
+
+        for button in [
+            regular_radio_button,
+            xkcd_radio_button
+        ]:
+
+            plot_button_group.addButton(button)
+            button_layout.addWidget(button)
+        button_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.plot_container.setLayout(layout)
+
 
     def reset_connection(self) -> None:
         """

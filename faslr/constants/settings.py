@@ -1,4 +1,5 @@
 SETTINGS_LIST = [
     "Startup",
-    "User"
+    "User",
+    "Plots"
 ]
