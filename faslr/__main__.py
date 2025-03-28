@@ -146,14 +146,12 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.main_container)
 
-        # if a startup db is indicated, connect to it and populate the project tree with its contents
-        if core.startup_db != "None":
+        # If a startup db is indicated, connect to it and populate the project tree with its contents.
+        if core.startup_db:
             populate_project_tree(
                 db_filename=core.startup_db,
                 main_window=self
             )
-
-        print('asdf')
 
     def remove_tab(
             self,
