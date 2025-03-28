@@ -30,8 +30,10 @@ db = None
 # If a startup db has been indicated, get the path.
 if os.path.isfile(config_path):
     startup_db: str = get_startup_db_path(config_path=config_path)
-    if (startup_db is not None) and (not use_sample):
+    if (startup_db is not None) and (not use_sample) and (startup_db != "None"):
         db = startup_db
+    else:
+        startup_db: None = None
 else:
     startup_db: None = None
 
