@@ -44,4 +44,4 @@ The FASLR user guide covers basic setup and installation, user interface feature
    :maxdepth: 1
    :caption: News
 
-   news/xkcd
+   news/index
