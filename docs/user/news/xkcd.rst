@@ -5,7 +5,7 @@ April 1, 2025
 
 I am pleased to announce that this special release of FASLR introduces `xkcd <https://xkcd.com/>`_ charts to brighten up your day. I know reserving might not be the most exciting part of actuarial science, as illustrated by this graph:
 
-.. image:: ../../_static/xkcd_reserving_rotation.png
+.. image:: https://faslr.com/media/xkcd_reserving_rotation.png
    :align: center
 
 ...which is why I have made it my mission to make reserving more exciting for those students awaiting greener pastures in predictive modeling or economic capital modeling. I'm already getting positive feedback as evidenced by this testimonial, which indicates that we're moving in the right direction:
