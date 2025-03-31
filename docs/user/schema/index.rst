@@ -5,4 +5,6 @@ FASLR stores project metadata and data in a relational database. SQLite is the c
 
 Should the project become more serious, the plan is to adapt FASLR to more serious databases.
 
+More detailed information can be found on the `SchemaSpy <https://faslr.com/db/>`_ page.
+
 .. image:: https://faslr.com/media/schema.png
