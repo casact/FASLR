@@ -35,7 +35,7 @@ Yeah. I hear you. Well the good news is that introducing `xkcd-style charts <htt
 |br|
 ...and this!
 
-.. image:: https://faslr.com/media/Tail_Analysis_013.png
+.. image:: https://faslr.com/media/Tail_Analysis_020.png
    :align: center
    :width: 600
 
