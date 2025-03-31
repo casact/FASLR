@@ -54,7 +54,7 @@ To go back, click on the "Regu-, nah you're not gonna do that.
 Enjoy!
 
 .. epigraph::
-   If you are new to FASLR, it stands for "Free Actuarial System for Loss Reserving." The source code can be found on the `CAS GitHub <https://github.com/casact/FASLR>`_. For those interested in seeing what FASLR can do, check out the :doc:`gallery <../../gallery/index>`. If you would like to contribute, check out the :doc:`Contributing Guide <../../contributing/index>`. Otherwise, visit the `Development Blog <https://genedan.com>`_ for further updates. test
+   If you are new to FASLR, it stands for "Free Actuarial System for Loss Reserving." The source code can be found on the `CAS GitHub <https://github.com/casact/FASLR>`_. For those interested in seeing what FASLR can do, check out the :doc:`gallery <../../gallery/index>`. If you would like to contribute, check out the :doc:`Contributing Guide <../../contributing/index>`. Otherwise, visit the `Development Blog <https://genedan.com>`_ for further updates.
 
 .. |br| raw:: html
 
