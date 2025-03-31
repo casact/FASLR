@@ -23,21 +23,24 @@ Yeah. I hear you. Well the good news is that introducing `xkcd-style charts <htt
 
 .. image:: https://faslr.com/media/Tail_Analysis_018.png
    :align: center
-   :width: 600
+   :width: 679
+   :target: https://faslr.com/media/Tail_Analysis_018.png
 
 |br|
 ...into this!
 
 .. image:: https://faslr.com/media/Tail_Analysis_017.png
    :align: center
-   :width: 600
+   :width: 679
+   :target: https://faslr.com/media/Tail_Analysis_017.png
 
 |br|
 ...and this!
 
 .. image:: https://faslr.com/media/Tail_Analysis_020.png
    :align: center
-   :width: 600
+   :width: 679
+   :target: https://faslr.com/media/Tail_Analysis_020.png
 
 
 |br|
