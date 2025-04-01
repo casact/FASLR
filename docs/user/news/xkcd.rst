@@ -44,7 +44,7 @@ Yeah. I hear you. Well the good news is that introducing `xkcd-style charts <htt
 
 
 |br|
-To turn on xkcd charts, go to the settings menu, navigate the plots, and select the xkcd option:
+To turn on xkcd charts, go to the settings menu, navigate to plots, and select the xkcd option:
 
 .. image:: https://faslr.com/media/Settings_002.png
    :width: 500
