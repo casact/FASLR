@@ -8,3 +8,6 @@ Section to cover reserving methods.
 
    development/index
    tail/index
+   expected_loss
+   bf
+   cape_cod
