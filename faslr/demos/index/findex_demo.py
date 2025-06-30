@@ -4,11 +4,51 @@ Demo of the FIndex class. Initializes an FIndex object from the first index in t
 from faslr.demos.sample_db import set_sample_db
 
 from faslr.index import FIndex
+from faslr.tests.test_menu import test_display_about
 
 set_sample_db()
 
-test_index = FIndex(from_id=1)
+ult_claims = [
+    15901,
+    25123,
+    37435,
+    39543,
+    48953,
+    47404,
+    77662,
+    78497,
+    65239,
+    62960,
+    61262
+]
 
-print(test_index.df)
+earned_premium = [
+    20000,
+    31500,
+    45000,
+    50000,
+    61183,
+    69175,
+    99322,
+    138151,
+    107578,
+    62438,
+    47797
+]
 
-test_index.meta_dict
+prem_trend = FIndex(from_id=1)
+loss_trend = FIndex(from_id=2)
+tort_reform = FIndex(from_id=3)
+
+comp_loss_trend = loss_trend.compose(findexes=[tort_reform])
+
+trended_loss_matrix = comp_loss_trend.apply_matrix(values=ult_claims)
+
+on_level_premium_matrix = prem_trend.apply_matrix(values=earned_premium)
+
+adj_loss_ratios = trended_loss_matrix.div(on_level_premium_matrix)
+
+
+comp_loss_trend.apply_matrix(values=ult_claims)
+
+# 40145.37624 / 55921.262 = 0.7178910991
