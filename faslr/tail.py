@@ -27,6 +27,10 @@ from faslr.constants import (
     ICONS_PATH
 )
 
+from faslr.style.plot.xkcd import (
+    draw_stick_figure
+)
+
 from functools import partial
 
 from matplotlib.backends.backend_qt5agg import (
@@ -153,7 +157,7 @@ class TailPane(QWidget):
 
         canvas_layout.addWidget(self.sc)
 
-        # The goal for setting these margins is to align the chart position with the group boxes on the left
+        # The goal for setting these margins is to align the chart position with the group boxes on the left.
         canvas_layout.setContentsMargins(
             11,
             26,
@@ -181,6 +185,9 @@ class TailPane(QWidget):
         self.update_plot()
 
     def update_plot(self) -> None:
+        """
+        Reactive method that updates the plot when users change tail settings, or add tails, etc.
+        """
 
         with plt.xkcd() if self.xkcd else nullcontext():
 
@@ -188,18 +195,18 @@ class TailPane(QWidget):
             tcs = []
             tcds = []
 
-            # fit tail
+            # Draw a graph for each tail.
             for config in self.tail_candidates:
 
-                gb_tail_type = config.gb_tail_type
-                tail_params = config.gb_tail_params
+                gb_tail_type: TailTypeGroupBox = config.gb_tail_type
+                tail_params: TailParamsGroupBox = config.gb_tail_params
 
                 if gb_tail_type.constant_btn.isChecked():
 
-                    tail_constant = tail_params.constant_config.sb_tail_constant.spin_box.value()
-                    decay = tail_params.constant_config.sb_decay.spin_box.value()
-                    attach = tail_params.constant_config.sb_attach.spin_box.value()
-                    projection = tail_params.constant_config.sb_projection.spin_box.value()
+                    tail_constant: float = tail_params.constant_config.sb_tail_constant.spin_box.value()
+                    decay: float = tail_params.constant_config.sb_decay.spin_box.value()
+                    attach: int = tail_params.constant_config.sb_attach.spin_box.value()
+                    projection: int = tail_params.constant_config.sb_projection.spin_box.value()
 
                     tc = cl.TailConstant(
                         tail=tail_constant,
@@ -210,15 +217,15 @@ class TailPane(QWidget):
 
                 elif gb_tail_type.curve_btn.isChecked():
 
-                    curve_config = tail_params.curve_config
+                    curve_config: CurveConfig = tail_params.curve_config
 
-                    curve = curve_alias[curve_config.curve_type.combo_box.currentText()]
-                    fit_from = curve_config.fit_from.spin_box.value()
-                    fit_to = curve_config.fit_to.spin_box.value()
-                    extrap_periods = curve_config.extrap_periods.spin_box.value()
-                    errors = fit_errors[curve_config.bg_errors.checkedButton().text()]
-                    attachment_age = curve_config.attachment_age.spin_box.value()
-                    projection_period = curve_config.projection.spin_box.value()
+                    curve: str = curve_alias[curve_config.curve_type.combo_box.currentText()]
+                    fit_from: int = curve_config.fit_from.spin_box.value()
+                    fit_to: int = curve_config.fit_to.spin_box.value()
+                    extrap_periods: int = curve_config.extrap_periods.spin_box.value()
+                    errors: str = fit_errors[curve_config.bg_errors.checkedButton().text()]
+                    attachment_age: int = curve_config.attachment_age.spin_box.value()
+                    projection_period: int = curve_config.projection.spin_box.value()
 
                     tc = cl.TailCurve(
                         curve=curve,
@@ -250,10 +257,10 @@ class TailPane(QWidget):
 
                 elif gb_tail_type.bondy_btn.isChecked():
 
-                    bondy = tail_params.bondy_config
-                    earliest_age = bondy.earliest_age.spin_box.value()
-                    attachment_age = bondy.attachment_age.spin_box.value()
-                    projection_period = bondy.projection.spin_box.value()
+                    bondy: BondyConfig = tail_params.bondy_config
+                    earliest_age: int = bondy.earliest_age.spin_box.value()
+                    attachment_age: int = bondy.attachment_age.spin_box.value()
+                    projection_period: int = bondy.projection.spin_box.value()
 
                     tc = cl.TailBondy(
                         earliest_age=earliest_age,
@@ -263,12 +270,12 @@ class TailPane(QWidget):
 
                 elif gb_tail_type.clark_btn.isChecked():
 
-                    clark = tail_params.clark_config
+                    clark: ClarkConfig = tail_params.clark_config
 
-                    growth = clark_alias[clark.growth.combo_box.currentText()]
-                    truncation_age = clark.truncation_age.spin_box.value()
-                    attachment_age = clark.attachment_age.spin_box.value()
-                    projection_period = clark.projection.spin_box.value()
+                    growth: str = clark_alias[clark.growth.combo_box.currentText()]
+                    truncation_age: int = clark.truncation_age.spin_box.value()
+                    attachment_age: int = clark.attachment_age.spin_box.value()
+                    projection_period: int = clark.projection.spin_box.value()
 
                     tc = cl.TailClark(
                         growth=growth,
@@ -883,11 +890,11 @@ class TailTypeGroupBox(QGroupBox):
     ):
         super().__init__(title)
 
-        self.parent = parent
+        self.parent: TailConfig = parent
 
         self.layout = QHBoxLayout()
 
-        # Buttons to select the candidate tail type
+        # Buttons to select the candidate tail type.
         self.bg_tail_type = QButtonGroup()
         self.constant_btn = QRadioButton('Constant')
         self.curve_btn = QRadioButton('Curve')
@@ -907,7 +914,7 @@ class TailTypeGroupBox(QGroupBox):
 
         self.setLayout(self.layout)
 
-        # Default selection is tail constant
+        # Default selection is tail constant.
         self.constant_btn.setChecked(True)
 
         self.bg_tail_type.buttonToggled.connect(self.parent.parent.update_plot) # noqa
