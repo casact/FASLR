@@ -10,6 +10,8 @@ from faslr.base_table import (
     FTableView
 )
 
+from faslr.common import make_corner_button
+
 from faslr.common.table import (
     make_corner_button
 )
@@ -41,6 +43,7 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtWidgets import (
     QComboBox,
+    QLabel,
     QTabWidget,
     QWidget,
     QVBoxLayout
@@ -171,8 +174,11 @@ class ExpectedLossModel(FAbstractTableModel):
 
 
 class ExpectedLossView(GridTableView):
-    def __int__(self):
-        super().__init__()
+    def __init__(self):
+        super().__init__(corner_label="Accident\nYear")
+
+        self.verticalHeader().setFixedWidth(self.corner_button.findChild(QLabel).width())
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
     # def insert_column(self):
 
@@ -192,7 +198,7 @@ class ExpectedLossWidget(FModelWidget):
 
         self.indexation = FModelIndex(
             parent=self,
-            origin=fetch_origin(triangles[0])
+            # origin=fetch_origin(triangles[0])
         )
 
         self.selection_tab = QWidget()
@@ -211,29 +217,29 @@ class ExpectedLossWidget(FModelWidget):
         self.selection_view.hheader.setSpan(
             row=0,
             column=0,
+            row_span_count=0,
+            column_span_count=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=2,
+            row_span_count=0,
+            column_span_count=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=4,
+            row_span_count=0,
+            column_span_count=2
+        )
+
+        self.selection_view.hheader.setSpan(
+            row=0,
+            column=6,
             row_span_count=2,
-            column_span_count=1
-        )
-
-        self.selection_view.hheader.setSpan(
-            row=0,
-            column=1,
-            row_span_count=0,
-            column_span_count=2
-        )
-
-        self.selection_view.hheader.setSpan(
-            row=0,
-            column=3,
-            row_span_count=0,
-            column_span_count=2
-        )
-
-        self.selection_view.hheader.setSpan(
-            row=0,
-            column=5,
-            row_span_count=0,
-            column_span_count=2
+            column_span_count=0
         )
 
         self.selection_view.hheader.setSpan(
@@ -260,72 +266,66 @@ class ExpectedLossWidget(FModelWidget):
         self.selection_view.hheader.setCellLabel(
             row=0,
             column=0,
-            label="Accident\nYear"
-        )
-
-        self.selection_view.hheader.setCellLabel(
-            row=0,
-            column=1,
             label="Claims at 12/31/08\n"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=1,
-            column=1,
+            column=0,
             label="Reported"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=1,
-            column=2,
+            column=1,
             label="Paid"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=0,
-            column=3,
+            column=2,
             label="CDF to Ultimate"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=1,
-            column=3,
+            column=2,
             label="Reported"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=1,
-            column=4,
+            column=3,
             label="Paid"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=0,
-            column=5,
+            column=4,
             label="Projected Ultimate Claims"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=1,
-            column=5,
+            column=4,
             label="Reported"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=1,
-            column=6,
+            column=5,
             label="Paid"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=0,
-            column=7,
+            column=6,
             label="Initial Selected\nUltimate Claims"
         )
 
         self.selection_view.hheader.setCellLabel(
             row=0,
-            column=8,
+            column=7,
             label="On-Level\nEarned Premium"
         )
 
