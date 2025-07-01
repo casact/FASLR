@@ -15,12 +15,13 @@ from PyQt6.QtWidgets import (
 
 
 def make_corner_button(
-        parent: FTableView
+        parent: FTableView,
+        label: str = 'AY'
 ) -> QAbstractButton:
 
     btn = parent.findChild(QAbstractButton)
     btn.installEventFilter(parent)
-    btn_label = QLabel("AY")
+    btn_label = QLabel(label)
     btn_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
     btn_layout = QVBoxLayout()
     btn_layout.setContentsMargins(0, 0, 0, 0)
