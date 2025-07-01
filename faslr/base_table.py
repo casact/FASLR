@@ -3,12 +3,9 @@ import io
 
 import pandas as pd
 
-from faslr.grid_header import GridTableHeaderView
-
 from PyQt6.QtCore import (
     QAbstractTableModel,
-    QEvent,
-    Qt
+    QEvent
 )
 
 from PyQt6.QtWidgets import (
@@ -52,32 +49,6 @@ class FTableView(QTableView):
 
         self.hheader = None
         self.vheader = None
-
-    def setGridHeaderView( # noqa
-            self,
-            orientation: Qt.Orientation,
-            levels: int
-    ): # noqa
-
-        if orientation == Qt.Orientation.Horizontal:
-
-            header = GridTableHeaderView(
-                orientation=orientation,
-                rows=levels,
-                columns=self.model().columnCount(),
-                parent=self
-            )
-            self.setHorizontalHeader(header)
-            self.hheader = header
-        else:
-            header = GridTableHeaderView(
-                orientation=orientation,
-                rows=self.model().rowCount(),
-                columns=levels,
-                parent=self
-            )
-            self.setVerticalHeader(header)
-            self.vheader = header
 
     def eventFilter(self, obj, event):
         if event.type() != QEvent.Type.Paint or not isinstance(
