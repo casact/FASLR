@@ -7,6 +7,9 @@ Class and method names will be in CamelCase to be consistent with those in PyQt.
 """
 from __future__ import annotations
 
+from faslr.base_table import FTableView
+from faslr.common.table import make_corner_button
+
 from faslr.constants import (
     ColumnSpanRole,
     RemoveCellLabelRole,
@@ -687,9 +690,10 @@ class GridTableHeaderView(QHeaderView):
 
 
 
-class GridTableView(QTableView):
+class GridTableView(FTableView):
     def __init__(
             self,
+            corner_label: str = None
     ):
         super().__init__()
 
@@ -697,6 +701,10 @@ class GridTableView(QTableView):
         self.vheader = None
 
         self.setCornerButtonEnabled(True)
+
+        if corner_label:
+            self.installEventFilter(self)
+            self.corner_button = make_corner_button(self, label=corner_label)
 
         self.setStyleSheet(
             """

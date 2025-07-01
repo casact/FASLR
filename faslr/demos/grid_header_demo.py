@@ -28,7 +28,7 @@ main_widget.setLayout(layout)
 # Generate dummy data
 
 model = QStandardItemModel()
-view = GridTableView()
+view = GridTableView(corner_label="Accident\nYear")
 view.setModel(model)
 
 for row in range(9):
@@ -90,7 +90,7 @@ view.hheader.setCellLabel(1, 4, "cell6")
 view.hheader.setCellLabel(0, 5, "cell7")
 
 main_widget.resize(view.hheader.sizeHint().width(), 315)
-# main_widget.resize(937, 315)
+main_widget.resize(937, 315)
 main_widget.show()
 
 
