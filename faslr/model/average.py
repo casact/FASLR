@@ -70,6 +70,7 @@ class FAverageBox(QDialog):
         self.setLayout(self.layout)
         self.set_dimensions()
 
+        self.button_box.clicked.connect(self.add_average) # noqa
         self.button_box.rejected.connect(self.cancel) # noqa
 
     def set_dimensions(self):
@@ -87,6 +88,15 @@ class FAverageBox(QDialog):
                  self.layout.getContentsMargins()[0] * 5
 
         self.resize(width, height)
+
+    def add_average(self, btn):
+
+        if btn.text() == "&OK":
+            return
+        else:
+            pass
+            # add_average_dialog =
+            # add_average_dialog.exec()
 
 
     def cancel(self) -> None:
