@@ -94,9 +94,8 @@ class FAverageBox(QDialog):
         if btn.text() == "&OK":
             return
         else:
-            pass
-            # add_average_dialog =
-            # add_average_dialog.exec()
+            add_average_dialog = FAverageBox(parent=self)
+            add_average_dialog.exec()
 
 
     def cancel(self) -> None:
@@ -219,4 +218,20 @@ class FAverageView(QTableView):
         super().__init__()
 
         self.verticalHeader().hide()
+
+class FAddAverageDialog(QDialog):
+    """
+    Base class for dialog that pops up to allow the user to enter aa custom average type. Contents will
+    differ by subclass (i.e., whether adding LDFs specific to a certain method or selecting average loss ratios).
+    """
+
+    def __init__(self, parent: FAverageBox = None):
+        super().__init__()
+        self.parent = parent
+
+        self.button_box = QDialogButtonBox()
+
+        self.button_box.addButton(
+            QDialogButtonBox.StandardButton.Ok
+        )
 
