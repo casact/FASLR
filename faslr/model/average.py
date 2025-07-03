@@ -4,16 +4,27 @@ want to add an LDF Average to a model (such as 3 yr. weighted average).
 """
 from __future__ import annotations
 
+import pandas as pd
+
+from faslr.constants import (
+    AddAverageRole,
+    BASE_MODEL_AVERAGES
+)
+
 from PyQt6.QtCore import (
     QAbstractTableModel,
+    QModelIndex,
     Qt
 )
 
 from PyQt6.QtWidgets import (
+    QComboBox,
     QDialog,
     QDialogButtonBox,
-    QProxyStyle,
+    QFormLayout,
+    QLineEdit,
     QPushButton,
+    QSpinBox,
     QTableView,
     QVBoxLayout
 )
@@ -57,11 +68,14 @@ class FAverageBox(QDialog):
             QDialogButtonBox.ButtonRole.ActionRole
         )
 
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
         self.button_box.addButton(
-            QDialogButtonBox.StandardButton.Cancel
+            self.cancel_button
         )
         self.button_box.addButton(
-            QDialogButtonBox.StandardButton.Ok
+            self.ok_button
         )
 
         self.layout.addWidget(self.view)
@@ -70,8 +84,7 @@ class FAverageBox(QDialog):
         self.setLayout(self.layout)
         self.set_dimensions()
 
-        self.button_box.clicked.connect(self.add_average) # noqa
-        self.button_box.rejected.connect(self.cancel) # noqa
+        self.button_box.clicked.connect(self.handle_button_box) # noqa
 
     def set_dimensions(self):
         """
@@ -89,13 +102,15 @@ class FAverageBox(QDialog):
 
         self.resize(width, height)
 
-    def add_average(self, btn):
+    def handle_button_box(self, btn):
 
-        if btn.text() == "&OK":
+        if btn == self.ok_button:
             return
-        else:
-            add_average_dialog = FAverageBox(parent=self)
+        elif btn == self.add_average_button:
+            add_average_dialog = FAddAverageDialog(parent=self)
             add_average_dialog.exec()
+        else:
+            self.cancel()
 
 
     def cancel(self) -> None:
@@ -206,12 +221,23 @@ class FAverageModel(QAbstractTableModel):
             self.dataChanged.emit(index, index) # noqa
             return True
 
+        elif role == AddAverageRole:
+
+            df = pd.DataFrame(
+                data=[[None, value['label'], value['avg_type'], str(value['years'])]],
+                columns=self._data.columns
+            )
+
+            self._data = pd.concat([self._data, df])
+            self.dataChanged.emit(index, index)
+            self.layoutChanged.emit()
+            return True
+
         if value is not None and role == Qt.ItemDataRole.EditRole:
             self._data.iloc[index.row(), index.column()] = value
             self.dataChanged.emit(index, index) # noqa
             return True
         return False
-
 
 class FAverageView(QTableView):
     def __init__(self):
@@ -225,13 +251,63 @@ class FAddAverageDialog(QDialog):
     differ by subclass (i.e., whether adding LDFs specific to a certain method or selecting average loss ratios).
     """
 
-    def __init__(self, parent: FAverageBox = None):
+    def __init__(
+            self,
+            parent: FAverageBox = None,
+            window_title: str = "Add Average",
+            average_types: dict = BASE_MODEL_AVERAGES
+    ):
         super().__init__()
         self.parent = parent
 
-        self.button_box = QDialogButtonBox()
+        self.setWindowTitle(window_title)
 
-        self.button_box.addButton(
-            QDialogButtonBox.StandardButton.Ok
+        self.layout = QFormLayout()
+
+        # ComboBox to hold the average type choices.
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(average_types.keys())
+
+        # SpinBox holds the number of latest years to average across.
+        self.year_spin = QSpinBox()
+        self.year_spin.setMinimum(1)
+        self.year_spin.setValue(1)
+        self.avg_label = QLineEdit()
+
+        self.ok_button = QDialogButtonBox.StandardButton.Ok
+        self.cancel_button = QDialogButtonBox.StandardButton.Cancel
+
+        self.button_box = QDialogButtonBox(
+            self.ok_button | self.cancel_button
         )
 
+        self.layout.addRow("Type: ", self.type_combo)
+        self.layout.addRow("Years: ", self.year_spin)
+        self.layout.addRow("Label: ", self.avg_label)
+        self.layout.addWidget(self.button_box)
+        self.setLayout(self.layout)
+
+        self.button_box.rejected.connect(self.cancel_close) # noqa
+        self.button_box.accepted.connect(self.add_average) # noqa
+
+    def cancel_close(self) -> None:
+        """
+        Closes the dialog box when canceled.
+        """
+        self.close()
+
+    def add_average(self) -> None:
+
+        button_values = {
+            'label': self.avg_label.text(),
+            'avg_type': self.type_combo.currentText(),
+            'years': self.year_spin.value()}
+
+        self.parent.model.setData(
+            role=AddAverageRole,
+            value=button_values,
+            index=QModelIndex()
+        )
+
+        self.parent.set_dimensions() # noqa
+        self.close()
