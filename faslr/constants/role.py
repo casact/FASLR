@@ -15,3 +15,4 @@ DropColumnRole = AddColumnRole + 1
 ColumnSwapRole = DropColumnRole + 1
 ColumnRotateRole = ColumnSwapRole + 1
 IndexConstantRole = ColumnRotateRole + 1
+AddAverageRole = IndexConstantRole + 1 # for adding averages to available averages

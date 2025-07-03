@@ -45,6 +45,10 @@ from faslr.constants.general import (
     TEMPLATES_PATH
 )
 
+from faslr.constants.model import (
+    BASE_MODEL_AVERAGES
+)
+
 from faslr.constants.role import (
     ColumnSpanRole,
     RowSpanRole,
@@ -57,7 +61,8 @@ from faslr.constants.role import (
     RemoveColumnSpanRole,
     ColumnSwapRole,
     ColumnRotateRole,
-    IndexConstantRole
+    IndexConstantRole,
+    AddAverageRole
 )
 
 from faslr.constants.triangle import (
