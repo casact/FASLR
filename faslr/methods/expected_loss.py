@@ -12,19 +12,30 @@ from faslr.base_table import (
 
 from faslr.common import make_corner_button
 
+from faslr.common.model import (
+    FModelView,
+    FModelWidget,
+    FSelectionModel
+)
+
 from faslr.common.table import (
     make_corner_button
 )
 
 from faslr.grid_header import GridTableView
 
+# from faslr.model import (
+#     FModelWidget,
+#     FModelIndex
+# )
+
 from faslr.model import (
-    FModelWidget,
     FModelIndex
 )
 
 from faslr.style.triangle import (
     RATIO_STYLE,
+    PERCENT_STYLE,
     VALUE_STYLE
 )
 
@@ -455,7 +466,7 @@ class ExpectedLossMatrixWidget(QWidget):
         )
 
 
-class ExpectedLossRatioWidget(QWidget):
+class ExpectedLossRatioWidget(FModelWidget):
     def __init__(
             self,
             claims: list,
@@ -463,8 +474,7 @@ class ExpectedLossRatioWidget(QWidget):
             claim_indexes: list[FIndex],
             premium_indexes: list
     ):
-        super().__init__()
-
+        # super().__init__()
         # Create composite indexes
         if len(claim_indexes) > 1:
             comp_loss_trend = claim_indexes[0].compose(claim_indexes[1:])
@@ -481,54 +491,38 @@ class ExpectedLossRatioWidget(QWidget):
 
         adj_loss_ratios = trended_loss_matrix.div(on_level_premium_matrix)
 
-        self.layout = QVBoxLayout()
-        self.loss_ratio_view = ExpectedLossRatioView()
-        self.loss_ratio_model = ExpectedLossRatioModel(loss_raios=adj_loss_ratios)
-        self.loss_ratio_view.setModel(self.loss_ratio_model)
+        self.selection_model = ExpectedLossRatioModel(loss_ratios=adj_loss_ratios)
+        self.selection_model_view = FModelView()
 
-        self.layout.addWidget(self.loss_ratio_view)
+        super().__init__(data=adj_loss_ratios)
 
-        self.setLayout(self.layout)
+        self.layout.addWidget(self.selection_model_view)
 
+        # self.layout = QVBoxLayout()
+        # self.loss_ratio_view = FModelView()
+        # self.loss_ratio_model = ExpectedLossRatioModel(loss_ratios=adj_loss_ratios)
+        # self.loss_ratio_view.setModel(self.loss_ratio_model)
+        #
+        # self.layout.addWidget(self.loss_ratio_view)
+        #
+        # self.setLayout(self.layout)
 
-class ExpectedLossRatioView(FTableView):
-    def __init__(self):
-        super().__init__()
-
-        self.corner_btn = make_corner_button(parent=self)
-
-class ExpectedLossRatioModel(FAbstractTableModel):
+class ExpectedLossRatioModel(FSelectionModel):
     def __init__(
             self,
-            loss_raios: DataFrame
+            loss_ratios: DataFrame
     ):
-        super().__init__()
+        super().__init__(data=loss_ratios)
 
-        self._data = loss_raios
+        self._data = loss_ratios
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
 
         if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
-            col = self._data.columns[index.column()]
 
             if np.isnan(value):
                 return ""
             else:
-                return RATIO_STYLE.format(value)
-
-    def headerData(
-            self,
-            p_int: int,
-            qt_orientation: Qt.Orientation,
-            role: int = None
-    ) -> typing.Any:
-
-        # section is the index of the column/row.
-        if role == Qt.ItemDataRole.DisplayRole:
-            if qt_orientation == Qt.Orientation.Horizontal:
-                return str(self._data.columns[p_int])
-
-            if qt_orientation == Qt.Orientation.Vertical:
-                return str(self._data.index[p_int])
+                return PERCENT_STYLE.format(value)
