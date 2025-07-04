@@ -14,7 +14,7 @@ from faslr.common import make_corner_button
 
 from faslr.common.model import (
     FModelView,
-    FModelWidget,
+    FSelectionModelWidget,
     FSelectionModel
 )
 
@@ -24,12 +24,8 @@ from faslr.common.table import (
 
 from faslr.grid_header import GridTableView
 
-# from faslr.model import (
-#     FModelWidget,
-#     FModelIndex
-# )
-
 from faslr.model import (
+    FModelWidget,
     FModelIndex
 )
 
@@ -466,13 +462,14 @@ class ExpectedLossMatrixWidget(QWidget):
         )
 
 
-class ExpectedLossRatioWidget(FModelWidget):
+class ExpectedLossRatioWidget(FSelectionModelWidget):
     def __init__(
             self,
             claims: list,
             premium: list,
             claim_indexes: list[FIndex],
-            premium_indexes: list
+            premium_indexes: list,
+            averages
     ):
         # super().__init__()
         # Create composite indexes
@@ -491,10 +488,10 @@ class ExpectedLossRatioWidget(FModelWidget):
 
         adj_loss_ratios = trended_loss_matrix.div(on_level_premium_matrix)
 
-        self.selection_model = ExpectedLossRatioModel(loss_ratios=adj_loss_ratios)
-        self.selection_model_view = FModelView()
+        self.selection_model = ExpectedLossRatioModel(loss_ratios=adj_loss_ratios, averages=averages)
+        self.selection_model_view = FModelView(parent=self)
 
-        super().__init__(data=adj_loss_ratios)
+        super().__init__(data=adj_loss_ratios, averages=averages)
 
         self.layout.addWidget(self.selection_model_view)
 
@@ -510,11 +507,13 @@ class ExpectedLossRatioWidget(FModelWidget):
 class ExpectedLossRatioModel(FSelectionModel):
     def __init__(
             self,
-            loss_ratios: DataFrame
+            loss_ratios: DataFrame,
+            averages
     ):
-        super().__init__(data=loss_ratios)
+        super().__init__(data=loss_ratios, averages=averages)
 
         self._data = loss_ratios
+        self.setData(index=QModelIndex(), value=None)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
 

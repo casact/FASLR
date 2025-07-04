@@ -5,7 +5,7 @@ import pandas as pd
 import sys
 
 from faslr.demos.sample_db import set_sample_db
-from faslr.common.model import FModelWidget
+from faslr.common.model import FSelectionModelWidget
 
 from PyQt6.QtWidgets import (
     QApplication
@@ -25,9 +25,19 @@ data = {
 df = pd.DataFrame(data=data)
 df = df.set_index('Accident Year')
 
+averages = pd.DataFrame(
+    data=[
+        [True, "All-year Straight", "Straight", "6"],
+        [False, "All Years Excl. High/Low", "Medial", '6'],
+        [False, "3-year Straight", "Straight",  "3"],
+        [False, "5-year Straight", "Straight", "5"],
+    ],
+    columns=["Selected", "Label", "Type", "Number of Years"]
+)
+
 app = QApplication(sys.argv)
 
-model = FModelWidget(window_title='Base Model', data=df)
+model = FSelectionModelWidget(window_title='Base Model', data=df, averages=averages)
 
 model.show()
 
