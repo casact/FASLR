@@ -33,11 +33,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pandas import DataFrame
+    from faslr.common.model import FSelectionModelWidget
 
 class FAverageBox(QDialog):
     def __init__(
             self,
-            parent=None,
+            parent: FSelectionModelWidget = None,
             title: str = None,
             data: DataFrame = None
     ):
@@ -84,6 +85,7 @@ class FAverageBox(QDialog):
         self.setLayout(self.layout)
         self.set_dimensions()
 
+        self.button_box.accepted.connect(self.accept_changes)
         self.button_box.clicked.connect(self.handle_button_box) # noqa
 
     def set_dimensions(self):
@@ -112,6 +114,15 @@ class FAverageBox(QDialog):
         else:
             self.cancel()
 
+    def accept_changes(self) -> None:
+
+        if self.parent is None:
+            return
+
+        index = QModelIndex()
+        self.parent.selection_model.setData(index=index, value=None)
+
+        self.close()
 
     def cancel(self) -> None:
         """
@@ -247,7 +258,7 @@ class FAverageView(QTableView):
 
 class FAddAverageDialog(QDialog):
     """
-    Base class for dialog that pops up to allow the user to enter aa custom average type. Contents will
+    Base class for dialog that pops up to allow the user to enter a custom average type. Contents will
     differ by subclass (i.e., whether adding LDFs specific to a certain method or selecting average loss ratios).
     """
 
