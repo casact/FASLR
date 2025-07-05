@@ -364,43 +364,49 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
             premium_indexes: list[FIndex] | None = None,
     ):
 
-        # Create composite indexes
-        if claim_indexes is None:
-            comp_loss_trend = FIndex(origin=origin, changes=[0 for x in range(0, len(origin))])
-        elif len(claim_indexes) > 1:
-            comp_loss_trend = claim_indexes[0].compose(claim_indexes[1:])
-        else:
-            comp_loss_trend = claim_indexes[0]
-
-        if premium_indexes is None:
-            comp_prem_trend = FIndex(origin=origin, changes=[0 for x in range(0, len(origin))])
-        elif len(premium_indexes) > 1:
-            comp_prem_trend = premium_indexes[0].compose(premium_indexes[1:])
-        else:
-            comp_prem_trend = premium_indexes[0]
-
-        trended_loss_matrix = comp_loss_trend.apply_matrix(values=claims)
-        on_level_premium_matrix = comp_prem_trend.apply_matrix(values=premium)
-
-        adj_loss_ratios = trended_loss_matrix.div(on_level_premium_matrix)
-
-        self.selection_model = ExpectedLossRatioModel(loss_ratios=adj_loss_ratios, averages=averages)
+        self.selection_model = ExpectedLossRatioModel(
+            origin=origin,
+            claims=claims,
+            premium=premium,
+            averages=averages,
+            claim_indexes=claim_indexes,
+            premium_indexes=premium_indexes
+        )
         self.selection_model_view = FModelView(parent=self)
 
-        super().__init__(data=adj_loss_ratios, averages=averages)
+        super().__init__(data=self.selection_model.df_ratio, averages=averages)
 
         self.layout.addWidget(self.selection_model_view)
-
 
 class ExpectedLossRatioModel(FSelectionModel):
     def __init__(
             self,
-            loss_ratios: DataFrame,
-            averages
+            origin: list,
+            claims: list,
+            premium: list,
+            averages,
+            claim_indexes: list[FIndex] | None = None,
+            premium_indexes: list[FIndex] | None = None,
     ):
-        super().__init__(data=loss_ratios, averages=averages)
 
-        self._data = loss_ratios
+        self.origin = origin
+        self.claims = claims
+        self.premium = premium
+        # Create composite indexes
+        self.comp_loss_trend = self.compose_trend(origin=origin, indexes=claim_indexes)
+
+        self.comp_prem_trend = self.compose_trend(origin=origin, indexes=premium_indexes)
+
+        adj_loss_ratios = self.calculate_loss_ratios(
+            claims=claims,
+            premium=premium,
+            loss_trend=self.comp_loss_trend,
+            prem_trend=self.comp_prem_trend
+        )
+
+        super().__init__(data=adj_loss_ratios, averages=averages)
+
+        self._data = adj_loss_ratios
         self.setData(index=QModelIndex(), value=None)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
@@ -413,3 +419,51 @@ class ExpectedLossRatioModel(FSelectionModel):
                 return ""
             else:
                 return PERCENT_STYLE.format(value)
+
+    @staticmethod
+    def compose_trend(origin: list, indexes: list) -> FIndex:
+        # No indexes supplied, return default index of just 1 for all factors.
+        if (indexes is None) or len(indexes) == 0:
+            comp_index = FIndex(origin=origin, changes=[0 for x in range(0, len(origin))])
+        # Multiple indexes, compose them together.
+        elif len(indexes) > 1:
+            comp_index = indexes[0].compose(indexes[1:])
+        # Single index, leave as-is.
+        else:
+            comp_index = indexes[0]
+
+        return comp_index
+
+    @staticmethod
+    def calculate_loss_ratios(claims, premium, loss_trend, prem_trend) -> DataFrame:
+
+        trended_loss_matrix: DataFrame = loss_trend.apply_matrix(values=claims)
+        on_level_premium_matrix: DataFrame = prem_trend.apply_matrix(values=premium)
+
+        adj_loss_ratios: DataFrame = trended_loss_matrix.div(on_level_premium_matrix)
+
+        return adj_loss_ratios
+
+    def update_indexes(self, indexes, prem_loss) -> None:
+
+
+        composite_index = self.compose_trend(origin=self.origin, indexes=indexes)
+
+        if prem_loss == 'premium':
+            adj_loss_ratios = self.calculate_loss_ratios(
+                claims=self.claims,
+                premium=self.premium,
+                loss_trend=self.comp_loss_trend,
+                prem_trend=composite_index
+            )
+            self.comp_prem_trend = composite_index
+        else:
+            adj_loss_ratios = self.calculate_loss_ratios(
+                claims=self.claims,
+                premium=self.premium,
+                loss_trend=composite_index,
+                prem_trend=self.comp_prem_trend
+            )
+            self.comp_loss_trend = composite_index
+
+        self.setData(role=Qt.ItemDataRole.EditRole, value=adj_loss_ratios, index=QModelIndex())
