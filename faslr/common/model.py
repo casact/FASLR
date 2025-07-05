@@ -78,6 +78,9 @@ class FSelectionModel(FAbstractTableModel):
 
     def setData(self, index, value, role = ...) -> bool:
 
+        if role == Qt.ItemDataRole.EditRole:
+            self.df_ratio = value
+
         # Calculate the ratio averages.
         average_frame = self.calculate_averages()
 
@@ -197,6 +200,12 @@ class FSelectionModel(FAbstractTableModel):
     def num_average_types(self) -> int:
 
         return self.included_averages.shape[0]
+
+    def update_indexes(self, indexes, prem_loss) -> ...:
+        """
+        Base method used for accepting or discarding indexes in a model. Then it applies it to the relevant data.
+        """
+        ...
 
 class FSelectionModelWidget(QWidget):
     def __init__(

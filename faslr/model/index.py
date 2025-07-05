@@ -7,21 +7,11 @@ from faslr.common import (
 )
 
 from faslr.index import (
-    calculate_index_factors,
-    FIndex,
     IndexInventory,
     IndexMatrixModel,
     IndexMatrixView,
     IndexTableModel,
     IndexTableView
-)
-
-from faslr.utilities import subset_dict
-
-from faslr.utilities.sample import (
-    XYZ_RATE_INDEX,
-    XYZ_TORT_INDEX,
-    XYZ_TREND_INDEX
 )
 
 from PyQt6.QtCore import (
@@ -63,6 +53,8 @@ class FModelIndex(QWidget):
 
         self.parent = parent
 
+        # Layout consists of 2 main sections side-by-side, adding the indexes on the left,
+        # and viewing them on the right.
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
 
@@ -70,6 +62,7 @@ class FModelIndex(QWidget):
 
         self.index_selector = IndexSelector(parent=self)
 
+        # Contains the preview widget to the right of the splitter.
         index_view_container = QWidget()
         index_view_layout = QVBoxLayout()
         index_view_container.setLayout(index_view_layout)
@@ -180,6 +173,7 @@ class IndexListView(QWidget):
         super().__init__()
 
         self.parent: IndexSelector = parent
+        self.parent_model: FModelWidget = self.parent.parent.parent
         self.prem_loss: str = prem_loss
 
         # Stores index data by id
@@ -261,29 +255,32 @@ class IndexListView(QWidget):
 
             # If view belongs to an expected loss model, add a column to the selection model.
 
-            if self.parent.parent.parent:
+            # if self.parent.parent.parent:
+            #
+            #     self.parent.parent.parent.selection_model.setData(
+            #         index=QModelIndex(),
+            #         value=findex.df['Factor'],
+            #         role=Qt.ItemDataRole.EditRole
+            #     )
+            #
+            #     column_position = self.parent.parent.parent.selection_model.columnCount()
+            #
+            #     self.parent.parent.parent.selection_model.insertColumn(column_position+1)
+            #     self.parent.parent.parent.selection_model.layoutChanged.emit()
+            #     self.parent.parent.parent.selection_view.hheader.model().insertColumn(column_position + 1)
+            #
+            #     if self.prem_loss == "premium":
+            #         header_prefix = "Premium Index:\n"
+            #     else:
+            #         header_prefix = "Loss Index:\n"
+            #     self.parent.parent.parent.selection_view.hheader.setCellLabel(
+            #         row=0,
+            #         column=9,
+            #         label=header_prefix + findex.name
+            #     )
 
-                self.parent.parent.parent.selection_model.setData(
-                    index=QModelIndex(),
-                    value=findex.df['Factor'],
-                    role=Qt.ItemDataRole.EditRole
-                )
-
-                column_position = self.parent.parent.parent.selection_model.columnCount()
-
-                self.parent.parent.parent.selection_model.insertColumn(column_position+1)
-                self.parent.parent.parent.selection_model.layoutChanged.emit()
-                self.parent.parent.parent.selection_view.hheader.model().insertColumn(column_position + 1)
-
-                if self.prem_loss == "premium":
-                    header_prefix = "Premium Index:\n"
-                else:
-                    header_prefix = "Loss Index:\n"
-                self.parent.parent.parent.selection_view.hheader.setCellLabel(
-                    row=0,
-                    column=9,
-                    label=header_prefix + findex.name
-                )
+        # Update parent model, if attached.
+        self.update_parent_model()
 
     def remove_premium_index(self) -> None:
 
@@ -308,6 +305,20 @@ class IndexListView(QWidget):
             # Disable index removal button.
             self.add_remove_btns.remove_btn.setEnabled(False)
 
+        # Update parent model, if attached.
+        self.update_parent_model()
+
+    def update_parent_model(self):
+        """
+        If accompanied by a loss model, update the loss model.
+        """
+        if hasattr(self.parent_model, 'selection_tab'):
+            indexes = [self.model.item(x).findex for x in range(self.model.rowCount())]  # noqa
+
+            self.parent_model.selection_tab.selection_model.update_indexes(
+                indexes=indexes,
+                prem_loss=self.prem_loss
+            )
 
 class IndexListModel(QStandardItemModel):
     def __init__(self):
