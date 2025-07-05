@@ -6,11 +6,8 @@ import numpy as np
 import pandas as pd
 
 from faslr.base_table import (
-    FAbstractTableModel,
-    FTableView
+    FAbstractTableModel
 )
-
-from faslr.common import make_corner_button
 
 from faslr.common.model import (
     FModelView,
@@ -18,11 +15,9 @@ from faslr.common.model import (
     FSelectionModel
 )
 
-from faslr.common.table import (
-    make_corner_button
-)
-
 from faslr.grid_header import GridTableView
+
+from faslr.index import FIndex
 
 from faslr.model import (
     FModelWidget,
@@ -49,7 +44,6 @@ from PyQt6.QtCore import (
 )
 
 from PyQt6.QtWidgets import (
-    QComboBox,
     QLabel,
     QTabWidget,
     QWidget,
@@ -64,7 +58,6 @@ from typing import (
 
 if TYPE_CHECKING:
     from chainladder import Chainladder
-    from faslr.index import FIndex
     from pandas import DataFrame
 
 
@@ -193,7 +186,9 @@ class ExpectedLossView(GridTableView):
 class ExpectedLossWidget(FModelWidget):
     def __init__(
             self,
-            triangles: List[Chainladder]
+            triangles: List[Chainladder],
+            premium,
+            averages
     ):
         super().__init__()
 
@@ -208,277 +203,178 @@ class ExpectedLossWidget(FModelWidget):
             # origin=fetch_origin(triangles[0])
         )
 
-        self.selection_tab = QWidget()
+        self.apriori_tab = QWidget()
+
 
         self.main_tabs.addTab(self.indexation, "Indexation")
-        self.main_tabs.addTab(self.selection_tab, "Apriori Selection")
+        self.main_tabs.addTab(self.apriori_tab, "Apriori Selection")
 
-        self.selection_view = ExpectedLossView()
-        self.selection_model = ExpectedLossModel(triangles=triangles)
-        self.selection_view.setModel(self.selection_model)
-        self.selection_view.setGridHeaderView(
+        self.apriori_view = ExpectedLossView()
+        self.apriori_model = ExpectedLossModel(triangles=triangles)
+        self.apriori_view.setModel(self.apriori_model)
+
+        self.selection_tab = ExpectedLossRatioWidget(
+            origin=list(triangles[0].X_.origin.year),
+            claims=self.apriori_model._data['Initial Selected'],
+            premium=premium,
+            averages=averages
+        )
+
+        self.main_tabs.addTab(self.selection_tab, 'Ratio Selection')
+
+
+
+        self.apriori_view.setGridHeaderView(
             orientation=Qt.Orientation.Horizontal,
             levels=2
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=0,
             row_span_count=0,
             column_span_count=2
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=2,
             row_span_count=0,
             column_span_count=2
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=4,
             row_span_count=0,
             column_span_count=2
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=6,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=7,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=8,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.selection_view.hheader.setSpan(
+        self.apriori_view.hheader.setSpan(
             row=0,
             column=9,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=0,
             column=0,
             label="Claims at 12/31/08\n"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=1,
             column=0,
             label="Reported"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=1,
             column=1,
             label="Paid"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=0,
             column=2,
             label="CDF to Ultimate"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=1,
             column=2,
             label="Reported"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=1,
             column=3,
             label="Paid"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=0,
             column=4,
             label="Projected Ultimate Claims"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=1,
             column=4,
             label="Reported"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=1,
             column=5,
             label="Paid"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=0,
             column=6,
             label="Initial Selected\nUltimate Claims"
         )
 
-        self.selection_view.hheader.setCellLabel(
+        self.apriori_view.hheader.setCellLabel(
             row=0,
             column=7,
             label="On-Level\nEarned Premium"
         )
 
-        ly_selection_tab = QVBoxLayout()
-        ly_selection_tab.addWidget(self.selection_view)
-        self.selection_tab.setLayout(ly_selection_tab)
+        ly_apriori_tab = QVBoxLayout()
+        ly_apriori_tab.addWidget(self.apriori_view)
+        self.apriori_tab.setLayout(ly_apriori_tab)
 
         self.layout.addWidget(self.main_tabs)
 
         self.setLayout(self.layout)
 
 
-class ExpectedLossMatrixModel(FAbstractTableModel):
-    """
-    Table model that handles loss ratios (or analogous measures) indexed by each year.
-    """
-    def __init__(
-            self,
-            matrices: dict
-    ):
-        super().__init__()
-
-        self.matrices = matrices
-
-        self._data = self.matrices["Loss Trend Index"]
-
-    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
-
-        if role == Qt.ItemDataRole.DisplayRole:
-
-            value = self._data.iloc[index.row(), index.column()]
-            col = self._data.columns[index.column()]
-
-            if np.isnan(value):
-                return ""
-            # else:
-            #     if col == "Factor":
-            #         value = RATIO_STYLE.format(value)
-            #     else:
-            #         value = PERCENT_STYLE.format(value)
-            else:
-                return RATIO_STYLE.format(value)
-
-    def headerData(
-            self,
-            p_int: int,
-            qt_orientation: Qt.Orientation,
-            role: int = None
-    ) -> typing.Any:
-
-        # section is the index of the column/row.
-        if role == Qt.ItemDataRole.DisplayRole:
-            if qt_orientation == Qt.Orientation.Horizontal:
-                return str(self._data.columns[p_int])
-
-            if qt_orientation == Qt.Orientation.Vertical:
-                return str(self._data.index[p_int])
-
-    def setData(
-            self,
-            index:
-            QModelIndex,
-            value: typing.Any,
-            role: int = ...
-    ) -> bool:
-
-        if role == Qt.ItemDataRole.EditRole:
-
-            self._data = self.matrices[value]
-
-        self.layoutChanged.emit()
-
-        return True
-
-
-class ExpectedLossMatrixView(FTableView):
-    """
-    Table view that handles loss ratios (or analogous measures) indexed by each year.
-    """
-    def __init__(self):
-        super().__init__()
-
-        self.corner_btn = make_corner_button(parent=self)
-
-
-class ExpectedLossMatrixWidget(QWidget):
-    def __init__(
-            self,
-            matrices: dict
-    ):
-        super().__init__()
-
-        self.setWindowTitle("Expected Loss Matrix")
-        self.layout = QVBoxLayout()
-        self.matrices = matrices
-
-        self.selection_box = QComboBox()
-        self.selection_box.setFixedWidth(160)
-
-        self.selection_box.addItems(
-            [
-                "Loss Trend Index",
-                "Rate Change Index",
-                "Tort Reform Index"
-            ]
-        )
-
-        self.matrix_model = ExpectedLossMatrixModel(
-            matrices=self.matrices
-        )
-        self.matrix_view = ExpectedLossMatrixView()
-        self.matrix_view.setModel(self.matrix_model)
-
-        self.layout.addWidget(self.selection_box, alignment=Qt.AlignmentFlag.AlignRight)
-        self.layout.addWidget(self.matrix_view)
-        self.setLayout(self.layout)
-
-        self.selection_box.currentTextChanged.connect(self.update_matrix) # noqa
-
-    def update_matrix(self) -> None:
-
-        idx = QModelIndex()
-        self.matrix_model.setData(
-            index=idx,
-            value=self.selection_box.currentText(),
-            role=Qt.ItemDataRole.EditRole
-        )
-
-
 class ExpectedLossRatioWidget(FSelectionModelWidget):
     def __init__(
             self,
+            origin: list,
             claims: list,
             premium: list,
-            claim_indexes: list[FIndex],
-            premium_indexes: list,
-            averages
+            averages,
+            claim_indexes: list[FIndex] | None = None,
+            premium_indexes: list[FIndex] | None = None,
     ):
-        # super().__init__()
+
         # Create composite indexes
-        if len(claim_indexes) > 1:
+        if claim_indexes is None:
+            comp_loss_trend = FIndex(origin=origin, changes=[0 for x in range(0, len(origin))])
+        elif len(claim_indexes) > 1:
             comp_loss_trend = claim_indexes[0].compose(claim_indexes[1:])
         else:
             comp_loss_trend = claim_indexes[0]
 
-        if len(premium_indexes) > 1:
+        if premium_indexes is None:
+            comp_prem_trend = FIndex(origin=origin, changes=[0 for x in range(0, len(origin))])
+        elif len(premium_indexes) > 1:
             comp_prem_trend = premium_indexes[0].compose(premium_indexes[1:])
         else:
             comp_prem_trend = premium_indexes[0]
@@ -495,14 +391,6 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
 
         self.layout.addWidget(self.selection_model_view)
 
-        # self.layout = QVBoxLayout()
-        # self.loss_ratio_view = FModelView()
-        # self.loss_ratio_model = ExpectedLossRatioModel(loss_ratios=adj_loss_ratios)
-        # self.loss_ratio_view.setModel(self.loss_ratio_model)
-        #
-        # self.layout.addWidget(self.loss_ratio_view)
-        #
-        # self.setLayout(self.layout)
 
 class ExpectedLossRatioModel(FSelectionModel):
     def __init__(

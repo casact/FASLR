@@ -15,6 +15,20 @@ from PyQt6.QtWidgets import (
 
 set_sample_db()
 
+origin = [
+    1998,
+    1999,
+    2000,
+    2001,
+    2002,
+    2003,
+    2004,
+    2005,
+    2006,
+    2007,
+    2008
+]
+
 ult_claims = [
     15901,
     25123,
@@ -61,8 +75,9 @@ averages = pd.DataFrame(
 app = QApplication(sys.argv)
 
 expected_loss_ratio_widget = ExpectedLossRatioWidget(
-    premium_indexes=[prem_trend],
-    claim_indexes=[loss_trend, tort_reform],
+    origin=origin,
+    # premium_indexes=[prem_trend],
+    # claim_indexes=[loss_trend, tort_reform],
     premium=earned_premium,
     claims=ult_claims,
     averages=averages
