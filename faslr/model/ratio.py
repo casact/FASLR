@@ -19,11 +19,6 @@ from faslr.base_table import (
 from faslr.common.table import make_corner_button
 from faslr.model.average import FAverageBox
 
-from faslr.style.triangle import (
-    RATIO_STYLE,
-    VALUE_STYLE
-)
-
 from PyQt6.QtCore import (
     QModelIndex,
     Qt
