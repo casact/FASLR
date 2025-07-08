@@ -1,4 +1,9 @@
-from faslr.base_table import FTableView
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from faslr.base_table import FTableView
 
 from PyQt6.QtCore import (
     QSize,
