@@ -6,8 +6,11 @@ import numpy as np
 import pandas as pd
 
 from faslr.base_table import (
-    FAbstractTableModel
+    FAbstractTableModel,
+    FTableView
 )
+
+from faslr.common.table import make_corner_button
 
 from faslr.common.model import (
     FModelView,
@@ -15,13 +18,17 @@ from faslr.common.model import (
     FSelectionModel
 )
 
+from faslr.constants import UpdateIndexRole
+
 from faslr.grid_header import GridTableView
 
 from faslr.index import FIndex
 
 from faslr.model import (
     FModelWidget,
-    FModelIndex
+    FModelIndex,
+    FIBNRModel,
+    FIBNRWidget
 )
 
 from faslr.style.triangle import (
@@ -175,9 +182,9 @@ class ExpectedLossModel(FAbstractTableModel):
 
 class ExpectedLossView(GridTableView):
     def __init__(self):
-        super().__init__(corner_label="Accident\nYear")
+        super().__init__(corner_button_label="Accident\nYear")
 
-        self.verticalHeader().setFixedWidth(self.corner_button.findChild(QLabel).width())
+        self.verticalHeader().setFixedWidth(self.corner_btn.findChild(QLabel).width())
         self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
     # def insert_column(self):
@@ -217,11 +224,16 @@ class ExpectedLossWidget(FModelWidget):
             origin=list(triangles[0].X_.origin.year),
             claims=self.apriori_model._data['Initial Selected'],
             premium=premium,
-            averages=averages
+            averages=averages,
+            parent=self
         )
 
         self.main_tabs.addTab(self.selection_tab, 'Ratio Selection')
 
+
+        # IBNR tab
+        self.ibnr_tab = ExpectedLossIBNRWidget(parent=self)
+        self.main_tabs.addTab(self.ibnr_tab, 'IBNR Summary')
 
 
         self.apriori_view.setGridHeaderView(
@@ -356,6 +368,7 @@ class ExpectedLossWidget(FModelWidget):
 class ExpectedLossRatioWidget(FSelectionModelWidget):
     def __init__(
             self,
+            parent,
             origin: list,
             claims: list,
             premium: list,
@@ -364,7 +377,10 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
             premium_indexes: list[FIndex] | None = None,
     ):
 
+        self.parent = parent
+
         self.selection_model = ExpectedLossRatioModel(
+            parent=self,
             origin=origin,
             claims=claims,
             premium=premium,
@@ -374,13 +390,14 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
         )
         self.selection_model_view = FModelView(parent=self)
 
-        super().__init__(data=self.selection_model.df_ratio, averages=averages)
+        super().__init__(data=self.selection_model.df_ratio, averages=averages, parent=self.parent)
 
         self.layout.addWidget(self.selection_model_view)
 
 class ExpectedLossRatioModel(FSelectionModel):
     def __init__(
             self,
+            parent: ExpectedLossRatioWidget,
             origin: list,
             claims: list,
             premium: list,
@@ -388,7 +405,7 @@ class ExpectedLossRatioModel(FSelectionModel):
             claim_indexes: list[FIndex] | None = None,
             premium_indexes: list[FIndex] | None = None,
     ):
-
+        self.parent = parent
         self.origin = origin
         self.claims = claims
         self.premium = premium
@@ -404,7 +421,7 @@ class ExpectedLossRatioModel(FSelectionModel):
             prem_trend=self.comp_prem_trend
         )
 
-        super().__init__(data=adj_loss_ratios, averages=averages)
+        super().__init__(parent=self.parent, data=adj_loss_ratios, averages=averages)
 
         self._data = adj_loss_ratios
         self.setData(index=QModelIndex(), value=None)
@@ -466,4 +483,43 @@ class ExpectedLossRatioModel(FSelectionModel):
             )
             self.comp_loss_trend = composite_index
 
-        self.setData(role=Qt.ItemDataRole.EditRole, value=adj_loss_ratios, index=QModelIndex())
+        self.setData(role=UpdateIndexRole, value=adj_loss_ratios, index=QModelIndex())
+
+
+class ExpectedLossIBNRWidget(FIBNRWidget):
+    def __init__(
+            self,
+            parent: ExpectedLossWidget
+    ):
+        self.parent = parent
+        # self.parent.selection_tab.selection_model
+        self.ibnr_model = ExpectedLossIBNRModel(parent=self)
+        self.ibnr_view = FTableView(corner_button_label='AY')
+        super().__init__(parent=parent)
+
+
+
+
+
+class ExpectedLossIBNRModel(FIBNRModel):
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+
+        self._data['On-Level Earned Premium'] = self.parent.parent.apriori_model._data['On-Level Earned Premium']
+        self._data['Paid Losses'] = self.parent.parent.apriori_model._data['Paid Losses']
+        self._data['Reported Losses'] = self.parent.parent.apriori_model._data['Reported Losses']
+        self._data = self._data.rename(columns={'Selected Averages': 'Selected Loss Ratio'})
+        self._data['Ultimate Loss'] = self._data['On-Level Earned Premium'] * self._data['Selected Loss Ratio']
+        self._data['IBNR'] = self._data['Ultimate Loss'] - self._data['Reported Losses']
+        self._data['Unpaid Claims'] = self._data['Ultimate Loss'] - self._data['Paid Losses']
+
+    def setData(self, index, value, role = ...) -> bool:
+
+        if role == Qt.ItemDataRole.EditRole:
+            self._data['Selected Loss Ratio'] = self.parent_model.selected_ratios_row.T['Selected Averages']
+            self._data['Ultimate Loss'] = self._data['On-Level Earned Premium'] * self._data['Selected Loss Ratio']
+            self._data['IBNR'] = self._data['Ultimate Loss'] - self._data['Reported Losses']
+            self._data['Unpaid Claims'] = self._data['Ultimate Loss'] - self._data['Paid Losses']
+
+        self.dataChanged.emit(index, index)
+        self.layoutChanged.emit()
