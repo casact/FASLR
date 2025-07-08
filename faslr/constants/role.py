@@ -17,3 +17,4 @@ ColumnRotateRole = ColumnSwapRole + 1
 IndexConstantRole = ColumnRotateRole + 1
 AddAverageRole = IndexConstantRole + 1 # for adding averages to available averages
 SelectAverageRole = AddAverageRole + 1 # for selecting averages via double-click
+UpdateIndexRole = SelectAverageRole + 1 # for updating loss model data due to indexation changes

@@ -63,7 +63,8 @@ from faslr.constants.role import (
     ColumnRotateRole,
     IndexConstantRole,
     AddAverageRole,
-    SelectAverageRole
+    SelectAverageRole,
+    UpdateIndexRole
 )
 
 from faslr.constants.triangle import (
