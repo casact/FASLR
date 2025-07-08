@@ -3,6 +3,8 @@ import io
 
 import pandas as pd
 
+from faslr.common.table import make_corner_button
+
 from PyQt6.QtCore import (
     QAbstractTableModel,
     QEvent
@@ -44,11 +46,18 @@ class FAbstractTableModel(QAbstractTableModel):
 
 
 class FTableView(QTableView):
-    def __init__(self):
+    def __init__(
+            self,
+            corner_button_label: str = None
+    ):
         super().__init__()
 
         self.hheader = None
         self.vheader = None
+
+        if corner_button_label:
+            self.setCornerButtonEnabled(True)
+            self.corner_btn = make_corner_button(parent=self, label=corner_button_label)
 
     def eventFilter(self, obj, event):
         if event.type() != QEvent.Type.Paint or not isinstance(

@@ -3,6 +3,11 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from PyQt6.QtGui import (
+    QKeyEvent,
+    QKeySequence
+)
+
 from PyQt6.QtCore import Qt
 
 from faslr.base_table import (
@@ -11,7 +16,8 @@ from faslr.base_table import (
 )
 
 from faslr.constants import (
-    SelectAverageRole
+    SelectAverageRole,
+    UpdateIndexRole
 )
 
 from faslr.common.table import make_corner_button
@@ -23,6 +29,7 @@ from PyQt6.QtCore import (
 )
 
 from PyQt6.QtWidgets import (
+    QApplication,
     QHBoxLayout,
     QPushButton,
     QVBoxLayout,
@@ -33,17 +40,23 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import typing
+    from faslr.model import FIBNRModel
     from pandas import DataFrame
 
 class FSelectionModel(FAbstractTableModel):
     def __init__(
             self,
+            parent: FSelectionModelWidget,
             data,
             averages
     ):
         super().__init__()
 
+        self.parent = parent
+
         self.df_ratio = data
+
+        self.selected_ratios_row = self.blank_row.copy()
 
         self.average_types = averages
 
@@ -78,20 +91,15 @@ class FSelectionModel(FAbstractTableModel):
 
     def setData(self, index, value, role = ...) -> bool:
 
-        if role == Qt.ItemDataRole.EditRole:
+        if role == UpdateIndexRole:
             self.df_ratio = value
 
         # Calculate the ratio averages.
         average_frame = self.calculate_averages()
 
         # Create a spacer row
-        blank_data = {"": [np.nan] * len(self.df_ratio.columns)}
 
-        spacer_row = pd.DataFrame.from_dict(
-            blank_data,
-            orient='index',
-            columns=self.df_ratio.columns
-        )
+        spacer_row = self.blank_row.copy()
 
         # Create a row for a section header.
         section_header_row = spacer_row.copy()
@@ -101,6 +109,9 @@ class FSelectionModel(FAbstractTableModel):
         # Create a row for the selected ratios.
         if role == SelectAverageRole:
             self.selected_ratios_row = value
+        elif role == Qt.ItemDataRole.EditRole:
+            self.selected_ratios_row.iloc[0, index.column()] = float(value)
+            self.update_ibnr_model()
         else:
             self.selected_ratios_row = spacer_row.copy()
             self.selected_ratios_row[self.df_ratio.index.name] = 'Selected Averages'
@@ -120,6 +131,16 @@ class FSelectionModel(FAbstractTableModel):
         self.layoutChanged.emit()
 
         return True
+
+    def flags(
+            self,
+            index: QModelIndex
+    ) -> Qt.ItemFlag:
+
+        if index.row() == self.selected_row_num:
+            return Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+        else:
+            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
     def calculate_averages(self) -> DataFrame:
 
@@ -171,11 +192,24 @@ class FSelectionModel(FAbstractTableModel):
         return df_avg
 
     def select_average_row(self, index: QModelIndex) -> None:
+        """
+        Makes the ratio selection, i.e., selects the LDFs or loss ratios.
+        """
 
         selected_ratios_row = self.selected_ratios_row.copy()
         selected_ratios_row.iloc[[0]] = self._data.iloc[[index.row()], 0:self.df_ratio.shape[1]]
 
         self.setData(index=index, value=selected_ratios_row, role=SelectAverageRole)
+
+        # If paired with a loss model, update the IBNR tab.
+        if self.parent:
+            self.update_ibnr_model()
+
+    def update_ibnr_model(self) -> None:
+
+        ibnr_model: FIBNRModel = self.parent.parent.ibnr_tab.ibnr_model
+
+        ibnr_model.setData(index=QModelIndex(), role=Qt.ItemDataRole.EditRole, value=None)
 
     @property
     def n_ratio_rows(self) -> int:
@@ -183,7 +217,7 @@ class FSelectionModel(FAbstractTableModel):
         Returns the number of rows in the ratio data, i.e., the frame containing triangle link ratios, loss ratios, etc.
         """
 
-        return self._data.shape[0]
+        return self.df_ratio.shape[0]
 
     @property
     def ratio_spacer_row(self) -> int:
@@ -191,6 +225,10 @@ class FSelectionModel(FAbstractTableModel):
         Returns the position of the ratio spacer row, i.e., the blank row separating the ratios from their averages.
         """
         return self.n_ratio_rows + 1
+
+    @property
+    def selected_row_num(self) -> int:
+        return 16
 
     @property
     def included_averages(self) -> DataFrame:
@@ -201,6 +239,21 @@ class FSelectionModel(FAbstractTableModel):
 
         return self.included_averages.shape[0]
 
+    @property
+    def blank_row(self) -> DataFrame:
+        """
+        Used for creating spacer rows
+        """
+        blank_data = {"": [np.nan] * len(self.df_ratio.columns)}
+
+        blank_row = pd.DataFrame.from_dict(
+            blank_data,
+            orient='index',
+            columns=self.df_ratio.columns
+        )
+
+        return blank_row
+
     def update_indexes(self, indexes, prem_loss) -> ...:
         """
         Base method used for accepting or discarding indexes in a model. Then it applies it to the relevant data.
@@ -210,11 +263,14 @@ class FSelectionModel(FAbstractTableModel):
 class FSelectionModelWidget(QWidget):
     def __init__(
             self,
+            parent: QWidget,
             data,
             averages,
             window_title = None,
     ):
         super().__init__()
+
+        self.parent = parent
 
         if window_title:
             self.setWindowTitle(window_title)
@@ -252,7 +308,7 @@ class FSelectionModelWidget(QWidget):
         )
 
         if not (hasattr(self, 'selection_model') and hasattr(self, 'selection_model_view')):
-            self.selection_model = FSelectionModel(data=data, averages=averages)
+            self.selection_model = FSelectionModel(data=data, averages=averages, parent=self)
             self.selection_model_view = FModelView(parent=self)
 
         self.average_box = FAverageBox(data=averages, parent=self)
@@ -281,11 +337,19 @@ class FModelView(FTableView):
 
         self.verticalHeader().sectionDoubleClicked.connect(self.vertical_header_double_click)
 
+    def keyPressEvent(self, e: QKeyEvent) -> None:
+        clipboard = QApplication.clipboard()
+        if e.matches(QKeySequence.StandardKey.Paste):
+            print('asdfasdf')
+            value = clipboard.text()
+            model: FSelectionModel = self.model()
+            for index in self.selectedIndexes():
+                model.setData(index=index, value=value, role=Qt.ItemDataRole.EditRole)
+
+
     def vertical_header_double_click(self):
         selection = self.selectedIndexes()
 
         index = selection[0]
-        row_num = index.row()
-        print('hi')
         self.parent.selection_model.select_average_row(index=index)
 

@@ -693,18 +693,12 @@ class GridTableHeaderView(QHeaderView):
 class GridTableView(FTableView):
     def __init__(
             self,
-            corner_label: str = None
+            corner_button_label: str = None
     ):
-        super().__init__()
+        super().__init__(corner_button_label=corner_button_label)
 
         self.hheader = None
         self.vheader = None
-
-        self.setCornerButtonEnabled(True)
-
-        if corner_label:
-            self.installEventFilter(self)
-            self.corner_button = make_corner_button(self, label=corner_label)
 
         self.setStyleSheet(
             """
