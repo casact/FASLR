@@ -1,7 +1,12 @@
+"""
+Contains base model classes from which the various loss models (development, loss ratio, Cape-Cod, etc.) inherit.
+"""
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+
+from faslr.model import FModelWidget
 
 from PyQt6.QtGui import (
     QKeyEvent,
@@ -42,33 +47,71 @@ if TYPE_CHECKING:
     import typing
     from faslr.model import FIBNRModel
     from pandas import DataFrame
+    from typing import Any
 
 class FSelectionModel(FAbstractTableModel):
+    """
+    Base model for making selections, i.e., LDFs or loss ratios. The various methods (chainladder, B-F, expected loss)
+    should inherit from this class.
+
+    Parameters
+    ----------
+    parent: FSelectionModelWidget
+        The containing widget that this model will be embedded in.
+    data: DataFrame
+        A DataFrame consisting of the ratios to be selected, i.e., link ratios or loss ratios which will be averaged
+        in various ways prior to selection. The application by default will take this data from the underlying
+        database, but this argument will override that query.
+    averages: DataFrame
+        A DataFrame containing metadata on average types, i.e., all-year straight, 3-year volume-weighted, etc.
+        The application by default will take this data from the underlying database, but this argument will
+        override that query.
+    """
     def __init__(
             self,
             parent: FSelectionModelWidget,
-            data,
-            averages
+            data: DataFrame,
+            averages: DataFrame
     ):
         super().__init__()
 
-        self.parent = parent
+        # The containing widget, used to communicate with other parts of the greater loss model such as
+        # indexation and summary exhibits.
+        self.parent: FSelectionModelWidget = parent
 
-        self.df_ratio = data
+        # Section containing
+        self.df_ratio: DataFrame = data
 
-        self.selected_ratios_row = self.blank_row.copy()
+        # Row containing the average types, initialized to None.
+        self.average_frame: DataFrame | None = None
 
+        # Row containing the selections, initialized first as a blank row.
+        self.selected_ratios_row: DataFrame = self.blank_row.copy()
+
+        # Contains the average types, e.g., 3-year volume weighted average.
         self.average_types = averages
 
+        # Combine ratio, spacer rows, default averages, and selected ratios row into a single DataFrame for display.
         self.setData(index=QModelIndex(), value=None)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+        """
+        Base method for displaying data in the accompanying QTableView. Loss models will override this method
+        with their own formatting for display, e.g., percentages, ratios, etc., depending on the particular model.
 
+        Parameters
+        ----------
+
+        index: QModelIndex
+            The index containing the row and column position of the data element to be displayed.
+        role: int
+            Usually set to Qt.ItemDataRole.DisplayRole.
+        """
         if role == Qt.ItemDataRole.DisplayRole:
 
             value = self._data.iloc[index.row(), index.column()]
-            col = self._data.columns[index.column()]
 
+            # If value is nan, display blank. Otherwise, display the string representation.
             if np.isnan(value):
                 return ""
             else:
@@ -89,16 +132,19 @@ class FSelectionModel(FAbstractTableModel):
             if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
 
-    def setData(self, index, value, role = ...) -> bool:
-
+    def setData(self, index: QModelIndex, value: Any, role = ...) -> bool:
+        """
+        Method that updates the underlying model data prior to display. Used to construct the initial DataFrame
+        to be displayed as well as for refreshing the display after certain model components are updated, e.g.,
+        indexes and available averages.
+        """
         if role == UpdateIndexRole:
             self.df_ratio = value
 
         # Calculate the ratio averages.
-        average_frame = self.calculate_averages()
+        self.average_frame = self.calculate_averages()
 
-        # Create a spacer row
-
+        # Create a spacer row.
         spacer_row = self.blank_row.copy()
 
         # Create a row for a section header.
@@ -109,20 +155,25 @@ class FSelectionModel(FAbstractTableModel):
         # Create a row for the selected ratios.
         if role == SelectAverageRole:
             self.selected_ratios_row = value
+        # Case when user makes a selection, fill the selected ratios row with the selection values.
         elif role == Qt.ItemDataRole.EditRole:
             self.selected_ratios_row.iloc[0, index.column()] = float(value)
             self.update_ibnr_model()
+        # If there's something already in the selection row, keep it.
+        elif self.selected_ratios_row.notnull().sum(axis=1).squeeze():
+            pass
+        # Otherwise, use a blank row.
         else:
             self.selected_ratios_row = spacer_row.copy()
             self.selected_ratios_row[self.df_ratio.index.name] = 'Selected Averages'
             self.selected_ratios_row = self.selected_ratios_row.set_index(self.df_ratio.index.name)
 
-        # Combine averages and spacer rows into a single DataFrame.
+        # Combine ratios, averages and spacer rows into a single DataFrame.
         self._data = pd.concat([
             self.df_ratio,
             spacer_row,
             section_header_row,
-            average_frame,
+            self.average_frame,
             spacer_row,
             self.selected_ratios_row
         ])
@@ -136,27 +187,37 @@ class FSelectionModel(FAbstractTableModel):
             self,
             index: QModelIndex
     ) -> Qt.ItemFlag:
-
+        """
+        Allow the selected_row to be editable, allows users to type in a manual selection.
+        """
         if index.row() == self.selected_row_num:
             return Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         else:
             return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
     def calculate_averages(self) -> DataFrame:
+        """
+        Applies the included averages to the ratio data frame. Each average type gets its own row. In this context,
+        'included' means those averages indicated out of all the available averages to be calculated and looked at
+        in the model.
+        """
 
         average_frame = pd.DataFrame()
 
         for i in range(self.num_average_types):
+            # For each average, extract the metadata.
             average_name = self.included_averages['Label'].iloc[i]
             average_years = int(self.included_averages['Number of Years'].iloc[i])
             average_type = self.included_averages['Type'].iloc[i]
 
+            # Use the metadata as inputs to calculate the specific type of average.
             average_row: DataFrame = self.calculate_average(
                 average_name=average_name,
                 average_years=average_years,
                 average_type=average_type
             )
 
+            # Initialize the DataFrame containing the averages to the first result, and then append with the rest.
             if i == 0:
                 average_frame = average_row
             else:
@@ -166,10 +227,23 @@ class FSelectionModel(FAbstractTableModel):
 
     def calculate_average(
             self,
-            average_name,
-            average_years,
-            average_type
+            average_name: str,
+            average_years: int,
+            average_type: str
     ) -> DataFrame:
+        """
+        Calculates a set of averages for a specific average type, e.g., n-year volume-weighted average.
+
+        Parameters
+        ----------
+        average_name: str
+            The display name for the average, i.e., the human-readable label that might contain whitespace.
+        average_years: int
+            The number of years to average across.
+        average_type: str
+            The type of average, i.e., the machine-readable name with no whitespace and used for calculation and
+            not display.
+        """
 
         averages = []
         if average_type == 'Straight':
@@ -177,6 +251,7 @@ class FSelectionModel(FAbstractTableModel):
                 col_average = self.df_ratio[col].tail(average_years).mean()
                 averages += [col_average]
         elif average_type == 'Medial':
+            # Straight average excluding the high and low values.
             for col in self.df_ratio.columns:
                 ratios = list(self.df_ratio[col].tail(average_years))
                 ratios.sort()
@@ -184,7 +259,7 @@ class FSelectionModel(FAbstractTableModel):
                 col_average = np.mean(ratios)
                 averages += [col_average]
         dict_avg = {col: [avg] for col, avg in zip(self.df_ratio.columns, averages)}
-        dict_avg[self.df_ratio.index.name] = average_name
+        dict_avg[self.df_ratio.index.name] = [average_name]
 
         df_avg = pd.DataFrame(data=dict_avg)
         df_avg = df_avg.set_index(self.df_ratio.index.name)
@@ -195,6 +270,11 @@ class FSelectionModel(FAbstractTableModel):
         """
         Makes the ratio selection, i.e., selects the LDFs or loss ratios.
         """
+        for row in self.included_averages_rows:
+            print(row)
+        # If double-clicked row is not in the included averages, do nothing.
+        if index.row() not in self.included_averages_rows:
+            return None
 
         selected_ratios_row = self.selected_ratios_row.copy()
         selected_ratios_row.iloc[[0]] = self._data.iloc[[index.row()], 0:self.df_ratio.shape[1]]
@@ -206,10 +286,16 @@ class FSelectionModel(FAbstractTableModel):
             self.update_ibnr_model()
 
     def update_ibnr_model(self) -> None:
+        """
+        If the selection model is paired with an IBNR summary model, update the IBNR summary.
+        """
+        model_widget = self.parent.parent
+        if hasattr(model_widget, 'ibnr_tab'):
+            ibnr_model: FIBNRModel = self.parent.parent.ibnr_tab.ibnr_model # noqa since if statement checks for tab.
 
-        ibnr_model: FIBNRModel = self.parent.parent.ibnr_tab.ibnr_model
-
-        ibnr_model.setData(index=QModelIndex(), role=Qt.ItemDataRole.EditRole, value=None)
+            ibnr_model.setData(index=QModelIndex(), role=Qt.ItemDataRole.EditRole, value=None)
+        else:
+            return None
 
     @property
     def n_ratio_rows(self) -> int:
@@ -220,29 +306,48 @@ class FSelectionModel(FAbstractTableModel):
         return self.df_ratio.shape[0]
 
     @property
-    def ratio_spacer_row(self) -> int:
+    def ratio_spacer_row_num(self) -> int:
         """
         Returns the position of the ratio spacer row, i.e., the blank row separating the ratios from their averages.
         """
-        return self.n_ratio_rows + 1
+        return self.n_ratio_rows
 
     @property
     def selected_row_num(self) -> int:
-        return 16
+        """
+        Returns the position of the selected row, i.e., the one containing the selections.
+        """
+        # Number of ratios + spacer row + average header row + number of average types + spacer row.
+        return self.n_ratio_rows + 2 + self.average_frame.shape[0] + 1
 
     @property
     def included_averages(self) -> DataFrame:
+        """
+        DataFrame containing subset of available averages that are included in the model.
+        """
         return self.average_types[self.average_types['Selected'] == True].copy()
 
     @property
-    def num_average_types(self) -> int:
+    def included_averages_rows(self) -> range:
+        """
+        Range of row positions spanning the included averages.
+        """
+        lower = self.n_ratio_rows + 2
+        upper = lower + self.num_average_types
 
+        return range(lower, upper)
+
+    @property
+    def num_average_types(self) -> int:
+        """
+        Returns the number of average types included in the model.
+        """
         return self.included_averages.shape[0]
 
     @property
     def blank_row(self) -> DataFrame:
         """
-        Used for creating spacer rows
+        A blank DataFrame with the same number of columns as the ratio frame, used for creating spacer rows.
         """
         blank_data = {"": [np.nan] * len(self.df_ratio.columns)}
 
@@ -261,16 +366,34 @@ class FSelectionModel(FAbstractTableModel):
         ...
 
 class FSelectionModelWidget(QWidget):
+    """
+    Containing widget of the FSelectionModelClass.
+
+    Parameters
+    ----------
+    parent: FModelWidget
+        The containing general model.
+    data: DataFrame
+        A DataFrame consisting of the ratios to be selected, i.e., link ratios or loss ratios which will be averaged
+        in various ways prior to selection. The application by default will take this data from the underlying
+        database, but this argument will override that query.
+    averages: DataFrame
+        A DataFrame containing metadata on average types, i.e., all-year straight, 3-year volume-weighted, etc.
+        The application by default will take this data from the underlying database, but this argument will
+        override that query.
+    window_title: str
+        The window title of the widget, when used in demo or standalone mode.
+    """
     def __init__(
             self,
-            parent: QWidget,
-            data,
-            averages,
-            window_title = None,
+            parent: FModelWidget,
+            data: DataFrame,
+            averages: DataFrame,
+            window_title: str = None,
     ):
         super().__init__()
 
-        self.parent = parent
+        self.parent: FModelWidget = parent
 
         if window_title:
             self.setWindowTitle(window_title)
@@ -324,6 +447,13 @@ class FSelectionModelWidget(QWidget):
     def open_average_box(self):
 
         self.average_box.show()
+
+
+class FSelectionModelToolBox(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.layout = QHBoxLayout()
 
 
 class FModelView(FTableView):
