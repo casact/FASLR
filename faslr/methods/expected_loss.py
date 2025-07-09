@@ -10,8 +10,6 @@ from faslr.base_table import (
     FTableView
 )
 
-from faslr.common.table import make_corner_button
-
 from faslr.common.model import (
     FModelView,
     FSelectionModelWidget,
@@ -66,7 +64,6 @@ from typing import (
 if TYPE_CHECKING:
     from chainladder import Chainladder
     from pandas import DataFrame
-
 
 class ExpectedLossModel(FAbstractTableModel):
     def __init__(
@@ -492,7 +489,6 @@ class ExpectedLossIBNRWidget(FIBNRWidget):
             parent: ExpectedLossWidget
     ):
         self.parent = parent
-        # self.parent.selection_tab.selection_model
         self.ibnr_model = ExpectedLossIBNRModel(parent=self)
         self.ibnr_view = FTableView(corner_button_label='AY')
         super().__init__(parent=parent)
