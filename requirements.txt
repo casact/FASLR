@@ -13,8 +13,8 @@ PyQt6-sip==13.4.1
 scikit-learn==1.6.0
 scipy==1.15.3
 sparse==0.17.0
-setuptools==75.6.0
-sqlalchemy == 2.0.36
+setuptools==80.9.0
+sqlalchemy==2.0.41
 
 # Documentation
 sphinx == 8.1.3
