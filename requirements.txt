@@ -1,18 +1,18 @@
 # Python 3.10.6
 
-chainladder == 0.8.24
-GitPython == 3.1.44
-ipython == 8.37.0
-matplotlib == 3.10.3
+chainladder==0.8.24
+GitPython==3.1.44
+ipython==8.37.0
+matplotlib==3.10.3
 numba==0.61.2
-numpy == 2.2.6
-pandas == 2.3.1
-PyQt6 == 6.4.2
-PyQt6-Qt6 == 6.4.2
-PyQt6-sip == 13.4.1
-scikit-learn == 1.6.0
-scipy == 1.15.3
-sparse == 0.14.0
+numpy==2.2.6
+pandas==2.3.1
+PyQt6==6.4.2
+PyQt6-Qt6==6.4.2
+PyQt6-sip==13.4.1
+scikit-learn==1.6.0
+scipy==1.15.3
+sparse==0.17.0
 setuptools==75.6.0
 sqlalchemy == 2.0.36
 
