@@ -3,7 +3,7 @@
 chainladder == 0.8.24
 GitPython == 3.1.44
 ipython == 8.37.0
-matplotlib == 3.10.0
+matplotlib == 3.10.3
 numba==0.61.2
 numpy == 1.26.4
 pandas == 2.2.3
