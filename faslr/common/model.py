@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     import typing
     from faslr.model import FIBNRModel
     from pandas import DataFrame
+    from PyQt6.QtCore import QAbstractItemModel
     from typing import Any
 
 class FSelectionModel(FAbstractTableModel):
@@ -270,8 +271,6 @@ class FSelectionModel(FAbstractTableModel):
         """
         Makes the ratio selection, i.e., selects the LDFs or loss ratios.
         """
-        for row in self.included_averages_rows:
-            print(row)
         # If double-clicked row is not in the included averages, do nothing.
         if index.row() not in self.included_averages_rows:
             return None
@@ -399,6 +398,42 @@ class FSelectionModelWidget(QWidget):
             self.setWindowTitle(window_title)
 
         self.layout = QVBoxLayout()
+
+        # Container widget for upper-right hand tools (add average button, etc.).
+        self.toolbox = FSelectionModelToolbox(
+            parent=self,
+            averages=averages
+        )
+
+        self.layout.addWidget(
+            self.toolbox,
+            alignment=Qt.AlignmentFlag.AlignRight
+        )
+
+        # If selection model and view has already been subclass, skip, otherwise use base classes.
+        if not (hasattr(self, 'selection_model') and hasattr(self, 'selection_model_view')):
+            self.selection_model = FSelectionModel(data=data, averages=averages, parent=self)
+            self.selection_model_view = FModelView(parent=self)
+
+        self.selection_model_view.setModel(self.selection_model)
+
+        self.layout.addWidget(self.selection_model_view)
+
+        self.setLayout(self.layout)
+
+
+class FSelectionModelToolbox(QWidget):
+    """
+    Toolbox that appears above the model view in a FSelectionModelWidget. Contains utilities such
+    as a button for adding averages, and a heatmap button.
+    """
+    def __init__(
+            self,
+            parent: FSelectionModelWidget,
+            averages: DataFrame
+    ):
+        super().__init__()
+        self.parent: FSelectionModelWidget = parent
         self.add_average_button = QPushButton("Available Averages")
         self.add_average_button.setFixedWidth(self.add_average_button.sizeHint().width())
 
@@ -409,52 +444,31 @@ class FSelectionModelWidget(QWidget):
             2
         )
 
-        # Container widget for upper-right hand tools (add average button, etc.).
-        self.tool_container = QWidget()
-        self.tool_layout = QHBoxLayout()
-        self.tool_container.setLayout(self.tool_layout)
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
 
-        self.tool_layout.setContentsMargins(
+        self.setContentsMargins(
             0,
             0,
             0,
             0
         )
 
-        self.tool_layout.addWidget(
-            self.add_average_button
+        self.average_box = FAverageBox(
+            parent=self,
+            data=averages,
+            selection_model=self.parent.selection_model
         )
 
-        self.layout.addWidget(
-            self.tool_container,
-            alignment=Qt.AlignmentFlag.AlignRight
-        )
+        self.layout.addWidget(self.add_average_button)
 
-        if not (hasattr(self, 'selection_model') and hasattr(self, 'selection_model_view')):
-            self.selection_model = FSelectionModel(data=data, averages=averages, parent=self)
-            self.selection_model_view = FModelView(parent=self)
+        self.add_average_button.clicked.connect(self.open_average_box)  # noqa
 
-        self.average_box = FAverageBox(data=averages, parent=self)
-
-        self.selection_model_view.setModel(self.selection_model)
-
-        self.layout.addWidget(self.selection_model_view)
-
-        self.setLayout(self.layout)
-
-        self.add_average_button.clicked.connect(self.open_average_box) # noqa
-
-    def open_average_box(self):
-
+    def open_average_box(self) -> None:
+        """
+        Opens the dialog box for adding averages to a selection model.
+        """
         self.average_box.show()
-
-
-class FSelectionModelToolBox(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.layout = QHBoxLayout()
-
 
 class FModelView(FTableView):
     def __init__(
@@ -470,9 +484,8 @@ class FModelView(FTableView):
     def keyPressEvent(self, e: QKeyEvent) -> None:
         clipboard = QApplication.clipboard()
         if e.matches(QKeySequence.StandardKey.Paste):
-            print('asdfasdf')
             value = clipboard.text()
-            model: FSelectionModel = self.model()
+            model: QAbstractItemModel = self.model()
             for index in self.selectedIndexes():
                 model.setData(index=index, value=value, role=Qt.ItemDataRole.EditRole)
 

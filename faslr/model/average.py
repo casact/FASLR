@@ -33,12 +33,13 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pandas import DataFrame
-    from faslr.common.model import FSelectionModelWidget
+    from faslr.common.model import FSelectionModel
 
 class FAverageBox(QDialog):
     def __init__(
             self,
-            parent: FSelectionModelWidget = None,
+            parent,
+            selection_model: FSelectionModel = None,
             title: str = None,
             data: DataFrame = None
     ):
@@ -50,6 +51,8 @@ class FAverageBox(QDialog):
         self.layout = QVBoxLayout()
 
         self.parent = parent
+
+        self.selection_model = selection_model
 
         self.model = FAverageModel(
             parent=None,
@@ -85,7 +88,7 @@ class FAverageBox(QDialog):
         self.setLayout(self.layout)
         self.set_dimensions()
 
-        self.button_box.accepted.connect(self.accept_changes)
+        self.button_box.accepted.connect(self.accept_changes) # noqa
         self.button_box.clicked.connect(self.handle_button_box) # noqa
 
     def set_dimensions(self):
@@ -120,7 +123,7 @@ class FAverageBox(QDialog):
             return
 
         index = QModelIndex()
-        self.parent.selection_model.setData(index=index, value=None)
+        self.selection_model.setData(index=index, value=None)
 
         self.close()
 
