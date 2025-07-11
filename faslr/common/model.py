@@ -507,6 +507,8 @@ class FModelView(FTableView):
 
         self.verticalHeader().sectionDoubleClicked.connect(self.vertical_header_double_click)
 
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+
     def keyPressEvent(self, e: QKeyEvent) -> None:
         """
         Method for handling keyboard shortcut presses.
