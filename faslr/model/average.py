@@ -29,28 +29,47 @@ from PyQt6.QtWidgets import (
     QVBoxLayout
 )
 
-from typing import TYPE_CHECKING
+from typing import (
+    Optional,
+    TYPE_CHECKING
+)
 
 if TYPE_CHECKING:
     from pandas import DataFrame
-    from faslr.common.model import FSelectionModel
+    from faslr.common.model import (
+        FSelectionModel,
+        FSelectionModelWidget
+    )
 
 class FAverageBox(QDialog):
+    """
+    Dialog box used to add an average to a loss model from the list of available averages, or to add an average
+    to the list of available averages.
+
+    Parameters
+    ----------
+    parent: Optional[FSelectionModelWidget]
+        The containing widget of the corresponding selection model.
+    selection_model: Optional[FSelectionModel]
+        The corresponding selection model.
+    title: Optional[str]
+        The title of the dialog box, overriding the default.
+    data: Optional[DataFrame]
+        A dataframe containing the available averages. Overrides extraction of these averages from the database.
+    """
     def __init__(
             self,
-            parent,
-            selection_model: FSelectionModel = None,
-            title: str = None,
-            data: DataFrame = None
+            parent: Optional[FSelectionModelWidget],
+            selection_model: Optional[FSelectionModel] = None,
+            title: Optional[str] = "Available Averages",
+            data: Optional[DataFrame] = None
     ):
-        """
-        Dialog box that interacts between the user and the parent ratio selection model.
-        """
+
         super().__init__()
 
         self.layout = QVBoxLayout()
 
-        self.parent = parent
+        self.parent: FSelectionModelWidget = parent
 
         self.selection_model = selection_model
 
