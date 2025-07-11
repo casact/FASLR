@@ -270,6 +270,12 @@ class FSelectionModel(FAbstractTableModel):
     def select_average_row(self, index: QModelIndex) -> None:
         """
         Makes the ratio selection, i.e., selects the LDFs or loss ratios.
+
+        Parameters
+        ----------
+        index: QModelIndex
+            The index representing the place where the user double-clicks the vertical header.
+            Used to identify the row to be the selected average.
         """
         # If double-clicked row is not in the included averages, do nothing.
         if index.row() not in self.included_averages_rows:
@@ -426,6 +432,16 @@ class FSelectionModelToolbox(QWidget):
     """
     Toolbox that appears above the model view in a FSelectionModelWidget. Contains utilities such
     as a button for adding averages, and a heatmap button.
+
+    Parameters
+    ----------
+
+    parent: FSelectionModelWidget
+        The parent widget containing the selection model.
+    averages: DataFrame
+        A DataFrame containing metadata on average types, i.e., all-year straight, 3-year volume-weighted, etc.
+        The application by default will take this data from the underlying database, but this argument will
+        override that query.
     """
     def __init__(
             self,
@@ -454,6 +470,7 @@ class FSelectionModelToolbox(QWidget):
             0
         )
 
+        # Dialog box that pops up when you click the add average button.
         self.average_box = FAverageBox(
             parent=self,
             data=averages,
@@ -471,6 +488,15 @@ class FSelectionModelToolbox(QWidget):
         self.average_box.show()
 
 class FModelView(FTableView):
+    """
+    Model view for displaying the ratios and averages that the user uses to make a selection.
+
+    Parameters
+    ----------
+
+    parent: FSelectionModelWidget
+        The widget containing the selection model.
+    """
     def __init__(
             self,
             parent: FSelectionModelWidget
@@ -482,15 +508,29 @@ class FModelView(FTableView):
         self.verticalHeader().sectionDoubleClicked.connect(self.vertical_header_double_click)
 
     def keyPressEvent(self, e: QKeyEvent) -> None:
+        """
+        Method for handling keyboard shortcut presses.
+        """
+
+        # Paste a value from the clipboard to multiple selected cells.
         clipboard = QApplication.clipboard()
         if e.matches(QKeySequence.StandardKey.Paste):
             value = clipboard.text()
             model: QAbstractItemModel = self.model()
             for index in self.selectedIndexes():
-                model.setData(index=index, value=value, role=Qt.ItemDataRole.EditRole)
+                model.setData(
+                    index=index,
+                    value=value,
+                    role=Qt.ItemDataRole.EditRole
+                )
 
 
     def vertical_header_double_click(self):
+        """
+        Process a double click on the vertical header.
+        """
+        # When the user double-clicks the vertical header to make a selection,
+        # Execute the handling of that selection.
         selection = self.selectedIndexes()
 
         index = selection[0]
