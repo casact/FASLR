@@ -210,7 +210,7 @@ class ExpectedLossWidget(FModelWidget):
         self.apriori_tab = QWidget()
 
 
-        self.main_tabs.addTab(self.indexation, "Indexation")
+        self.main_tabs.addTab(self.indexation, "Indexes")
         self.main_tabs.addTab(self.apriori_tab, "Apriori Selection")
 
         self.apriori_view = ExpectedLossView()

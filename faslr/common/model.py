@@ -473,8 +473,7 @@ class FSelectionModelToolbox(QWidget):
         # Dialog box that pops up when you click the add average button.
         self.average_box = FAverageBox(
             parent=self,
-            data=averages,
-            selection_model=self.parent.selection_model
+            data=averages
         )
 
         self.layout.addWidget(self.add_average_button)

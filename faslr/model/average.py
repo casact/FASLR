@@ -37,7 +37,7 @@ from typing import (
 if TYPE_CHECKING:
     from pandas import DataFrame
     from faslr.common.model import (
-        FSelectionModel,
+        FSelectionModelToolbox,
         FSelectionModelWidget
     )
 
@@ -49,9 +49,7 @@ class FAverageBox(QDialog):
     Parameters
     ----------
     parent: Optional[FSelectionModelWidget]
-        The containing widget of the corresponding selection model.
-    selection_model: Optional[FSelectionModel]
-        The corresponding selection model.
+        The containing toolbox of the corresponding selection model.
     title: Optional[str]
         The title of the dialog box, overriding the default.
     data: Optional[DataFrame]
@@ -59,8 +57,7 @@ class FAverageBox(QDialog):
     """
     def __init__(
             self,
-            parent: Optional[FSelectionModelWidget],
-            selection_model: Optional[FSelectionModel] = None,
+            parent: Optional[FSelectionModelToolbox],
             title: Optional[str] = "Available Averages",
             data: Optional[DataFrame] = None
     ):
@@ -69,9 +66,9 @@ class FAverageBox(QDialog):
 
         self.layout = QVBoxLayout()
 
-        self.parent: FSelectionModelWidget = parent
+        self.parent: FSelectionModelWidget = parent.parent
 
-        self.selection_model = selection_model
+        self.selection_model = self.parent.selection_model
 
         self.model = FAverageModel(
             parent=None,
