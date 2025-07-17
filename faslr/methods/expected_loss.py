@@ -63,9 +63,26 @@ from typing import (
 
 if TYPE_CHECKING:
     from chainladder import Chainladder
-    from pandas import DataFrame
+    from numpy.typing import ArrayLike
+    from pandas import (
+        DataFrame,
+        Series
+    )
+    from typing import (
+        Literal,
+        Optional
+    )
 
-class ExpectedLossModel(FAbstractTableModel):
+class ExpectedLossAprioriModel(FAbstractTableModel):
+    """
+    Table model that holds the apriori selection of initial ultimate losses.
+
+    Parameters
+    ----------
+
+    triangles: List[Chainladder]
+        List of paid and incurred losses, with ldfs already chosen.
+    """
     def __init__(
             self,
             triangles: List[Chainladder]
@@ -123,7 +140,6 @@ class ExpectedLossModel(FAbstractTableModel):
                 display_value = RATIO_STYLE.format(value)
 
             else:
-                print(str(value))
                 display_value = str(value)
 
             return display_value
@@ -176,23 +192,39 @@ class ExpectedLossModel(FAbstractTableModel):
 
         return True
 
+    @property
+    def initial_selected_ultimate(self) -> Series:
+        return self._data['Initial Selected']
 
-class ExpectedLossView(GridTableView):
+class ExpectedLossAprioriView(GridTableView):
+    """
+    View to visualize the ExpectedLossApriori Model.
+    """
     def __init__(self):
         super().__init__(corner_button_label="Accident\nYear")
 
+        # Set the vertical header width to that of the corner button.
         self.verticalHeader().setFixedWidth(self.corner_btn.findChild(QLabel).width())
         self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    # def insert_column(self):
-
 
 class ExpectedLossWidget(FModelWidget):
+    """
+    Containing model widget of the expected loss model.
+
+    Parameters
+    ----------
+    triangles: List[Chainladder]
+        Paid and incurred triangles, with selected ldfs.
+    premium: list
+    averages: dict
+        Averages that you want available to the model. Overrides database values.
+    """
     def __init__(
             self,
             triangles: List[Chainladder],
-            premium,
-            averages
+            premium: list,
+            averages: DataFrame
     ):
         super().__init__()
 
@@ -203,8 +235,7 @@ class ExpectedLossWidget(FModelWidget):
         self.main_tabs = QTabWidget()
 
         self.indexation = FModelIndex(
-            parent=self,
-            # origin=fetch_origin(triangles[0])
+            parent=self
         )
 
         self.apriori_tab = QWidget()
@@ -213,24 +244,30 @@ class ExpectedLossWidget(FModelWidget):
         self.main_tabs.addTab(self.indexation, "Indexes")
         self.main_tabs.addTab(self.apriori_tab, "Apriori Selection")
 
-        self.apriori_view = ExpectedLossView()
-        self.apriori_model = ExpectedLossModel(triangles=triangles)
+        self.apriori_view = ExpectedLossAprioriView()
+        self.apriori_model = ExpectedLossAprioriModel(triangles=triangles)
         self.apriori_view.setModel(self.apriori_model)
 
         self.selection_tab = ExpectedLossRatioWidget(
             origin=list(triangles[0].X_.origin.year),
-            claims=self.apriori_model._data['Initial Selected'],
+            claims=self.apriori_model.initial_selected_ultimate,
             premium=premium,
             averages=averages,
             parent=self
         )
 
-        self.main_tabs.addTab(self.selection_tab, 'Ratio Selection')
+        self.main_tabs.addTab(
+            self.selection_tab,
+            'Ratio Selection'
+        )
 
 
-        # IBNR tab
+        # IBNR tab.
         self.ibnr_tab = ExpectedLossIBNRWidget(parent=self)
-        self.main_tabs.addTab(self.ibnr_tab, 'IBNR Summary')
+        self.main_tabs.addTab(
+            self.ibnr_tab,
+            'IBNR Summary'
+        )
 
 
         self.apriori_view.setGridHeaderView(
@@ -363,15 +400,35 @@ class ExpectedLossWidget(FModelWidget):
 
 
 class ExpectedLossRatioWidget(FSelectionModelWidget):
+    """
+    Selection widget for the Expected Loss model - used to select apriori loss ratio.
+
+    Parameters
+    ----------
+
+    parent: ExpectedLossWidget
+        The containing ExpectedLossWidget.
+    origin: list
+        The origin dimension of the triangle.
+    claims: ArrayLike
+        The initial selected ultimate losses.
+    premium: list
+    averages: dict
+        Averages that you want available to the model. Overrides database values.
+    claim_indexes: Optional[list[FIndex]]
+        The claim indexes to be applied to the losses, overrides database values.
+    premium_indexes: Optional[list[FIndex]]
+        The premium indexes to be applied to the premiums, overrides database values.
+    """
     def __init__(
             self,
-            parent,
+            parent: ExpectedLossWidget,
             origin: list,
-            claims: list,
+            claims: ArrayLike,
             premium: list,
-            averages,
-            claim_indexes: list[FIndex] | None = None,
-            premium_indexes: list[FIndex] | None = None,
+            averages: DataFrame,
+            claim_indexes: Optional[list[FIndex]] = None,
+            premium_indexes: Optional[list[FIndex]] = None,
     ):
 
         self.parent = parent
@@ -387,20 +444,43 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
         )
         self.selection_model_view = FModelView(parent=self)
 
-        super().__init__(data=self.selection_model.df_ratio, averages=averages, parent=self.parent)
+        super().__init__(
+            data=self.selection_model.df_ratio,
+            averages=averages,
+            parent=self.parent
+        )
 
         self.layout.addWidget(self.selection_model_view)
 
 class ExpectedLossRatioModel(FSelectionModel):
+    """
+    The table model for the selection of the apriori loss ratio.
+
+    Parameters
+    ----------
+
+    parent: ExpectedLossRatioWidget
+        The containing widget of the ExpectedLossRatioModel
+    origin: ArrayLike
+        The origin dimension of the triangle.
+    claims: ArrayLike
+    premium: ArrayLike
+    averages: DataFrame
+        Averages that you want available to the model. Overrides database values.
+    claim_indexes: Optional[list[FIndex]]
+        The claim indexes to be applied to the losses, overrides database values.
+    premium_indexes: Optional[list[FIndex]]
+        The premium indexes to be applied to the premiums, overrides database values.
+    """
     def __init__(
             self,
             parent: ExpectedLossRatioWidget,
-            origin: list,
-            claims: list,
-            premium: list,
-            averages,
-            claim_indexes: list[FIndex] | None = None,
-            premium_indexes: list[FIndex] | None = None,
+            origin: ArrayLike,
+            claims: ArrayLike,
+            premium: ArrayLike,
+            averages: DataFrame,
+            claim_indexes: Optional[list[FIndex]] = None,
+            premium_indexes: Optional[list[FIndex]] = None,
     ):
         self.parent = parent
         self.origin = origin
@@ -418,7 +498,11 @@ class ExpectedLossRatioModel(FSelectionModel):
             prem_trend=self.comp_prem_trend
         )
 
-        super().__init__(parent=self.parent, data=adj_loss_ratios, averages=averages)
+        super().__init__(
+            parent=self.parent,
+            data=adj_loss_ratios,
+            averages=averages
+        )
 
         self._data = adj_loss_ratios
         self.setData(index=QModelIndex(), value=None)
@@ -435,10 +519,23 @@ class ExpectedLossRatioModel(FSelectionModel):
                 return PERCENT_STYLE.format(value)
 
     @staticmethod
-    def compose_trend(origin: list, indexes: list) -> FIndex:
+    def compose_trend(
+            origin: list,
+            indexes: list
+    ) -> FIndex:
+        """
+        Combines multiple indexes into a single index.
+
+        Parameters
+        ----------
+        origin: list
+            The origin of the triangle.
+        indexes: list
+            The indexes to be combined.
+        """
         # No indexes supplied, return default index of just 1 for all factors.
         if (indexes is None) or len(indexes) == 0:
-            comp_index = FIndex(origin=origin, changes=[0 for x in range(0, len(origin))])
+            comp_index = FIndex(origin=origin, changes=[0] * len(origin))
         # Multiple indexes, compose them together.
         elif len(indexes) > 1:
             comp_index = indexes[0].compose(indexes[1:])
@@ -449,7 +546,24 @@ class ExpectedLossRatioModel(FSelectionModel):
         return comp_index
 
     @staticmethod
-    def calculate_loss_ratios(claims, premium, loss_trend, prem_trend) -> DataFrame:
+    def calculate_loss_ratios(
+            claims: ArrayLike,
+            premium: ArrayLike,
+            loss_trend: FIndex,
+            prem_trend: FIndex
+    ) -> DataFrame:
+        """
+        Calculates trended and adjusted loss ratios.
+
+        Parameters
+        ----------
+        claims: ArrayLike
+        premium: ArrayLike
+        loss_trend: FIndex
+            The loss trend applied to the claims.
+        prem_trend: FIndex
+            The premium trend applied to the premiums.
+        """
 
         trended_loss_matrix: DataFrame = loss_trend.apply_matrix(values=claims)
         on_level_premium_matrix: DataFrame = prem_trend.apply_matrix(values=premium)
@@ -458,11 +572,28 @@ class ExpectedLossRatioModel(FSelectionModel):
 
         return adj_loss_ratios
 
-    def update_indexes(self, indexes, prem_loss) -> None:
+    def update_indexes(
+            self,
+            indexes: list,
+            prem_loss: Literal['premium', 'loss']
+    ) -> None:
+        """
+        Method that accepts and applies new indexes from an accompanying Indexation widget. Triggered when
+        either the premium indexes or loss indexes section of the widget is updated.
 
+        indexes: list
+            List of indexes to be applied to the model.
+        prem_loss: Literal['premium', 'loss']
+            A string indication what type of indexes are being applied. They will either be 'premium' or 'loss' indexes.
+        """
 
-        composite_index = self.compose_trend(origin=self.origin, indexes=indexes)
+        # Compose the new premium or loss trend. Then apply it to construct the new trended and adjusted loss ratios.
+        composite_index: FIndex = self.compose_trend(
+            origin=self.origin,
+            indexes=indexes
+        )
 
+        # If new composite trend is premium, apply it along with the existing composite loss trend.
         if prem_loss == 'premium':
             adj_loss_ratios = self.calculate_loss_ratios(
                 claims=self.claims,
@@ -471,7 +602,8 @@ class ExpectedLossRatioModel(FSelectionModel):
                 prem_trend=composite_index
             )
             self.comp_prem_trend = composite_index
-        else:
+        # If new composite trend is loss, apply it along with the existing composite premium trend.
+        elif prem_loss == 'loss':
             adj_loss_ratios = self.calculate_loss_ratios(
                 claims=self.claims,
                 premium=self.premium,
@@ -479,16 +611,30 @@ class ExpectedLossRatioModel(FSelectionModel):
                 prem_trend=self.comp_prem_trend
             )
             self.comp_loss_trend = composite_index
+        else:
+            raise ValueError("Invalid value provided to prem_loss. It should either be 'premium' or 'loss'.")
 
-        self.setData(role=UpdateIndexRole, value=adj_loss_ratios, index=QModelIndex())
+        self.setData(
+            role=UpdateIndexRole,
+            value=adj_loss_ratios,
+            index=QModelIndex()
+        )
 
 
 class ExpectedLossIBNRWidget(FIBNRWidget):
+    """
+    Widget containing the IBNR and paid loss summary for the Expected Loss Model.
+
+    Parameters
+    ----------
+    parent: ExpectedLossWidget
+        The containing ExpectedLossWidget.
+    """
     def __init__(
             self,
             parent: ExpectedLossWidget
     ):
-        self.parent = parent
+        self.parent: ExpectedLossWidget = parent
         self.ibnr_model = ExpectedLossIBNRModel(parent=self)
         self.ibnr_view = FTableView(corner_button_label='AY')
         super().__init__(parent=parent)
@@ -498,7 +644,18 @@ class ExpectedLossIBNRWidget(FIBNRWidget):
 
 
 class ExpectedLossIBNRModel(FIBNRModel):
-    def __init__(self, parent):
+    """
+    The table model for the IBNR summary.
+
+    Parameters
+    ----------
+    parent: ExpectedLossIBNRWidget
+        The containing ExpectedLossIBNRWidget.
+    """
+    def __init__(
+            self,
+            parent: ExpectedLossIBNRWidget
+    ):
         super().__init__(parent=parent)
 
         self._data['On-Level Earned Premium'] = self.parent.parent.apriori_model._data['On-Level Earned Premium']
@@ -519,3 +676,5 @@ class ExpectedLossIBNRModel(FIBNRModel):
 
         self.dataChanged.emit(index, index)
         self.layoutChanged.emit()
+
+        return True
