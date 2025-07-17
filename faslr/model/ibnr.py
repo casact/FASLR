@@ -23,22 +23,30 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pandas import DataFrame
-    from faslr.common.model import FSelectionModel
     from faslr.model import FModelWidget
-    from faslr.model.ratio import FRatioSelectionModel
     from typing import Any
 
 class FIBNRWidget(QWidget):
+    """
+    Contains the IBNR and unpaid loss summary of the loss model.
+
+    Parameters
+    ----------
+
+    parent: FModelWidget
+        The containing FModelWidget.
+    """
     def __init__(
             self,
             parent: FModelWidget,
     ):
         super().__init__()
 
-        self.parent = parent
+        self.parent: FModelWidget = parent
 
         self.layout = QVBoxLayout()
 
+        # Only initialize base ibnr model and view if they have not been overridden.
         if not (hasattr(self, 'ibnr_model') and hasattr(self, 'ibnr_view')):
             self.ibnr_model = FIBNRModel(parent=self)
             self.ibnr_view = FTableView()
@@ -50,13 +58,22 @@ class FIBNRWidget(QWidget):
         self.setLayout(self.layout)
 
 class FIBNRModel(FAbstractTableModel):
+    """
+    Table model holding the IBNR summary data.
+
+    Parameters
+    ----------
+
+    parent: FIBNRWidget
+        The containing FIBNRWidget.
+    """
     def __init__(
             self,
             parent: FIBNRWidget
     ):
         super().__init__()
 
-        self.parent = parent
+        self.parent: FIBNRWidget = parent
         self.parent_model = self.parent.parent.selection_tab.selection_model
 
         self._data: DataFrame = self.parent_model.selected_ratios_row.T
