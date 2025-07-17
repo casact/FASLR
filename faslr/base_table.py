@@ -1,3 +1,6 @@
+"""
+Contains base table classes.
+"""
 import csv
 import io
 
@@ -21,6 +24,9 @@ from PyQt6.QtWidgets import (
 
 
 class FAbstractTableModel(QAbstractTableModel):
+    """
+    Base table model class for (almost) all tables in FASLR.
+    """
     def __init__(self):
         super().__init__()
 
@@ -46,6 +52,15 @@ class FAbstractTableModel(QAbstractTableModel):
 
 
 class FTableView(QTableView):
+    """
+    Base class for displaying tables in FASLR.
+
+    Parameters
+    ----------
+
+    corner_button_label: str
+        If set, creates a corner button with the supplied label.
+    """
     def __init__(
             self,
             corner_button_label: str = None
@@ -57,9 +72,12 @@ class FTableView(QTableView):
 
         if corner_button_label:
             self.setCornerButtonEnabled(True)
-            self.corner_btn = make_corner_button(parent=self, label=corner_button_label)
+            self.corner_btn = make_corner_button(
+                parent=self,
+                label=corner_button_label
+        )
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj, event) -> bool:
         if event.type() != QEvent.Type.Paint or not isinstance(
                 obj, QAbstractButton):
             return False
@@ -84,8 +102,10 @@ class FTableView(QTableView):
 
         return True
 
-    def copy_selection(self):
-        """Method to copy selected values to clipboard, so they can be pasted elsewhere, like Excel."""
+    def copy_selection(self) -> None:
+        """
+        Method to copy selected values to clipboard, so they can be pasted elsewhere, like Excel.
+        """
         selection = self.selectedIndexes()
         if selection:
             rows = sorted(index.row() for index in selection)
