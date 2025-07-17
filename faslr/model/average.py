@@ -71,9 +71,8 @@ class FAverageBox(QDialog):
         self.selection_model = self.parent.selection_model
 
         self.model = FAverageModel(
-            parent=None,
-            data=data,
-            checkable_columns=0
+            parent=self,
+            data=data
         )
         self.view = FAverageView()
         self.view.setModel(self.model)
@@ -123,7 +122,18 @@ class FAverageBox(QDialog):
 
         self.resize(width, height)
 
-    def handle_button_box(self, btn):
+    def handle_button_box(
+            self,
+            btn: QDialogButtonBox.StandardButton
+    ) -> None:
+        """
+        Routes button-box clicks to appropriate function depending on which button is clicked.
+
+        Parameters
+        ----------
+        btn: QDialogButtonBox.StandardButton
+            The button clicked.
+        """
 
         if btn == self.ok_button:
             return
@@ -134,7 +144,9 @@ class FAverageBox(QDialog):
             self.cancel()
 
     def accept_changes(self) -> None:
-
+        """
+        Executes when user clicks 'OK'.
+        """
         if self.parent is None:
             return
 
@@ -152,11 +164,20 @@ class FAverageBox(QDialog):
 
 
 class FAverageModel(QAbstractTableModel):
+    """
+    Table model for the available averages in a loss model.
+
+    Parameters
+    ----------
+    parent: FAverageBox
+        The FAverageBox in which this model is embedded. Usually the one where it is defined.
+    data: Optional[DataFrame]
+        A dataframe containing the available averages. Overrides extraction of these averages from the database.
+    """
     def __init__(
             self,
-            parent,
-            data: DataFrame,
-            checkable_columns: int = None
+            parent: FAverageBox,
+            data: DataFrame
     ):
         super().__init__()
 
@@ -164,25 +185,8 @@ class FAverageModel(QAbstractTableModel):
 
         self._data = data
 
-        if checkable_columns is None:
-            checkable_columns = []
-        elif isinstance(checkable_columns, int):
-            checkable_columns = [checkable_columns]
-        self.checkable_columns = set(checkable_columns)
-
-    def set_column_checkable(
-            self,
-            column,
-            checkable: bool = True
-    ) -> None:
-
-        if checkable:
-            self.checkable_columns.add(column)
-        else:
-            self.checkable_columns.discard(column)
-        self.dataChanged.emit( # noqa
-            self.index(0, column), self.index(self.rowCount() - 1, column)
-        )
+        # Set first column to be checkable - used to select averages for model.
+        self.checkable_columns = [0]
 
     def data(
             self,
@@ -191,6 +195,7 @@ class FAverageModel(QAbstractTableModel):
     ):
         value = self._data.iloc[index.row(), index.column()]
 
+        # Checkable column is a bool used to flag the checkmark.
         if role == Qt.ItemDataRole.CheckStateRole and index.column() in self.checkable_columns:
             return Qt.CheckState.Checked if value else Qt.CheckState.Unchecked
         elif index.column() not in self.checkable_columns and role in (
@@ -246,11 +251,13 @@ class FAverageModel(QAbstractTableModel):
             value,
             role=Qt.ItemDataRole.EditRole
     ) -> bool:
+
+        # Toggle the checkmark.
         if role == Qt.ItemDataRole.CheckStateRole and index.column() in self.checkable_columns:
             self._data.iloc[index.row(), index.column()] = bool(value)
             self.dataChanged.emit(index, index) # noqa
             return True
-
+        # Add average.
         elif role == AddAverageRole:
 
             df = pd.DataFrame(
@@ -270,9 +277,13 @@ class FAverageModel(QAbstractTableModel):
         return False
 
 class FAverageView(QTableView):
+    """
+    Table view for displaying the available averages.
+    """
     def __init__(self):
         super().__init__()
 
+        # Not needed as averages are indicated by an ID in their own field.
         self.verticalHeader().hide()
 
 class FAddAverageDialog(QDialog):
