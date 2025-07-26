@@ -176,14 +176,17 @@ class FAverageModel(QAbstractTableModel):
     """
     def __init__(
             self,
-            parent: FAverageBox,
-            data: DataFrame
+            parent: Optional[FAverageBox] = None,
+            data: Optional[DataFrame] = None
     ):
         super().__init__()
 
         self.parent = parent
 
-        self._data = data
+        if data is not None:
+            self._data = data
+        else:
+            self._data = pd.DataFrame()
 
         # Set first column to be checkable - used to select averages for model.
         self.checkable_columns = [0]
