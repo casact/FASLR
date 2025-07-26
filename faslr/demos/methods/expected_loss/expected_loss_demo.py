@@ -11,7 +11,8 @@ import pandas as pd
 
 from faslr.utilities import (
     load_sample,
-    table_from_tri
+    table_from_tri,
+    auto_bi_olep
 )
 
 from PyQt6.QtWidgets import (
@@ -21,20 +22,6 @@ from PyQt6.QtWidgets import (
 set_sample_db()
 
 app = QApplication(sys.argv)
-
-earned_premium = [
-    20000,
-    31500,
-    45000,
-    50000,
-    61183,
-    69175,
-    99322,
-    138151,
-    107578,
-    62438,
-    47797
-]
 
 averages = pd.DataFrame(
     data=[
@@ -61,7 +48,7 @@ paid_ult = cl.Chainladder().fit(paid_ult)
 
 widget = ExpectedLossWidget(
     triangles=[reported_ult, paid_ult],
-    premium=earned_premium,
+    premium=auto_bi_olep,
     averages=averages
 )
 
