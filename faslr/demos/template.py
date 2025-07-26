@@ -11,6 +11,10 @@ from PyQt6.QtWidgets import (
 
 set_sample_db()
 
+# widget = ...
+
 app = QApplication(sys.argv)
+
+# widget.show()
 
 app.exec()
