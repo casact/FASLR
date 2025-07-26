@@ -4,7 +4,6 @@ Demo of the FIndex class. Initializes an FIndex object from the first index in t
 from faslr.demos.sample_db import set_sample_db
 
 from faslr.index import FIndex
-from faslr.tests.test_menu import test_display_about
 
 set_sample_db()
 
@@ -50,5 +49,3 @@ adj_loss_ratios = trended_loss_matrix.div(on_level_premium_matrix)
 
 
 comp_loss_trend.apply_matrix(values=ult_claims)
-
-# 40145.37624 / 55921.262 = 0.7178910991
