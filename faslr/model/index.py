@@ -1,3 +1,6 @@
+"""
+Defines the FModelIndex widget, used to add trends into a loss model, along with supporting classes.
+"""
 from __future__ import annotations
 
 import pandas as pd
@@ -36,6 +39,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from faslr.model import FModelWidget
+    from typing import (
+        Literal,
+        Optional
+    )
 
 class FModelIndex(QWidget):
     def __init__(
@@ -162,24 +169,42 @@ class IndexSelector(QWidget):
         )
 
 class IndexListView(QWidget):
+    """
+    ListsView showing the indexes that have been added to a model. Typically contains indexes of one type, e.g.,
+    loss or premium indexes.
+
+    Parameters
+    ----------
+
+    parent: Optional[IndexSelector]
+        The containing IndexSelector widget.
+    label: Optional[str]
+        The text label to be placed above the embedded ListView. i.e., "Premium Indexes".
+    p_tool_tip: Optional[str]
+        The tooltip to be displayed when hovering over the plus button.
+    m_tool_tip: Optional[str]
+        The tooltip to be displayed when hovering over the minus button.
+    prem_loss: Optional[Literal['premium', 'loss']]
+        Used to indicate whether the ListView contains premium or loss indexes.
+    """
     def __init__(
             self,
-            parent: IndexSelector = None,
-            label: str = None,
-            p_tool_tip: str = None,
-            m_tool_tip: str = None,
-            prem_loss: str = None
+            parent: Optional[IndexSelector] = None,
+            label: Optional[str] = None,
+            p_tool_tip: Optional[str] = None,
+            m_tool_tip: Optional[str] = None,
+            prem_loss: Optional[Literal['premium', 'loss']] = None
     ):
         super().__init__()
 
         self.parent: IndexSelector = parent
         self.parent_model: FModelWidget = self.parent.parent.parent
-        self.prem_loss: str = prem_loss
+        self.prem_loss: Literal['premium', 'loss'] | None = prem_loss
 
-        # Stores index data by id
+        # Stores index data by id.
         self.indexes = []
 
-        self.label = QLabel(label)
+        self.label = QLabel(label) # noqa
 
         self.layout = QVBoxLayout()
 
@@ -221,7 +246,10 @@ class IndexListView(QWidget):
         ]:
             self.layout.addWidget(widget)
 
+        # Disable editing of included Indexes, since names are attached to the actual index objects.
         self.index_view.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
+        # Remove button should be disabled when ListView is empty.
         self.add_remove_btns.remove_btn.setEnabled(False)
 
         self.add_remove_btns.add_btn.clicked.connect(self.add_index)
@@ -236,8 +264,9 @@ class IndexListView(QWidget):
         )
 
     def add_index(self) -> None:
-
-        current_count = self.model.rowCount()
+        """
+        Launches an IndexInventory dialog box to add an index the model.
+        """
 
         index_inventory = IndexInventory(
             parent=self
@@ -245,45 +274,13 @@ class IndexListView(QWidget):
 
         index_inventory.exec()
 
-        new_count = self.model.rowCount()
-
-        if new_count > current_count:
-
-            idx = self.index_view.selectedIndexes()[0]
-
-            findex = self.model.itemFromIndex(idx).findex
-
-            # If view belongs to an expected loss model, add a column to the selection model.
-
-            # if self.parent.parent.parent:
-            #
-            #     self.parent.parent.parent.selection_model.setData(
-            #         index=QModelIndex(),
-            #         value=findex.df['Factor'],
-            #         role=Qt.ItemDataRole.EditRole
-            #     )
-            #
-            #     column_position = self.parent.parent.parent.selection_model.columnCount()
-            #
-            #     self.parent.parent.parent.selection_model.insertColumn(column_position+1)
-            #     self.parent.parent.parent.selection_model.layoutChanged.emit()
-            #     self.parent.parent.parent.selection_view.hheader.model().insertColumn(column_position + 1)
-            #
-            #     if self.prem_loss == "premium":
-            #         header_prefix = "Premium Index:\n"
-            #     else:
-            #         header_prefix = "Loss Index:\n"
-            #     self.parent.parent.parent.selection_view.hheader.setCellLabel(
-            #         row=0,
-            #         column=9,
-            #         label=header_prefix + findex.name
-            #     )
-
         # Update parent model, if attached.
         self.update_parent_model()
 
     def remove_premium_index(self) -> None:
-
+        """
+        Removes the selected index(es) from the IndexListView.
+        """
         selected_indexes = self.index_view.selectedIndexes()
 
         for idx in selected_indexes:
@@ -321,5 +318,8 @@ class IndexListView(QWidget):
             )
 
 class IndexListModel(QStandardItemModel):
+    """
+    Model for the IndexListView.
+    """
     def __init__(self):
         super().__init__()

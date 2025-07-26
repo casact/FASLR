@@ -1,3 +1,6 @@
+"""
+Contains main Index class and the widgets used to add them to loss models.
+"""
 from __future__ import annotations
 
 import faslr.core as core
@@ -40,15 +43,10 @@ from PyQt6.QtWidgets import (
     QAbstractButton,
     QAbstractItemView,
     QDialog,
-    QDialogButtonBox,
     QHeaderView,
-    QFormLayout,
     QLabel,
-    QLineEdit,
-    QPushButton,
     QStyle,
     QStyleOptionHeader,
-    QWidget,
     QVBoxLayout
 )
 
@@ -60,34 +58,62 @@ from typing import (
 if TYPE_CHECKING:  # pragma no coverage
     from faslr.model.index import IndexListView
     from pandas import DataFrame
+    from typing import Optional
 
 
 class FIndex:
     def __init__(
             self,
-            origin: list = None,
-            changes: list = None,
-            name: str = None,
-            description: str = None,
-            from_id: int = None,
-            db: str = None
+            origin: Optional[list] = None,
+            changes: Optional[list] = None,
+            name: Optional[str] = None,
+            description: Optional[str] = None,
+            from_id: Optional[int] = None,
+            db: Optional[str] = None
     ):
         """
-        Represents an index, and all the things you can do with it (i.e., on-level rate index).
+        Represents an index, and all the things you can do with it (i.e., on-level rate index). There are two ways
+        to initialize the index: 1) by supplying data to the origin, changes, name, and description arguments or 2)
+        extracting the data from the database via its index ID.
+
+        Parameters
+        ----------
+        origin: Optional[list]
+            The years corresponding to the origin dimension of the triangle to which the index applies.
+        changes: Optional[list]
+            A list of changes per year of origin.
+        name: Optional[str]
+            A short name used to identify the index.
+        description: Optional[str]
+            A longer description of the index.
+        from_id: Optional[int]
+            If supplied, initializes an index by querying data from the db via its index id.
+        db: Optional[str]
+            The database path from which the index data is extracted, used in conjunction with from_id.
         """
 
+        # Case when data are supplied to the arguments.
         if (origin is not None) and (changes is not None):
             self.name = name
             self.description = description
             self.origin = origin
             self.changes = changes
-        else:
+        # Case when extracting the index from the ID.
+        elif from_id:
             index_dict = self.get_index_from_id(id_no=from_id, db=db)
             self.id = from_id
             self.name = index_dict['Name']
             self.description = index_dict['Description']
             self.origin = index_dict['Origin']
             self.changes = index_dict['Changes']
+        else:
+            raise ValueError(
+                """
+                Unable to initialize index. An index can be initialized by 1) assigning data to the
+                origin and changes arguments or 2) supplying an index ID to from_id along with an optional 
+                database path.
+                """
+            )
 
     @staticmethod
     def get_index_from_id(
@@ -103,6 +129,7 @@ class FIndex:
         :type db: str
         """
 
+        # Use the application database if none is provided.
         if db is None:
             db = core.db
 
@@ -137,6 +164,19 @@ class FIndex:
             years: list,
             index: list
     ) -> dict:
+        """
+        Returns a dictionary of factors that bring the base_yr to the level of the years provided.
+
+        Parameters
+        ----------
+        base_yr: int
+            The year being brought to the level of the other years.
+        years: list
+            The other years.
+        index: list
+            A list of applicable changes, in factor form - i.e., 1 + change.
+        """
+
         idx = years.index(base_yr)
         res = {}
         for x in range(len(years)):
@@ -149,6 +189,9 @@ class FIndex:
 
     @property
     def df(self) -> DataFrame:
+        """
+        Returns a pandas DataFrame representation of the Index.
+        """
 
         df_idx = pd.DataFrame(
             data={
@@ -162,9 +205,11 @@ class FIndex:
 
     @property
     def factors(self) -> list:
-
+        """
+        Returns a list of factors that brings each year to the latest year in the self.origin.
+        """
         row_count = len(self.origin)
-        factors = [1 for x in range(row_count)]
+        factors = [1] * row_count
         for i in range(row_count - 1, -1, -1):
             if i == row_count - 1:
                 pass
@@ -175,6 +220,9 @@ class FIndex:
 
     @property
     def matrix(self) -> DataFrame:
+        """
+        Matrix representation of the index. A matrix of factors that brings each year to the level of every other year.
+        """
         d: list = []  # holds the data used to initialize the resulting dataframe
 
         incremental_factors = [x + 1.0 for x in self.changes]
@@ -195,7 +243,9 @@ class FIndex:
 
     @property
     def meta_dict(self) -> dict:
-
+        """
+        Returns a dictionary of metadata about the index.
+        """
         return {
             'ID': [self.id],
             'Name': [self.name],
@@ -258,6 +308,14 @@ class FIndex:
             changes=combined_changes
         )
 
+    def __repr__(self) -> str:
+        """
+        Visual display of the FIndex is its pandas DataFrame representation.
+        """
+        repr_str = "FIndex: " + self.name
+        repr_str += '\n' + "Description: " + self.description
+        repr_str += '\n\n' + str(self.df)
+        return repr_str
 
 
 
@@ -287,7 +345,7 @@ class IndexTableModel(FAbstractTableModel):
         if years:
             n_years = len(years)
 
-            data = {'Change': [np.nan for x in years], 'Factor': [np.nan for x in years]}
+            data = {'Change': [np.nan] * n_years, 'Factor': [np.nan] * n_years}
 
             self._data = pd.DataFrame(
                 data=data,
@@ -390,98 +448,28 @@ class IndexTableView(FTableView):
         self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
-class IndexPane(QWidget):
-    def __init__(
-            self,
-            years: list = None
-    ):
-        super().__init__()
-
-        self.layout = QVBoxLayout()
-        self.years = years
-
-        self.constant_btn = QPushButton('Set Constant')
-        self.constant_btn.setFixedWidth(100)
-
-        self.view = IndexTableView()
-        self.model = IndexTableModel(years=years)
-
-        self.view.setModel(self.model)
-
-        self.layout.addWidget(
-            self.constant_btn,
-            alignment=Qt.AlignmentFlag.AlignRight
-        )
-
-        self.layout.addWidget(self.view)
-
-        self.setLayout(self.layout)
-
-        self.constant_btn.pressed.connect(self.set_constant) # noqa
-
-    def set_constant(self):
-
-        constant_dialog = IndexConstantDialog(parent=self)
-
-        constant_dialog.exec()
-
-
-class IndexConstantDialog(QDialog):
-    def __init__(
-            self,
-            parent: IndexPane
-    ):
-        super().__init__()
-
-        self.parent = parent
-
-        self.setWindowTitle("Set Constant Trend")
-
-        years = [str(year) for year in parent.years]
-
-        self.layout = QFormLayout()
-        self.trend_input = QLineEdit()
-        self.layout.addRow("Trend", self.trend_input)
-
-        self.ok_btn = QDialogButtonBox.StandardButton.Ok
-        self.cancel_btn = QDialogButtonBox.StandardButton.Cancel
-        self.button_layout = self.ok_btn | self.cancel_btn
-        self.button_box = QDialogButtonBox(self.button_layout)
-
-        self.button_box.accepted.connect(self.set_constant) # noqa
-        self.button_box.rejected.connect(self.close) # noqa
-
-        self.layout.addWidget(self.button_box)
-
-        self.setLayout(self.layout)
-
-    def set_constant(self) -> None:
-
-        index = QModelIndex()
-        trend = float(self.trend_input.text())
-
-        self.parent.model.setData(
-            index=index,
-            value=trend,
-            role=IndexConstantRole
-        )
-
-        self.close()
-
-
 class IndexInventory(QDialog):
     """
     Widget to display the index inventory.
+
+    Parameters
+    ----------
+
+    indexes: Optional[List[dict | FIndex]]
+        A list of indexes to include in the Inventory. Overrides pulling from the application database.
+    parent: Optional[IndexListView]
+        The parent IndexListView.
     """
     def __init__(
             self,
-            indexes: List[dict | FIndex] = None,
-            parent: IndexListView = None
+            indexes: Optional[List[dict | FIndex]] = None,
+            parent: Optional[IndexListView] = None
     ):
         super().__init__()
 
         self.parent: IndexListView = parent
 
+        # If indexes argument is supplied, use the supplied indexes. Otherwise, get them from the database.
         if indexes:
             self.indexes: list = indexes
             self.validate_indexes()
@@ -494,7 +482,6 @@ class IndexInventory(QDialog):
             self.indexes = []
             for i in range(n_index):
                 index_to_add = FIndex(from_id=i+1)
-                print(index_to_add.meta_dict)
                 self.indexes += [index_to_add]
 
         self.layout = QVBoxLayout()
@@ -528,7 +515,10 @@ class IndexInventory(QDialog):
         self.setLayout(self.layout)
 
     def validate_indexes(self) -> None:
-
+        """
+        Validates the values supplied to the indexes argument of the constructor. They should all be of the same
+        type: dict or FIndex.
+        """
         if (all(isinstance(x, dict) for x in self.indexes)) or \
                 (all(isinstance(x, FIndex) for x in self.indexes)):
             pass
@@ -536,7 +526,11 @@ class IndexInventory(QDialog):
             raise TypeError("Indexes must either be all of type dict or FIndex.")
 
     def add_indexes(self) -> None:
+        """
+        If connected to a parent IndexListView, adds the selected indexes to that view.
+        """
 
+        # If not connected to a parent IndexListView (demo mode), do nothing and close.
         if not self.parent:
             self.close()
 
@@ -548,7 +542,7 @@ class IndexInventory(QDialog):
                 if selected_idx.column() >= 1:
                     continue
 
-                idx_id = self.inventory_model.data(
+                idx_id: int = self.inventory_model.data(
                     index=selected_idx,
                     role=Qt.ItemDataRole.DisplayRole
                 )
@@ -566,10 +560,14 @@ class IndexInventory(QDialog):
 
         
 class IndexInventoryView(FTableView):
+    """
+    TableView for displaying IndexInventory.
+    """
     def __init__(self):
         super().__init__()
 
         self.verticalHeader().hide()
+        # Whole row should be selected when user clicks on it.
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         
         
@@ -580,6 +578,11 @@ class IndexInventoryModel(FAbstractTableModel):
     ):
         """
         Model that holds the index inventory.
+
+        Parameters
+        ----------
+        indexes: list
+            Index inventory to be held by the model.
         """
         super().__init__()
 
@@ -591,6 +594,7 @@ class IndexInventoryModel(FAbstractTableModel):
 
         self._data = pd.DataFrame(columns=idx_meta_columns)
 
+        # Create DataFrame of index metadata.
         for idx in indexes:
             if type(idx) == FIndex:
                 idx = idx.meta_dict
@@ -626,11 +630,17 @@ class IndexInventoryModel(FAbstractTableModel):
 
 
 def calculate_index_factors(index: DataFrame) -> DataFrame:
+    """
+    Calculates factors from a DataFrame of index changes - i.e., converts percentage changes
+    to multiplicative factors used to trend/on-level a value.
 
-    # index['Factor'] = 1
-
+    Parameters
+    ----------
+    index: DataFrame
+        A DataFrame containing index changes.
+    """
     row_count = len(index)
-    factors = [1 for x in range(row_count)]
+    factors = [1] * row_count
     for i in range(row_count - 1, -1, -1):
         if i == row_count - 1:
             pass
