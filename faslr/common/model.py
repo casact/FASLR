@@ -48,7 +48,10 @@ if TYPE_CHECKING:
     from faslr.model import FIBNRModel
     from pandas import DataFrame
     from PyQt6.QtCore import QAbstractItemModel
-    from typing import Any
+    from typing import (
+        Any,
+        Optional
+    )
 
 class FSelectionModel(FAbstractTableModel):
     """
@@ -57,22 +60,22 @@ class FSelectionModel(FAbstractTableModel):
 
     Parameters
     ----------
-    parent: FSelectionModelWidget
+    parent: Optional[FSelectionModelWidget]
         The containing widget that this model will be embedded in.
-    data: DataFrame
+    data: Optional[DataFrame]
         A DataFrame consisting of the ratios to be selected, i.e., link ratios or loss ratios which will be averaged
         in various ways prior to selection. The application by default will take this data from the underlying
         database, but this argument will override that query.
-    averages: DataFrame
+    averages: Optional[DataFrame]
         A DataFrame containing metadata on average types, i.e., all-year straight, 3-year volume-weighted, etc.
         The application by default will take this data from the underlying database, but this argument will
         override that query.
     """
     def __init__(
             self,
-            parent: FSelectionModelWidget,
-            data: DataFrame,
-            averages: DataFrame
+            parent: Optional[FSelectionModelWidget] = None,
+            data: Optional[DataFrame] = None,
+            averages: Optional[DataFrame] = None
     ):
         super().__init__()
 
@@ -81,19 +84,24 @@ class FSelectionModel(FAbstractTableModel):
         self.parent: FSelectionModelWidget = parent
 
         # Section containing
-        self.df_ratio: DataFrame = data
+        if data is not None:
+            self.df_ratio: DataFrame = data
 
-        # Row containing the average types, initialized to None.
-        self.average_frame: DataFrame | None = None
+            # Row containing the average types, initialized to None.
+            self.average_frame: DataFrame | None = None
 
-        # Row containing the selections, initialized first as a blank row.
-        self.selected_ratios_row: DataFrame = self.blank_row.copy()
+            # Row containing the selections, initialized first as a blank row.
+            self.selected_ratios_row: DataFrame = self.blank_row.copy()
 
-        # Contains the average types, e.g., 3-year volume weighted average.
-        self.average_types = averages
+            # Contains the average types, e.g., 3-year volume weighted average.
+            self.average_types = averages
 
-        # Combine ratio, spacer rows, default averages, and selected ratios row into a single DataFrame for display.
-        self.setData(index=QModelIndex(), value=None)
+            # Combine ratio, spacer rows, default averages, and selected ratios row into a single DataFrame for display.
+            self.setData(index=QModelIndex(), value=None)
+
+        else:
+            self.df_ratio = pd.DataFrame()
+            self._data = pd.DataFrame()
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         """
@@ -326,11 +334,14 @@ class FSelectionModel(FAbstractTableModel):
         return self.n_ratio_rows + 2 + self.average_frame.shape[0] + 1
 
     @property
-    def included_averages(self) -> DataFrame:
+    def included_averages(self) -> DataFrame | None:
         """
         DataFrame containing subset of available averages that are included in the model.
         """
-        return self.average_types[self.average_types['Selected'] == True].copy()
+        if self.average_types is not None:
+            return self.average_types[self.average_types['Selected'] == True].copy()
+        else:
+            return None
 
     @property
     def included_averages_rows(self) -> range:
@@ -376,25 +387,25 @@ class FSelectionModelWidget(QWidget):
 
     Parameters
     ----------
-    parent: FModelWidget
+    parent: Optional[FModelWidget]
         The containing general model.
-    data: DataFrame
+    data: Optional[DataFrame]
         A DataFrame consisting of the ratios to be selected, i.e., link ratios or loss ratios which will be averaged
         in various ways prior to selection. The application by default will take this data from the underlying
         database, but this argument will override that query.
-    averages: DataFrame
+    averages: Optional[DataFrame]
         A DataFrame containing metadata on average types, i.e., all-year straight, 3-year volume-weighted, etc.
         The application by default will take this data from the underlying database, but this argument will
         override that query.
-    window_title: str
+    window_title: Optional[str]
         The window title of the widget, when used in demo or standalone mode.
     """
     def __init__(
             self,
-            parent: FModelWidget,
-            data: DataFrame,
-            averages: DataFrame,
-            window_title: str = None,
+            parent: Optional[FModelWidget] = None,
+            data: Optional[DataFrame] = None,
+            averages: Optional[DataFrame] = None,
+            window_title: Optional[str] = None,
     ):
         super().__init__()
 
@@ -404,6 +415,13 @@ class FSelectionModelWidget(QWidget):
             self.setWindowTitle(window_title)
 
         self.layout = QVBoxLayout()
+
+        # If selection model and view has already been subclass, skip, otherwise use base classes.
+        if not (hasattr(self, 'selection_model') and hasattr(self, 'selection_model_view')):
+            self.selection_model = FSelectionModel(data=data, averages=averages, parent=self)
+            self.selection_model_view = FModelView(parent=self)
+
+        self.selection_model_view.setModel(self.selection_model)
 
         # Container widget for upper-right hand tools (add average button, etc.).
         self.toolbox = FSelectionModelToolbox(
@@ -415,13 +433,6 @@ class FSelectionModelWidget(QWidget):
             self.toolbox,
             alignment=Qt.AlignmentFlag.AlignRight
         )
-
-        # If selection model and view has already been subclass, skip, otherwise use base classes.
-        if not (hasattr(self, 'selection_model') and hasattr(self, 'selection_model_view')):
-            self.selection_model = FSelectionModel(data=data, averages=averages, parent=self)
-            self.selection_model_view = FModelView(parent=self)
-
-        self.selection_model_view.setModel(self.selection_model)
 
         self.layout.addWidget(self.selection_model_view)
 
