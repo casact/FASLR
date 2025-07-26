@@ -36,7 +36,6 @@ from faslr.style.triangle import (
 )
 
 from faslr.utilities import (
-    auto_bi_olep,
     fetch_cdf,
     fetch_latest_diagonal,
     fetch_origin,
@@ -80,22 +79,32 @@ class ExpectedLossAprioriModel(FAbstractTableModel):
     Parameters
     ----------
 
-    triangles: List[Chainladder]
+    triangles: Optional[List[Chainladder]]
         List of paid and incurred losses, with ldfs already chosen.
     """
     def __init__(
             self,
-            triangles: List[Chainladder]
+            triangles: Optional[List[Chainladder]] = None,
+            premium: list = None
     ):
         super().__init__()
 
-        self.origin = fetch_origin(triangles[0])
-        self.reported = fetch_latest_diagonal(triangles[0])
-        self.paid = fetch_latest_diagonal(triangles[1])
-        self.reported_cdf = fetch_cdf(triangles[0])
-        self.paid_cdf = fetch_cdf(triangles[1])
-        self.reported_ultimate = fetch_ultimate(triangles[0])
-        self.paid_ultimate = fetch_ultimate(triangles[1])
+        if triangles:
+            self.origin = fetch_origin(triangles[0])
+            self.reported = fetch_latest_diagonal(triangles[0])
+            self.paid = fetch_latest_diagonal(triangles[1])
+            self.reported_cdf = fetch_cdf(triangles[0])
+            self.paid_cdf = fetch_cdf(triangles[1])
+            self.reported_ultimate = fetch_ultimate(triangles[0])
+            self.paid_ultimate = fetch_ultimate(triangles[1])
+        else:
+            self.origin = []
+            self.reported = []
+            self.paid = []
+            self.reported_cdf = []
+            self.paid_cdf = []
+            self.reported_ultimate = []
+            self.paid_ultimate = []
 
         self._data = pd.DataFrame({
             'Accident Year': self.origin,
@@ -111,7 +120,10 @@ class ExpectedLossAprioriModel(FAbstractTableModel):
 
         self._data['Initial Selected'] = (self._data['Reported Ultimate'] + self._data['Paid Ultimate']) / 2
 
-        self._data['On-Level Earned Premium'] = auto_bi_olep
+        if premium:
+            self._data['On-Level Earned Premium'] = premium
+        else:
+            self._data['On-Level Earned Premium'] = None
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
 
@@ -214,17 +226,17 @@ class ExpectedLossWidget(FModelWidget):
 
     Parameters
     ----------
-    triangles: List[Chainladder]
+    triangles: Optional[List[Chainladder]]
         Paid and incurred triangles, with selected ldfs.
-    premium: list
-    averages: dict
+    premium: Optional[list]
+    averages: Optional[dict]
         Averages that you want available to the model. Overrides database values.
     """
     def __init__(
             self,
-            triangles: List[Chainladder],
-            premium: list,
-            averages: DataFrame
+            triangles: Optional[List[Chainladder]] = None,
+            premium: Optional[list] = None,
+            averages: Optional[DataFrame] = None
     ):
         super().__init__()
 
@@ -238,19 +250,23 @@ class ExpectedLossWidget(FModelWidget):
             parent=self
         )
 
-        self.apriori_tab = QWidget()
+        self.apriori_tab = ExpectedLossAprioriWidget(
+            triangles=triangles,
+            premium=premium
+        )
 
 
         self.main_tabs.addTab(self.indexation, "Indexes")
         self.main_tabs.addTab(self.apriori_tab, "Apriori Selection")
 
-        self.apriori_view = ExpectedLossAprioriView()
-        self.apriori_model = ExpectedLossAprioriModel(triangles=triangles)
-        self.apriori_view.setModel(self.apriori_model)
+        if triangles:
+            self.origin = list(triangles[0].X_.origin.year)
+        else:
+            self.origin = []
 
         self.selection_tab = ExpectedLossRatioWidget(
-            origin=list(triangles[0].X_.origin.year),
-            claims=self.apriori_model.initial_selected_ultimate,
+            origin=self.origin,
+            claims=self.apriori_tab.model.initial_selected_ultimate,
             premium=premium,
             averages=averages,
             parent=self
@@ -269,135 +285,149 @@ class ExpectedLossWidget(FModelWidget):
             'IBNR Summary'
         )
 
+        self.layout.addWidget(self.main_tabs)
 
-        self.apriori_view.setGridHeaderView(
+        self.setLayout(self.layout)
+
+
+class ExpectedLossAprioriWidget(QWidget):
+    def __init__(
+            self,
+            triangles: Optional[List[Chainladder]] = None,
+            premium: list = None
+    ):
+        super().__init__()
+
+        self.view = ExpectedLossAprioriView()
+        self.model = ExpectedLossAprioriModel(
+            triangles=triangles,
+            premium=premium
+        )
+        self.view.setModel(self.model)
+
+        self.view.setGridHeaderView(
             orientation=Qt.Orientation.Horizontal,
             levels=2
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=0,
             row_span_count=0,
             column_span_count=2
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=2,
             row_span_count=0,
             column_span_count=2
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=4,
             row_span_count=0,
             column_span_count=2
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=6,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=7,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=8,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.apriori_view.hheader.setSpan(
+        self.view.hheader.setSpan(
             row=0,
             column=9,
             row_span_count=2,
             column_span_count=0
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=0,
             column=0,
             label="Claims at 12/31/08\n"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=1,
             column=0,
             label="Reported"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=1,
             column=1,
             label="Paid"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=0,
             column=2,
             label="CDF to Ultimate"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=1,
             column=2,
             label="Reported"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=1,
             column=3,
             label="Paid"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=0,
             column=4,
             label="Projected Ultimate Claims"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=1,
             column=4,
             label="Reported"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=1,
             column=5,
             label="Paid"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=0,
             column=6,
             label="Initial Selected\nUltimate Claims"
         )
 
-        self.apriori_view.hheader.setCellLabel(
+        self.view.hheader.setCellLabel(
             row=0,
             column=7,
             label="On-Level\nEarned Premium"
         )
 
-        ly_apriori_tab = QVBoxLayout()
-        ly_apriori_tab.addWidget(self.apriori_view)
-        self.apriori_tab.setLayout(ly_apriori_tab)
-
-        self.layout.addWidget(self.main_tabs)
-
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.view)
         self.setLayout(self.layout)
-
 
 class ExpectedLossRatioWidget(FSelectionModelWidget):
     """
@@ -408,12 +438,12 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
 
     parent: ExpectedLossWidget
         The containing ExpectedLossWidget.
-    origin: list
+    origin: Optional[list]
         The origin dimension of the triangle.
-    claims: ArrayLike
+    claims: Optional[ArrayLike]
         The initial selected ultimate losses.
-    premium: list
-    averages: dict
+    premium: Optional[list]
+    averages: Optional[dict]
         Averages that you want available to the model. Overrides database values.
     claim_indexes: Optional[list[FIndex]]
         The claim indexes to be applied to the losses, overrides database values.
@@ -423,10 +453,10 @@ class ExpectedLossRatioWidget(FSelectionModelWidget):
     def __init__(
             self,
             parent: ExpectedLossWidget,
-            origin: list,
-            claims: ArrayLike,
-            premium: list,
-            averages: DataFrame,
+            origin: Optional[list] = None,
+            claims: Optional[ArrayLike] = None,
+            premium: Optional[list] = None,
+            averages: Optional[DataFrame] = None,
             claim_indexes: Optional[list[FIndex]] = None,
             premium_indexes: Optional[list[FIndex]] = None,
     ):
@@ -461,11 +491,11 @@ class ExpectedLossRatioModel(FSelectionModel):
 
     parent: ExpectedLossRatioWidget
         The containing widget of the ExpectedLossRatioModel
-    origin: ArrayLike
+    origin: Optional[ArrayLike]
         The origin dimension of the triangle.
-    claims: ArrayLike
-    premium: ArrayLike
-    averages: DataFrame
+    claims: Optional[ArrayLike]
+    premium: Optional[ArrayLike]
+    averages: Optional[DataFrame]
         Averages that you want available to the model. Overrides database values.
     claim_indexes: Optional[list[FIndex]]
         The claim indexes to be applied to the losses, overrides database values.
@@ -475,28 +505,36 @@ class ExpectedLossRatioModel(FSelectionModel):
     def __init__(
             self,
             parent: ExpectedLossRatioWidget,
-            origin: ArrayLike,
-            claims: ArrayLike,
-            premium: ArrayLike,
-            averages: DataFrame,
+            origin: Optional[ArrayLike] = None,
+            claims: Optional[ArrayLike] = None,
+            premium: Optional[ArrayLike] = None,
+            averages: Optional[DataFrame] = None,
             claim_indexes: Optional[list[FIndex]] = None,
             premium_indexes: Optional[list[FIndex]] = None,
     ):
         self.parent = parent
-        self.origin = origin
-        self.claims = claims
-        self.premium = premium
-        # Create composite indexes
-        self.comp_loss_trend = self.compose_trend(origin=origin, indexes=claim_indexes)
 
-        self.comp_prem_trend = self.compose_trend(origin=origin, indexes=premium_indexes)
+        if origin:
+            self.origin = origin
+            self.claims = claims
+            self.premium = premium
+            # Create composite indexes
+            self.comp_loss_trend = self.compose_trend(origin=origin, indexes=claim_indexes)
 
-        adj_loss_ratios = self.calculate_loss_ratios(
-            claims=claims,
-            premium=premium,
-            loss_trend=self.comp_loss_trend,
-            prem_trend=self.comp_prem_trend
-        )
+            self.comp_prem_trend = self.compose_trend(origin=origin, indexes=premium_indexes)
+
+            adj_loss_ratios = self.calculate_loss_ratios(
+                claims=claims,
+                premium=premium,
+                loss_trend=self.comp_loss_trend,
+                prem_trend=self.comp_prem_trend
+            )
+        else:
+            self.origin = []
+            self.claims = []
+            self.comp_prem_trend = None
+            self.comp_prem_trend = None
+            adj_loss_ratios = pd.DataFrame()
 
         super().__init__(
             parent=self.parent,
@@ -658,9 +696,9 @@ class ExpectedLossIBNRModel(FIBNRModel):
     ):
         super().__init__(parent=parent)
 
-        self._data['On-Level Earned Premium'] = self.parent.parent.apriori_model._data['On-Level Earned Premium']
-        self._data['Paid Losses'] = self.parent.parent.apriori_model._data['Paid Losses']
-        self._data['Reported Losses'] = self.parent.parent.apriori_model._data['Reported Losses']
+        self._data['On-Level Earned Premium'] = self.parent.parent.apriori_tab.model._data['On-Level Earned Premium']
+        self._data['Paid Losses'] = self.parent.parent.apriori_tab.model._data['Paid Losses']
+        self._data['Reported Losses'] = self.parent.parent.apriori_tab.model._data['Reported Losses']
         self._data = self._data.rename(columns={'Selected Averages': 'Selected Loss Ratio'})
         self._data['Ultimate Loss'] = self._data['On-Level Earned Premium'] * self._data['Selected Loss Ratio']
         self._data['IBNR'] = self._data['Ultimate Loss'] - self._data['Reported Losses']
