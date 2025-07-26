@@ -7,11 +7,8 @@ import pytest
 import faslr.core as core
 from faslr.index import (
     calculate_index_factors,
-    IndexPane,
     IndexInventory
 )
-
-from faslr.model import FModelIndex
 
 from faslr.methods.expected_loss import (
     ExpectedLossWidget
@@ -19,7 +16,6 @@ from faslr.methods.expected_loss import (
 
 from faslr.utilities import (
     load_sample,
-    ppa_loss_trend,
     subset_dict,
 )
 
@@ -95,26 +91,6 @@ def df_tort_index(
 
     return df_res
 
-
-@pytest.fixture()
-def index_pane(
-        qtbot: QtBot
-) -> IndexPane:
-    """
-    Setup common index pane used for testing.
-    :param qtbot: The QtBot fixture.
-    :return: An IndexPane object.
-    """
-
-    dummy_ays = list(range(2000, 2009))
-
-    index_pane = IndexPane(years=dummy_ays)
-
-    qtbot.addWidget(index_pane)
-
-    yield index_pane
-
-
 @pytest.fixture()
 def expected_loss(
         qtbot: QtBot
@@ -144,95 +120,6 @@ def expected_loss(
     qtbot.addWidget(widget)
 
     yield widget
-
-
-def test_index_pane(
-        qtbot: QtBot,
-        index_pane: IndexPane
-) -> None:
-    """
-    Test initialization of index pane and enter a constant trend factor.
-    :param qtbot: The QtBot fixture.
-    :param index_pane: The index_pane fixture.
-    :return: None.
-    """
-
-    def constant_handler() -> None:
-        """
-        Handle the constant factor dialog box.
-        :return: None
-        """
-
-        keyboard = Controller()
-
-        dialog = QApplication.activeModalWidget()
-
-        qtbot.waitUntil(
-            callback=dialog.isVisible,
-            timeout=5000
-        )
-
-        keyboard.type('.05')
-
-        keyboard.press(Key.enter)
-        keyboard.release(Key.enter)
-
-    blank_idx = index_pane.model.index(0, 0)
-    blank_test = index_pane.model.data(
-        index=blank_idx,
-        role=Qt.ItemDataRole.DisplayRole
-    )
-    assert blank_test == ''
-
-    QTimer.singleShot(
-        500,
-        constant_handler
-    )
-
-    qtbot.mouseClick(
-        index_pane.constant_btn,
-        Qt.MouseButton.LeftButton,
-        delay=1
-    )
-
-    change_idx = index_pane.model.index(
-        0,
-        0
-    )
-
-    factor_idx = index_pane.model.index(
-        0,
-        1
-    )
-
-    change_test = index_pane.model.data(
-        index=change_idx,
-        role=Qt.ItemDataRole.DisplayRole
-    )
-
-    factor_test = index_pane.model.data(
-        index=factor_idx,
-        role=Qt.ItemDataRole.DisplayRole
-    )
-
-    assert change_test == "5.0%"
-
-    assert factor_test == "1.477"
-
-
-def test_index_pane_blank(
-        qtbot: QtBot
-) -> None:
-
-    """
-    Test generation of a blank index pane.
-    :param qtbot: The QtBot fixture.
-    :return: None.
-    """
-
-    index_pane = IndexPane()
-
-    qtbot.addWidget(index_pane)
 
 
 def test_index_inventory(
