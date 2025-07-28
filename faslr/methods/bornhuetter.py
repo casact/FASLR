@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 from faslr.base_table import FTableView
 
 from faslr.model import (
@@ -9,9 +11,22 @@ from faslr.model import (
     FModelWidget
 )
 
+from faslr.style.triangle import (
+    PERCENT_STYLE,
+    RATIO_STYLE,
+    VALUE_STYLE
+)
+
 from faslr.methods.expected_loss import (
     ExpectedLossAprioriWidget,
     ExpectedLossRatioWidget
+)
+
+from faslr.utilities import (
+    fetch_cdf,
+    fetch_latest_diagonal,
+    fetch_origin,
+    fetch_ultimate
 )
 
 from PyQt6.QtCore import (
@@ -24,7 +39,7 @@ from PyQt6.QtWidgets import (
     QTabWidget
 )
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from chainladder import Chainladder
@@ -103,14 +118,60 @@ class BornhuetterIBNRModel(FIBNRModel):
     ):
         super().__init__(parent=parent)
         self._data['On-Level Earned Premium'] = self.parent.parent.apriori_tab.model._data['On-Level Earned Premium']
-        self._data['Paid Losses'] = self.parent.parent.apriori_tab.model._data['Paid Losses']
-        self._data['Reported Losses'] = self.parent.parent.apriori_tab.model._data['Reported Losses']
         self._data = self._data.rename(columns={'Selected Averages': 'Selected Loss Ratio'})
+        self._data['Expected Claims'] = self._data['Selected Loss Ratio'] * self._data['On-Level Earned Premium']
+        self._data['Reported CDF'] = np.maximum(1, self.parent.parent.apriori_tab.model._data['Reported CDF'])
+        self._data['Paid CDF'] = np.maximum(1, self.parent.parent.apriori_tab.model._data['Paid CDF'])
+        self._data['% Unreported'] = 1 - self._data['Reported CDF'] ** (-1)
+        self._data['% Unpaid'] = 1 - self._data['Paid CDF'] ** (-1)
+        self._data['Expected Unreported'] = self._data['% Unreported'] * self._data['Expected Claims']
+        self._data['Expected Unpaid'] = self._data['% Unpaid'] * self._data['Expected Claims']
+        self._data['Reported Losses'] = self.parent.parent.apriori_tab.model._data['Reported Losses']
+        self._data['Paid Losses'] = self.parent.parent.apriori_tab.model._data['Paid Losses']
+        self._data['Ultimate BF Reported'] = self._data['Expected Unreported'] + self._data['Reported Losses']
+        self._data['Ultimate BF Paid'] = self._data['Expected Unpaid'] + self._data['Paid Losses']
+        self._data['Case Outstanding'] = self._data['Reported Losses'] - self._data['Paid Losses']
+        self._data['BF Reported IBNR'] = self._data['Ultimate BF Reported'] - self._data['Reported Losses']
+        self._data['BF Paid IBNR'] = self._data['Ultimate BF Paid'] - self._data['Reported Losses']
+        self._data['BF Reported Unpaid Claims'] = self._data['Ultimate BF Reported'] - self._data['Paid Losses']
+        self._data['BF Paid Unpaid Claims'] = self._data['Ultimate BF Paid'] - self._data['Paid Losses']
+
+
+    def data(self, index, role = ...) -> Any:
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
+
+            if np.isnan(value):
+                return ""
+            elif col in [
+                'Selected Loss Ratio',
+                '% Unreported',
+                '% Unpaid'
+            ]:
+                return PERCENT_STYLE.format(value)
+            elif col in [
+                'Reported CDF',
+                'Paid CDF'
+            ]:
+                return RATIO_STYLE.format(value)
+            else:
+                return VALUE_STYLE.format(value)
 
     def setData(self, index, value, role = ...) -> bool:
 
         if role == Qt.ItemDataRole.EditRole:
             self._data['Selected Loss Ratio'] = self.parent_model.selected_ratios_row.T['Selected Averages']
+            self._data['Expected Claims'] = self._data['Selected Loss Ratio'] * self._data['On-Level Earned Premium']
+            self._data['Expected Unreported'] = self._data['% Unreported'] * self._data['Expected Claims']
+            self._data['Expected Unpaid'] = self._data['% Unpaid'] * self._data['Expected Claims']
+            self._data['Ultimate BF Reported'] = self._data['Expected Unreported'] + self._data['Reported Losses']
+            self._data['Ultimate BF Paid'] = self._data['Expected Unpaid'] + self._data['Paid Losses']
+            self._data['BF Reported IBNR'] = self._data['Ultimate BF Reported'] - self._data['Reported Losses']
+            self._data['BF Paid IBNR'] = self._data['Ultimate BF Paid'] - self._data['Reported Losses']
+            self._data['BF Reported Unpaid Claims'] = self._data['Ultimate BF Reported'] - self._data['Paid Losses']
+            self._data['BF Paid Unpaid Claims'] = self._data['Ultimate BF Paid'] - self._data['Paid Losses']
 
             self.dataChanged.emit(index, index)
             self.layoutChanged.emit()
