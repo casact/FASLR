@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from faslr.model import FModelWidget
+from faslr.utilities.style_parser import parse_styler
 
 from PyQt6.QtGui import (
     QKeyEvent,
@@ -35,6 +36,7 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtWidgets import (
     QApplication,
+    QCheckBox,
     QHBoxLayout,
     QPushButton,
     QVBoxLayout,
@@ -461,6 +463,8 @@ class FSelectionModelToolbox(QWidget):
     ):
         super().__init__()
         self.parent: FSelectionModelWidget = parent
+
+        self.check_heatmap = QCheckBox(text='Heatmap')
         self.add_average_button = QPushButton("Available Averages")
         self.add_average_button.setFixedWidth(self.add_average_button.sizeHint().width())
 
@@ -487,8 +491,10 @@ class FSelectionModelToolbox(QWidget):
             data=averages
         )
 
+        self.layout.addWidget(self.check_heatmap)
         self.layout.addWidget(self.add_average_button)
 
+        # self.check_heatmap.stateChanged.connext(self.toggle_heatmap)
         self.add_average_button.clicked.connect(self.open_average_box)  # noqa
 
     def open_average_box(self) -> None:
@@ -496,6 +502,19 @@ class FSelectionModelToolbox(QWidget):
         Opens the dialog box for adding averages to a selection model.
         """
         self.average_box.show()
+
+    # def toggle_heatmap(self):
+    #
+    #     selection_model: FSelectionModel = self.parent.selection_model
+    #
+    #     if self.check_heatmap.isChecked():
+    #         selection_model.heatmap_frame = parse_styler(
+    #             selection_model.df_ratio,
+    #             cmap="coolwarm"
+    #         )
+    #         selection_model.layoutChanged.emit() # noqa
+    #     else:
+    #         selection_model.layoutChanged.emit() # noqa
 
 class FModelView(FTableView):
     """
