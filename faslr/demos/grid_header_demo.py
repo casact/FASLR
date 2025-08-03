@@ -28,7 +28,7 @@ main_widget.setLayout(layout)
 # Generate dummy data
 
 model = QStandardItemModel()
-view = GridTableView(corner_label="Accident\nYear")
+view = GridTableView(corner_button_label="Accident\nYear")
 view.setModel(model)
 
 for row in range(9):
