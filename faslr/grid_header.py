@@ -7,6 +7,8 @@ Class and method names will be in CamelCase to be consistent with those in PyQt.
 """
 from __future__ import annotations
 
+from PyQt6.QtGui import QPalette
+
 from faslr.base_table import FTableView
 from faslr.common.table import make_corner_button
 
@@ -302,7 +304,7 @@ class GridTableHeaderView(QHeaderView):
 
         self.sectionResized.connect(self.onSectionResized) # noqa
 
-        self.setFixedHeight(self.base_section_size.height() * 2)
+        self.setFixedHeight(self.base_section_size.height() * rows)
 
     def setCellLabel( # noqa
             self, 
@@ -482,7 +484,8 @@ class GridTableHeaderView(QHeaderView):
         else:
             levels = self.model().columnCount()
 
-        for i in range(levels):
+        i = 0
+        while i < levels:
             section_rect = QRect(rect)
             # rect.setTop(i * 20)
             # print("before: " + str(rect.top()))
@@ -514,27 +517,27 @@ class GridTableHeaderView(QHeaderView):
 
             section_rect.setSize(cell_size)
             # print("after: " + str(section_rect.top()))
-            rect.setTop(i * 20)
+            # rect.setTop(i * 20)
 
             col_span_idx = self.columnSpanIndex(cell_index)
             row_span_idx = self.rowSpanIndex(cell_index)
             if col_span_idx.isValid():
                 col_span_from = col_span_idx.column()
                 col_span_cnt = col_span_idx.data(ColumnSpanRole)
-                # col_span_to = col_span_from + col_span_cnt - 1
+                col_span_to = col_span_from + col_span_cnt - 1
                 col_span = self.columnSpanSize(cell_index.row(), col_span_from, col_span_cnt)
                 if self.orientation() == Qt.Orientation.Horizontal:
                     section_rect.setLeft(self.sectionViewportPosition(col_span_from))
                 else:
                     section_rect.setLeft(self.columnSpanSize(logicalIndex, 0, col_span_from))
-                    # i = col_span_to
+                    i = col_span_to
                 section_rect.setWidth(col_span)
                 # Check if column span index has a row span
                 sub_row_span_data = col_span_idx.data(RowSpanRole)
                 if sub_row_span_data:
                     sub_row_span_from = col_span_idx.row()
                     sub_row_span_cnt = sub_row_span_data
-                    # sub_row_span_to = sub_row_span_from + sub_row_span_cnt - 1
+                    sub_row_span_to = sub_row_span_from + sub_row_span_cnt - 1
                     sub_row_span = self.rowSpanSize(
                         col_span_from,
                         sub_row_span_from,
@@ -544,32 +547,32 @@ class GridTableHeaderView(QHeaderView):
                         section_rect.setTop(self.sectionViewportPosition(sub_row_span_from))
                     else:
                         section_rect.setTop(self.rowSpanSize(col_span_from, 0, sub_row_span_from))
-                        # i = sub_row_span_to
+                        i = sub_row_span_to
                     section_rect.setHeight(sub_row_span)
                 cell_index = col_span_idx
             if row_span_idx.isValid():
                 row_span_from = row_span_idx.row()
                 row_span_cnt = row_span_idx.data(RowSpanRole)
-                # row_span_to = row_span_from + row_span_cnt - 1
+                row_span_to = row_span_from + row_span_cnt - 1
                 row_span = self.rowSpanSize(cell_index.column(), row_span_from, row_span_cnt)
                 if self.orientation() == Qt.Orientation.Vertical:
                     section_rect.setTop(self.sectionViewportPosition(row_span_from))
                 else:
                     section_rect.setTop(self.rowSpanSize(logicalIndex, 0, row_span_from))
-                    # i = row_span_to
+                    i = row_span_to
                 section_rect.setHeight(row_span)
                 # Check if the row span index has a column span
                 sub_col_span_data = row_span_idx.data(ColumnSpanRole)
                 if sub_col_span_data:
                     sub_col_span_from = row_span_idx.column()
                     sub_col_span_cnt = sub_col_span_data
-                    # sub_col_span_to = sub_col_span_from + sub_col_span_cnt - 1
+                    sub_col_span_to = sub_col_span_from + sub_col_span_cnt - 1
                     sub_col_span = self.columnSpanSize(row_span_from, sub_col_span_from, sub_col_span_cnt)
                     if self.orientation() == Qt.Orientation.Horizontal:
                         section_rect.setLeft(self.sectionViewportPosition(sub_col_span_from))
                     else:
                         section_rect.setLeft(self.columnSpanSize(row_span_from, 0, sub_col_span_from))
-                        # i = sub_col_span_to
+                        i = sub_col_span_to
                     section_rect.setWidth(sub_col_span)
                 cell_index = row_span_idx
 
@@ -580,8 +583,9 @@ class GridTableHeaderView(QHeaderView):
             opt.section = logicalIndex
             opt.text = cell_index.data(Qt.ItemDataRole.DisplayRole)
 
-            painter.drawRect(rect)
-            # opt.palette.setBrush(QPalette.ColorRole.Window, Qt.ItemDataRole.DisplayRole)
+            # painter.drawRect(rect)
+            painter.drawRect(section_rect)
+            opt.palette.setBrush(QPalette.ColorRole.Window, Qt.ItemDataRole.DisplayRole)
             # opt.palette.setBrush()
             painter.save()
             self.style().drawControl(
@@ -591,6 +595,8 @@ class GridTableHeaderView(QHeaderView):
                 self
             )
             painter.restore()
+
+            i += 1
 
         return
 
