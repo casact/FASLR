@@ -4,6 +4,8 @@ import numpy as np
 
 from faslr.base_table import FTableView
 
+from faslr.grid_header import GridTableView
+
 from faslr.model import (
     FModelIndex,
     FIBNRModel,
@@ -22,19 +24,11 @@ from faslr.methods.expected_loss import (
     ExpectedLossRatioWidget
 )
 
-from faslr.utilities import (
-    fetch_cdf,
-    fetch_latest_diagonal,
-    fetch_origin,
-    fetch_ultimate
-)
-
 from PyQt6.QtCore import (
     Qt
 )
 
 from PyQt6.QtWidgets import (
-    QWidget,
     QVBoxLayout,
     QTabWidget
 )
@@ -106,7 +100,266 @@ class BornhuetterIBNRWidget(FIBNRWidget):
     ):
         self.parent: BornhuetterWidget = parent
         self.ibnr_model = BornhuetterIBNRModel(parent=self)
-        self.ibnr_view = FTableView(corner_button_label='AY')
+        self.ibnr_view = GridTableView(corner_button_label='AY')
+        self.ibnr_view.setModel(self.ibnr_model)
+
+        self.ibnr_view.setGridHeaderView(
+            orientation=Qt.Orientation.Horizontal,
+            levels=3
+        )
+
+        # Selected Loss Ratio
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=0,
+            row_span_count=3,
+            column_span_count=1
+        )
+
+        # On-Level Earned Premium
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=1,
+            row_span_count=3,
+            column_span_count=1
+        )
+
+        # Expected Claims
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=2,
+            row_span_count=3,
+            column_span_count=1
+        )
+
+        # CDF to Ultimate
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=3,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Percentage (Unreported/Unpaid)
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=5,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Expected Claims (Unreported/Unpaid)
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=7,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Claims at 12/31/08
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=9,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Projected Ultimate Claims Using B-F Method with (Reported/Paid)
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=11,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Case Outstanding at 12/31/08
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=13,
+            row_span_count=3,
+            column_span_count=1
+        )
+
+        # Unpaid Claim Estimate at 12/31/08
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=14,
+            row_span_count=1,
+            column_span_count=4
+        )
+
+        # IBNR Based on B-F Method
+        self.ibnr_view.hheader.setSpan(
+            row=1,
+            column=14,
+            row_span_count=1,
+            column_span_count=2
+        )
+
+        # Total Based on B-F Method
+        self.ibnr_view.hheader.setSpan(
+            row=1,
+            column=16,
+            row_span_count=1,
+            column_span_count=2
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=0,
+            label='Selected\nLoss\nRatio'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=1,
+            label='On-Level\nEarned Premium'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=2,
+            label='Expected\nClaims'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=3,
+            label='CDF to Ultimate'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=3,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=4,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=5,
+            label='Percentage'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=5,
+            label='Unreported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=6,
+            label='Unpaid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=7,
+            label='Expected Claims'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=7,
+            label='Unreported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=8,
+            label='Unpaid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=9,
+            label='Claims at 12/31/08'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=9,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=10,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=11,
+            label='Projected Ultimate Claims\nUsing B-F Method with'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=11,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=12,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=13,
+            label='Case\nOutstanding\nat 12/31/08'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=14,
+            label='Unpaid Claim Estimate at 12/31/08'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=1,
+            column=14,
+            label='IBNR Based on B-F Method'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=1,
+            column=16,
+            label='Total Based on B-F Method'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=14,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=15,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=16,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=17,
+            label='Paid'
+        )
+
         super().__init__(
             parent=parent
         )
