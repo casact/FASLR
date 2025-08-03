@@ -585,7 +585,7 @@ class GridTableHeaderView(QHeaderView):
 
             # painter.drawRect(rect)
             painter.drawRect(section_rect)
-            opt.palette.setBrush(QPalette.ColorRole.Window, Qt.ItemDataRole.DisplayRole)
+            # opt.palette.setBrush(QPalette.ColorRole.Window, Qt.ItemDataRole.DisplayRole)
             # opt.palette.setBrush()
             painter.save()
             self.style().drawControl(
