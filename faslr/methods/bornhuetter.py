@@ -1,8 +1,9 @@
+"""
+Widgets for the Bornhuetter-Ferguson technique.
+"""
 from __future__ import annotations
 
 import numpy as np
-
-from faslr.base_table import FTableView
 
 from faslr.grid_header import GridTableView
 
@@ -38,15 +39,31 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from chainladder import Chainladder
     from pandas import DataFrame
-    from typing import List
+    from typing import (
+        List,
+        Optional
+    )
 
 
 class BornhuetterWidget(FModelWidget):
+    """
+    The containing widget for the Bornhuetter-Ferguson technique.
+
+    Parameters
+    ----------
+    triangles: Optional[List[Chainladder]]
+        The underlying triangles for the B-F technique.
+    premium: Optional[list]
+    averages: Optional[DataFrame]
+        A DataFrame containing metadata on average types, i.e., all-year straight, 3-year volume-weighted, etc.
+        The application by default will take this data from the underlying database, but this argument will
+        override that query.
+    """
     def __init__(
             self,
-            triangles: List[Chainladder] = None,
-            premium: list = None,
-            averages: DataFrame = None
+            triangles: Optional[List[Chainladder]] = None,
+            premium: Optional[list] = None,
+            averages: Optional[DataFrame] = None
     ):
         super().__init__()
 
@@ -94,9 +111,17 @@ class BornhuetterWidget(FModelWidget):
         
         
 class BornhuetterIBNRWidget(FIBNRWidget):
+    """
+    The IBNR summary for the B-F method.
+
+    Parameters
+    ----------
+    parent: Optional[BornhuetterWidget]
+        The containing BornhuetterWidget.
+    """
     def __init__(
             self,
-            parent: BornhuetterWidget
+            parent: Optional[BornhuetterWidget] = None
     ):
         self.parent: BornhuetterWidget = parent
         self.ibnr_model = BornhuetterIBNRModel(parent=self)
@@ -365,9 +390,17 @@ class BornhuetterIBNRWidget(FIBNRWidget):
         )
 
 class BornhuetterIBNRModel(FIBNRModel):
+    """
+    The IBNR model for the BornhuetterIBNRWidget.
+
+    Parameters
+    ----------
+    parent: Optional[BornhuetterIBNRWidget]
+        The parent BornhuetterIBNRWidget.
+    """
     def __init__(
             self,
-            parent: BornhuetterIBNRWidget
+            parent: Optional[BornhuetterIBNRWidget] = None
     ):
         super().__init__(parent=parent)
         self._data['On-Level Earned Premium'] = self.parent.parent.apriori_tab.model._data['On-Level Earned Premium']
