@@ -39,12 +39,19 @@ class FIBNRWidget(QWidget):
     def __init__(
             self,
             parent: FModelWidget,
+            toolbox: QWidget = None
     ):
         super().__init__()
 
         self.parent: FModelWidget = parent
 
         self.layout = QVBoxLayout()
+
+        if toolbox:
+            self.toolbox = toolbox
+            self.layout.addWidget(self.toolbox, alignment=Qt.AlignmentFlag.AlignRight)
+        else:
+            self.toolbox = None
 
         # Only initialize base ibnr model and view if they have not been overridden.
         if not (hasattr(self, 'ibnr_model') and hasattr(self, 'ibnr_view')):
