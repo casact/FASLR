@@ -34,20 +34,31 @@ averages = pd.DataFrame(
 )
 
 
-
-triangle = load_sample('xyz')
+premium = [
+    1000000,
+    1050000,
+    1102500,
+    1157625,
+    1215506,
+    1276282,
+    1340096,
+    1407100,
+    1477455,
+    1551328
+]
+triangle = load_sample('uspp_auto_incr_claim')
 reported = triangle['Reported Claims']
 paid = triangle['Paid Claims']
 
-reported_ult = cl.TailConstant(tail=1).fit_transform(cl.Development(n_periods=2, average='volume').fit_transform(reported))
+reported_ult = cl.TailConstant(tail=1).fit_transform(cl.Development(n_periods=5, average='volume').fit_transform(reported))
 reported_ult = cl.Chainladder().fit(reported_ult)
 
-paid_ult = cl.TailConstant(tail=1.010,decay=1).fit_transform(cl.Development(n_periods=2, average='volume').fit_transform(paid))
+paid_ult = cl.TailConstant(tail=1).fit_transform(cl.Development(n_periods=5, average='volume').fit_transform(paid))
 paid_ult = cl.Chainladder().fit(paid_ult)
 
 widget = BenktanderWidget(
     triangles=[reported_ult, paid_ult],
-    premium=auto_bi_olep,
+    premium=premium,
     averages=averages
 )
 widget.show()
