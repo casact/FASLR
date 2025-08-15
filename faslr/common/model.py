@@ -85,6 +85,9 @@ class FSelectionModel(FAbstractTableModel):
         # indexation and summary exhibits.
         self.parent: FSelectionModelWidget = parent
 
+        # List of any models that may depend on selections, i.e., IBNR summaries and related exhibits.
+        self.downstream_models = []
+
         # Section containing
         if data is not None:
             self.df_ratio: DataFrame = data
@@ -169,7 +172,7 @@ class FSelectionModel(FAbstractTableModel):
         # Case when user makes a selection, fill the selected ratios row with the selection values.
         elif role == Qt.ItemDataRole.EditRole:
             self.selected_ratios_row.iloc[0, index.column()] = float(value)
-            self.update_ibnr_model()
+            self.update_downstream_models()
         # If there's something already in the selection row, keep it.
         elif self.selected_ratios_row.notnull().sum(axis=1).squeeze():
             pass
@@ -298,19 +301,24 @@ class FSelectionModel(FAbstractTableModel):
 
         # If paired with a loss model, update the IBNR tab.
         if self.parent:
-            self.update_ibnr_model()
+            self.update_downstream_models()
 
-    def update_ibnr_model(self) -> None:
+        return None
+
+    def add_downstream_model(self, model: FAbstractTableModel) -> None:
+        """
+        Adds a downstream model to the list of downstream models.
+        """
+
+        self.downstream_models += [model]
+
+    def update_downstream_models(self) -> None:
         """
         If the selection model is paired with an IBNR summary model, update the IBNR summary.
         """
-        model_widget = self.parent.parent
-        if hasattr(model_widget, 'ibnr_tab'):
-            ibnr_model: FIBNRModel = self.parent.parent.ibnr_tab.ibnr_model # noqa since if statement checks for tab.
+        for model in self.downstream_models:
+            model.setData(index=QModelIndex(), role=Qt.ItemDataRole.EditRole, value=None)
 
-            ibnr_model.setData(index=QModelIndex(), role=Qt.ItemDataRole.EditRole, value=None)
-        else:
-            return None
 
     @property
     def n_ratio_rows(self) -> int:
