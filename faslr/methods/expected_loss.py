@@ -285,6 +285,11 @@ class ExpectedLossWidget(FModelWidget):
             'IBNR Summary'
         )
 
+        # Set the IBNR model to be downstream of the ratio selection model.
+        self.selection_tab.selection_model.add_downstream_model(
+            model=self.ibnr_tab.ibnr_model
+        )
+
         self.layout.addWidget(self.main_tabs)
 
         self.setLayout(self.layout)
