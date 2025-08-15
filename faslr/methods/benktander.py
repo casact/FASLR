@@ -4,17 +4,20 @@ Classes for the Benktander method.
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 
 from faslr.common.model import (
-    FAbstractTableModel
+    FAbstractTableModel,
+    FTableView
 )
 
 from faslr.grid_header import GridTableView
 
 from faslr.model import (
+    FIBNRModel,
+    FIBNRWidget,
     FModelIndex,
-    FModelWidget,
-    FIBNRWidget
+    FModelWidget
 )
 
 from faslr.methods.expected_loss import (
@@ -29,6 +32,7 @@ from faslr.style.triangle import (
 )
 
 from PyQt6.QtCore import (
+    QModelIndex,
     Qt
 )
 
@@ -112,11 +116,19 @@ class BenktanderWidget(FModelWidget):
             'B-F Result'
         )
 
+        self.selection_tab.selection_model.add_downstream_model(
+            model=self.bf_tab.apriori_model
+        )
+
         self.ibnr_tab = BenktanderIBNRWidget(parent=self)
 
         self.main_tabs.addTab(
             self.ibnr_tab,
             'IBNR Summary'
+        )
+
+        self.selection_tab.selection_model.add_downstream_model(
+            model=self.ibnr_tab.ibnr_model
         )
 
         self.layout.addWidget(self.main_tabs)
@@ -320,11 +332,15 @@ class BenktanderAprioriWidget(QWidget):
             label='Paid'
         )
 
+        self.layout.addWidget(self.apriori_view)
+
 class BenktanderAprioriModel(FAbstractTableModel):
     def __init__(self, parent: Optional[BenktanderAprioriWidget]):
         super().__init__()
 
         self.parent = parent
+        self.parent_model = self.parent.parent.selection_tab.selection_model
+        self._data: DataFrame = self.parent_model.selected_ratios_row.T
 
         self._data['On-Level Earned Premium'] = self.parent.parent.apriori_tab.model._data['On-Level Earned Premium']
         self._data = self._data.rename(columns={'Selected Averages': 'Selected Loss Ratio'})
@@ -386,14 +402,43 @@ class BenktanderAprioriModel(FAbstractTableModel):
 class BenktanderIBNRWidget(FIBNRWidget):
     def __init__(
             self,
-            parent
+            parent: BenktanderWidget
     ):
         self.toolbox = BenktanderIBNRToolbox()
+        self.ibnr_model = BenktanderIBNRModel(parent=self)
+        self.ibnr_view = FTableView()
 
         super().__init__(
             parent=parent,
             toolbox=self.toolbox
         )
+
+        self.parent_model = self.parent.bf_tab.apriori_model
+
+        self.ibnr_model._data = pd.DataFrame()
+
+        self.ibnr_model._data['Ultimate BF Reported'] = self.parent.bf_tab.apriori_model._data['Ultimate BF Reported']
+
+        index = QModelIndex()
+        self.ibnr_model.dataChanged.emit(index, index)
+        self.ibnr_model.layoutChanged.emit()
+
+
+class BenktanderIBNRModel(FIBNRModel):
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+
+
+    def setData(self, index, value, role = ...) -> bool:
+
+        if role == Qt.ItemDataRole.EditRole:
+            self._data['Ultimate BF Reported'] = self.parent.bf_tab.apriori_model._data['Ultimate BF Reported']
+
+        self.dataChanged.emit(index, index)
+        self.layoutChanged.emit()
+
+        return True
+
 
 class BenktanderIBNRToolbox(QWidget):
     def __init__(self):
