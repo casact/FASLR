@@ -11,6 +11,8 @@ from faslr.common.model import (
     FTableView
 )
 
+from functools import partial
+
 from faslr.grid_header import GridTableView
 
 from faslr.model import (
@@ -77,6 +79,8 @@ class BenktanderWidget(FModelWidget):
             averages: Optional[DataFrame] = None
     ):
         super().__init__()
+
+        self.triangles = triangles
 
         self.setWindowTitle("Bornhuetter-Ferguson Method")
 
@@ -404,9 +408,11 @@ class BenktanderIBNRWidget(FIBNRWidget):
             self,
             parent: BenktanderWidget
     ):
-        self.toolbox = BenktanderIBNRToolbox()
+        self.parent=parent
+        self.toolbox = BenktanderIBNRToolbox(parent=self)
         self.ibnr_model = BenktanderIBNRModel(parent=self)
-        self.ibnr_view = FTableView()
+        self.ibnr_view = GridTableView(corner_button_label='Accident\nYear')
+        self.ibnr_view.verticalHeader().setFixedWidth(self.ibnr_view.corner_btn.findChild(QLabel).width())
 
         super().__init__(
             parent=parent,
@@ -415,34 +421,283 @@ class BenktanderIBNRWidget(FIBNRWidget):
 
         self.parent_model = self.parent.bf_tab.apriori_model
 
-        self.ibnr_model._data = pd.DataFrame()
+        self.ibnr_view.setGridHeaderView(
+            orientation=Qt.Orientation.Horizontal,
+            levels=3
+        )
 
-        self.ibnr_model._data['Ultimate BF Reported'] = self.parent.bf_tab.apriori_model._data['Ultimate BF Reported']
+        # Age of Accident Year
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=0,
+            row_span_count=3,
+            column_span_count=1
+        )
 
-        index = QModelIndex()
-        self.ibnr_model.dataChanged.emit(index, index)
-        self.ibnr_model.layoutChanged.emit()
+        # Expected Ultimate Claims
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=1,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Claims at...
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=3,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # CDF to Ultimate
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=5,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Expected Percentage
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=7,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Projected Ultimate Claims Using G-B Method with ...
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=9,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        # Estimated IBNR Using G-B Method with ...
+        self.ibnr_view.hheader.setSpan(
+            row=0,
+            column=11,
+            row_span_count=2,
+            column_span_count=2
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=0,
+            label='Age of\nAccident Year\nat 12/31/08'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=1,
+            label='Expected Ultimate Claims\nUsing B-F Method with'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=1,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=2,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=3,
+            label='Claims at 12/31/08'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=3,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=4,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=5,
+            label='CDF to Ultimate'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=5,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=6,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=7,
+            label='Expected Percentage'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=7,
+            label='Unreported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=8,
+            label='Unpaid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=9,
+            label='Projected Ultimate Claims\nUsing G-B Method with'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=9,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=10,
+            label='Paid'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=0,
+            column=11,
+            label='Estimated IBNR\nUsing G-B Method with'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=11,
+            label='Reported'
+        )
+
+        self.ibnr_view.hheader.setCellLabel(
+            row=2,
+            column=12,
+            label='Paid'
+        )
+
+        self.toolbox.iterations_spinbox.valueChanged.connect(partial(self.ibnr_model.setData, QModelIndex(), self.toolbox.iterations_spinbox.value(), Qt.ItemDataRole.EditRole))
+
 
 
 class BenktanderIBNRModel(FIBNRModel):
-    def __init__(self, parent):
+    def __init__(self, parent: BenktanderIBNRWidget):
         super().__init__(parent=parent)
+
+        apriori_model = self.parent.parent.bf_tab.apriori_model
+
+        self._data = pd.DataFrame(
+            {
+                'Age of Accident Year': self.parent.parent.triangles[0].X_.ddims[::-1]
+             },
+            index=apriori_model._data.index
+        )
+
+        self._data['Ultimate BF Reported'] = apriori_model._data['Ultimate BF Reported']
+        self._data['Ultimate BF Paid'] = apriori_model._data['Ultimate BF Paid']
+        self._data['Reported Losses'] = apriori_model._data['Reported Losses']
+        self._data['Paid Losses'] = apriori_model._data['Paid Losses']
+        self._data['Reported CDF'] = apriori_model._data['Reported CDF']
+        self._data['Paid CDF'] = apriori_model._data['Paid CDF']
+        self._data['% Unreported'] = apriori_model._data['% Unreported']
+        self._data['% Unpaid'] = apriori_model._data['% Unpaid']
+        self._data['Ultimate GB Reported'] = self._data['Reported Losses'] + self._data['Ultimate BF Reported'] * self._data['% Unreported']
+        self._data['Ultimate GB Paid'] = self._data['Paid Losses'] + self._data['Ultimate BF Paid'] * \
+                                             self._data['% Unpaid']
+        self._data['GB Reported IBNR'] = self._data['Ultimate GB Reported'] - self._data['Reported Losses']
+        self._data['GB Paid IBNR'] = self._data['Ultimate GB Paid'] - self._data['Reported Losses']
+
+    def data(self, index, role=...) -> Any:
+
+        if role == Qt.ItemDataRole.DisplayRole:
+
+            value = self._data.iloc[index.row(), index.column()]
+            col = self._data.columns[index.column()]
+
+            if np.isnan(value):
+                return ""
+            elif col in [
+                '% Unreported',
+                '% Unpaid'
+            ]:
+                return PERCENT_STYLE.format(value)
+            elif col in [
+                'Reported CDF',
+                'Paid CDF'
+            ]:
+                return RATIO_STYLE.format(value)
+            else:
+                return VALUE_STYLE.format(value)
 
 
     def setData(self, index, value, role = ...) -> bool:
 
         if role == Qt.ItemDataRole.EditRole:
-            self._data['Ultimate BF Reported'] = self.parent.bf_tab.apriori_model._data['Ultimate BF Reported']
+
+            iterations = self.parent.toolbox.iterations_spinbox.value()
+
+            apriori_model = self.parent.parent.bf_tab.apriori_model
+
+
+            self._data['Ultimate BF Reported'] = apriori_model._data['Ultimate BF Reported']
+            self._data['Ultimate BF Paid'] = apriori_model._data['Ultimate BF Paid']
+            self._data['Ultimate GB Reported'] = self._data['Reported Losses'] + self._data['Ultimate BF Reported'] * \
+                                                 self._data['% Unreported']
+            self._data['Ultimate GB Paid'] = self._data['Paid Losses'] + self._data['Ultimate BF Paid'] * \
+                                             self._data['% Unpaid']
+            self._data['GB Reported IBNR'] = self._data['Ultimate GB Reported'] - self._data['Reported Losses']
+            self._data['GB Paid IBNR'] = self._data['Ultimate GB Paid'] - self._data['Reported Losses']
+
+            i = 1
+
+            while i < iterations:
+
+                self._data['Ultimate BF Reported'] = self._data['Ultimate GB Reported']
+                self._data['Ultimate BF Paid'] = self._data['Ultimate GB Paid']
+                self._data['Ultimate GB Reported'] = self._data['Reported Losses'] + self._data[
+                    'Ultimate BF Reported'] * \
+                                                     self._data['% Unreported']
+                self._data['Ultimate GB Paid'] = self._data['Paid Losses'] + self._data['Ultimate BF Paid'] * \
+                                                 self._data['% Unpaid']
+                self._data['GB Reported IBNR'] = self._data['Ultimate GB Reported'] - self._data['Reported Losses']
+                self._data['GB Paid IBNR'] = self._data['Ultimate GB Paid'] - self._data['Reported Losses']
+
+                i += 1
+
 
         self.dataChanged.emit(index, index)
         self.layoutChanged.emit()
 
         return True
 
-
 class BenktanderIBNRToolbox(QWidget):
-    def __init__(self):
+    def __init__(
+            self,
+            parent: BenktanderIBNRWidget
+    ):
         super().__init__()
+
+        self.parent = parent
 
         self.layout = QHBoxLayout()
         self.iterations_label = QLabel("Iterations:")
