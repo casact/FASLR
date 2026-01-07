@@ -1,6 +1,12 @@
 Contributing
 =============
 
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   roadmap
+
 There are two main ways to contribute.
 
 ======================
