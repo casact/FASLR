@@ -33,6 +33,8 @@ A minimal working version of FASLR is planned for year-end 2026. Features will i
 
   * Should include claims emergence so AvEs can be performed
 
+* API reference in the documentation
+
 
 Nice to have:
 
