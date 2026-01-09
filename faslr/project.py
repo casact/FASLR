@@ -1,8 +1,13 @@
+"""
+Contains classes to display and interact with project information located to the left of the main window splitter.
+"""
 from __future__ import annotations
 
 import faslr.core as core
 
 from faslr.connection import connect_db
+
+from faslr.country import CountryTab
 
 from faslr.data import (
     DataPane
@@ -355,6 +360,10 @@ class ProjectTreeView(QTreeView):
         # Prevent ability of user to edit a project node by double-clicking on it
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
+        self.open_action = QAction("&Open", self)
+        self.open_action.setStatusTip("Open.")
+        self.open_action.triggered.connect(self.open) # noqa
+
         self.new_analysis_action = QAction("&New Analysis", self)
         self.new_analysis_action.setShortcut(QKeySequence("Ctrl+Shit+a"))
         self.new_analysis_action.setStatusTip("Create a new reserve analysis.")
@@ -413,6 +422,7 @@ class ProjectTreeView(QTreeView):
         :return:
         """
         menu = QMenu()
+        menu.addAction(self.open_action)
         menu.addAction(self.new_analysis_action)
         menu.addAction(self.delete_project_action)
         menu.exec(self.viewport().mapToGlobal(event))
@@ -433,6 +443,15 @@ class ProjectTreeView(QTreeView):
         print(ix_col_0.data())
         print(core.db)
         # print(self.table.selectedIndexes())
+
+    def open(self) -> None:
+        """Action that gets triggered when 'open' is selected in the context menu."""
+
+        # Display country-level information
+        country_tab = CountryTab(country="USA")
+        uuid = self.currentIndex().siblingAtColumn(1).data()
+        print("UUID: " + uuid)
+        self.parent.analysis_pane.addTab(country_tab, "USA")
 
     def delete_project(self) -> None:
 
