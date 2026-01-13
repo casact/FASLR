@@ -126,16 +126,19 @@ class ProjectDialog(QDialog):
 
         # Create an entries for the project tree
         country = ProjectItem(
-            country_text,
+            text=country_text,
+            segment_level="country",
             set_bold=True
         )
 
         state = ProjectItem(
-            state_text,
+            text=state_text,
+            segment_level="state"
         )
 
         lob = ProjectItem(
-            lob_text,
+            text=lob_text,
+            segment_level="lob",
             text_color=QColor(
                 155,
                 0,
@@ -448,25 +451,48 @@ class ProjectTreeView(QTreeView):
         """Action that gets triggered when 'open' is selected in the context menu."""
 
         # Display country-level information
-        country_tab = CountryTab(country="USA")
-        uuid = self.currentIndex().siblingAtColumn(1).data()
-        print("UUID: " + uuid)
-        self.parent.analysis_pane.addTab(country_tab, "USA")
+        current_item = self.get_project_item()
+        if current_item.segment_level == 'country':
+            country_tab = CountryTab(country="USA")
+            uuid: str = self.get_uuid()
+            print(type(uuid))
+            print("UUID: " + uuid)
+            self.parent.analysis_pane.addTab(country_tab, "USA")
+
+    def get_uuid(self) -> str:
+        """
+        Obtains the UUID of the current selection of the project tree.
+        """
+        return self.currentIndex().siblingAtColumn(1).data()
+
+    def get_project_item(self) -> ProjectItem:
+        """
+        Returns the ProjectItem of the current selection of the project tree.
+        """
+
+        return self.model().itemFromIndex(self.currentIndex())
 
     def delete_project(self) -> None:
 
         """print uuid of current selected index"""
-        uuid = self.currentIndex().siblingAtColumn(1).data()
-        current_item = self.model().itemFromIndex(self.currentIndex())
+        uuid: str = self.get_uuid()
+        current_item: ProjectItem = self.get_project_item()
         # connect to the database
         session, connection = connect_db(db_path=core.db)
         
         # delete the item from the database with uuid
 
-        if current_item.parent():
-            parent = current_item.parent()
-            # case when selection is an LOB
-            if parent.parent():
+        # Case when selection is a country.
+        if current_item.segment_level == 'country':
+
+            country = session.query(CountryTable).filter(CountryTable.project_id == uuid)
+            country_first = country.first()
+            location_id = country_first.location_id
+            location = session.query(LocationTable).filter(LocationTable.location_id == location_id).one()
+            session.delete(location)
+        else:
+            # Case when selection is an LOB.
+            if current_item.segment_level == 'lob':
                 lob = session.query(LOBTable).filter(LOBTable.project_id == uuid).one()
                 session.delete(lob)
 
@@ -477,14 +503,6 @@ class ProjectTreeView(QTreeView):
                 location_id = state_first.location_id
                 location = session.query(LocationTable).filter(LocationTable.location_id == location_id).one()
                 session.delete(location)
-
-        # Case when selection is a country
-        else:
-            country = session.query(CountryTable).filter(CountryTable.project_id == uuid)
-            country_first = country.first()
-            location_id = country_first.location_id
-            location = session.query(LocationTable).filter(LocationTable.location_id == location_id).one()
-            session.delete(location)
 
         session.commit()
         

@@ -235,6 +235,7 @@ def populate_project_tree(
 
         country_item = ProjectItem(
             text=country,
+            segment_level='country',
             set_bold=True
         )
 
@@ -254,7 +255,8 @@ def populate_project_tree(
         for state_id, state, state_uuid in states:
 
             state_item = ProjectItem(
-                state,
+                text=state,
+                segment_level='state'
             )
 
             state_row = [state_item, QStandardItem(state_uuid)]
@@ -272,6 +274,7 @@ def populate_project_tree(
             for lob, lob_uuid in lobs:
                 lob_item = ProjectItem(
                     lob,
+                    segment_level='lob',
                     text_color=QColor(0, 77, 122)
                 )
 
