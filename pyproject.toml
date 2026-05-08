@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "faslr"
+version = "0.0.10"
+authors = [
+    {name = "Gene Dan", email = "genedan@gmail.com"}
+]
+maintainers = [
+    {name = "Gene Dan", email = "genedan@gmail.com"}
+]
+description = "FASLR - Free Actuarial System for Loss Reserving"
+readme = "README.md"
+license = {text = "GPL-3.0-only"}
+requires-python = ">=3.14"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.14"
+]
+keywords = ["actuarial", "reserving", "insurance", "chainladder", "software", "GUI"]
+dependencies = [
+    "chainladder >= 0.8",
+    "GitPython > 3",
+    "pandas > 2",
+    "numpy > 2",
+    "PyQt6 > 6",
+    "matplotlib > 3",
+    "sqlalchemy> 2 "
+]
+
+[project.urls]
+Homepage = "https://faslr.com"
+Documentation = "https://faslr.com"
+Repository = "https://github.com/casact/faslr"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinx_design==0.6.1",
+    "pydata-sphinx-theme==0.16.1"
+]
+test = [
+    "pynput",
+    "pytest",
+    "pytest-cov",
+    "pytest-qt",
+    "pytest-mock"
+]
+all = [
+    "faslr[docs, test]"
+]
+[tool.pytest.ini_options]
+testpaths = ["falsr/tests"]
+
