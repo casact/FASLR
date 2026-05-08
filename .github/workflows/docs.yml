@@ -19,7 +19,7 @@ jobs:
     - name: Install requirements
       run: sudo apt-get install -y libegl1
     - name: Install uv
-      uses: astral-sh/setup-uv@7
+      uses: astral-sh/setup-uv@v7
       with:
         version: "latest"
         python-version: '3.14'
