@@ -529,7 +529,8 @@ class ProjectTreeView(QTreeView):
 
             country_item = ProjectItem(
                 text=country,
-                set_bold=True
+                set_bold=True,
+                segment_level='country',
             )
 
             country_row = [
@@ -549,6 +550,7 @@ class ProjectTreeView(QTreeView):
 
                 state_item = ProjectItem(
                     state,
+                    segment_level='state'
                 )
 
                 state_row = [state_item, QStandardItem(state_uuid)]
