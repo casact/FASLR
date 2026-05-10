@@ -6,7 +6,7 @@ from faslr.methods.development import (
 )
 
 from faslr.style.triangle import (
-    LOWER_DIAG_COLOR
+    LOWER_DIAG_COLOR_LIGHT
 )
 
 from faslr.triangle_model import (
@@ -155,7 +155,7 @@ def test_triangle_view(
     )
 
     # Check for correct color displayed in the lower diagonal of the triangle.
-    assert lower_diag_color_test == LOWER_DIAG_COLOR
+    assert lower_diag_color_test == LOWER_DIAG_COLOR_LIGHT
 
     # rect = QRect(0, 0)
     triangle_view.selectRow(1)
