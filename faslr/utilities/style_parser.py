@@ -2,7 +2,7 @@ from chainladder import Triangle
 from matplotlib.colors import Colormap
 from pandas import DataFrame
 
-from faslr.style.triangle import LOWER_DIAG_COLOR
+from faslr.style.triangle import LOWER_DIAG_COLOR_LIGHT
 
 
 def extract_style(
@@ -48,7 +48,7 @@ def parse_styler(
 
     # Initial colors will be the FASLR lower diagonal color for the entire triangle.
     # Then we override the upper triangle with the heatmap colors.
-    color_triangle.loc[:] = LOWER_DIAG_COLOR.name()
+    color_triangle.loc[:] = LOWER_DIAG_COLOR_LIGHT.name()
 
     # Parse css to get the background colors. Create a list of cell-color mappings. Each element maps
     # all the cells that correspond to a certain color.
