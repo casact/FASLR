@@ -5,7 +5,7 @@ import pytest
 from faslr.factor import AddLDFDialog
 from faslr.methods.development import DevelopmentTab, LDFAverageBox
 from faslr.style.triangle import (
-    LOWER_DIAG_COLOR,
+    LOWER_DIAG_COLOR_LIGHT,
     EXCL_FACTOR_COLOR,
     MAIN_TRIANGLE_COLOR
 )
@@ -84,7 +84,7 @@ def test_factor_data(development_tab):
     )
 
     assert lower_diag_blank_value == ''
-    assert lower_diag_blank_back == LOWER_DIAG_COLOR
+    assert lower_diag_blank_back == LOWER_DIAG_COLOR_LIGHT
 
     idx = development_tab.factor_model.index(0, 0)
 
