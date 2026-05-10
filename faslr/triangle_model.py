@@ -63,7 +63,7 @@ class TriangleModel(FAbstractTableModel):
 
         theme = QGuiApplication.styleHints().colorScheme()
 
-        self.lower_diag_color = LOWER_DIAG_COLOR_LIGHT if theme == Qt.ColorScheme.Light else LOWER_DIAG_COLOR_DARK
+        self.lower_diag_color = LOWER_DIAG_COLOR_DARK if theme == Qt.ColorScheme.Dark else LOWER_DIAG_COLOR_LIGHT
 
         QGuiApplication.styleHints().colorSchemeChanged.connect(self.on_color_scheme_changed)
 
