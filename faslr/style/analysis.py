@@ -17,14 +17,13 @@ def qss_column_tab(
     light_selected = "rgb(245, 245, 245)"
     dark_selected = "rgb(55, 55, 55)"
 
-    if theme == Qt.ColorScheme.Light:
-        tab_unselected_background = light_unselected
-        tab_selected_background = light_selected
-    elif theme == Qt.ColorScheme.Dark:
+    if theme == Qt.ColorScheme.Dark:
         tab_unselected_background = dark_unselected
         tab_selected_background = dark_selected
+    # Else, default to light, including headless environments like in GitHub Actions.
     else:
-        raise ValueError("Invalid theme provided.")
+        tab_unselected_background = light_unselected
+        tab_selected_background = light_selected
 
     qss_str =  """
        QTabBar::tab:first {{
