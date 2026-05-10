@@ -72,16 +72,7 @@ def qss_analysis_tab_palette(
         role: QPalette.ColorRole
 ) -> None:
 
-    if theme == Qt.ColorScheme.Light:
-        palette.setColor(
-            role,
-            QColor.fromRgb(
-                240,
-                240,
-                240
-            )
-        )
-    elif theme == Qt.ColorScheme.Dark:
+    if theme == Qt.ColorScheme.Dark:
         palette.setColor(
             role,
             QColor.fromRgb(
@@ -91,4 +82,11 @@ def qss_analysis_tab_palette(
             )
         )
     else:
-        raise ValueError("Incorrect theme provided.")
+        palette.setColor(
+            role,
+            QColor.fromRgb(
+                240,
+                240,
+                240
+            )
+        )
