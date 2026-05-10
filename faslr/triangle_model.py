@@ -9,7 +9,8 @@ from faslr.common.table import make_corner_button
 
 from faslr.style.triangle import (
     BLANK_TEXT,
-    LOWER_DIAG_COLOR,
+    LOWER_DIAG_COLOR_DARK,
+    LOWER_DIAG_COLOR_LIGHT,
     RATIO_STYLE,
     VALUE_STYLE
 )
@@ -25,6 +26,7 @@ from PyQt6.QtCore import (
 
 from PyQt6.QtGui import (
     QAction,
+    QGuiApplication,
     QKeySequence
 )
 
@@ -58,6 +60,12 @@ class TriangleModel(FAbstractTableModel):
         self.n_columns = self.columnCount()
         self.excl_frame = self._data.copy()
         self.excl_frame = df_set_false(df=self.excl_frame)
+
+        theme = QGuiApplication.styleHints().colorScheme()
+
+        self.lower_diag_color = LOWER_DIAG_COLOR_LIGHT if theme == Qt.ColorScheme.Light else LOWER_DIAG_COLOR_DARK
+
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self.on_color_scheme_changed)
 
     def data(
             self,
@@ -102,7 +110,7 @@ class TriangleModel(FAbstractTableModel):
 
         if role == Qt.ItemDataRole.BackgroundRole and (index.column() >= self.n_rows - index.row()):
 
-            return LOWER_DIAG_COLOR
+            return self.lower_diag_color
 
         # if (role == Qt.ItemDataRole.FontRole) and (self.value_type == "ratio"):
         #
@@ -128,6 +136,12 @@ class TriangleModel(FAbstractTableModel):
 
             if qt_orientation == Qt.Orientation.Vertical:
                 return str(self._data.index[p_int])
+
+    def on_color_scheme_changed(self, scheme):
+        self.lower_diag_color = (
+            LOWER_DIAG_COLOR_DARK if scheme == Qt.ColorScheme.Dark else LOWER_DIAG_COLOR_LIGHT
+        )
+        self.layoutChanged.emit()  # noqa
 
 
 class TriangleView(FTableView):
