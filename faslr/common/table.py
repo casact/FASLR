@@ -10,6 +10,8 @@ from PyQt6.QtCore import (
     Qt
 )
 
+from PyQt6.QtGui import QGuiApplication
+
 from PyQt6.QtWidgets import (
     QAbstractButton,
     QLabel,
@@ -34,13 +36,17 @@ def make_corner_button(
     btn.setLayout(btn_layout)
     opt = QStyleOptionHeader()
 
-    parent.setStyleSheet(
-        """
-        QTableCornerButton::section {
-            border: 1px outset darkgrey;
-        }
-        """
-    )
+    def apply_style(theme: Qt.ColorScheme):
+
+        if theme == Qt.ColorScheme.Dark:
+            color = "rgb(60, 60, 60)"
+        else:
+            color = "darkgrey"
+
+        btn.setStyleSheet(f"border: 1px outset {color};")
+
+    apply_style(QGuiApplication.styleHints().colorScheme())
+    QGuiApplication.styleHints().colorSchemeChanged.connect(apply_style)  # noqa
 
     s = QSize(btn.style().sizeFromContents(
         QStyle.ContentsType.CT_HeaderSection, opt, QSize(), btn).
