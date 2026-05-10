@@ -57,7 +57,7 @@ from PyQt6.QtWidgets import (
 from faslr.style.triangle import (
     BLANK_TEXT,
     EXCL_FACTOR_COLOR,
-    LOWER_DIAG_COLOR,
+    LOWER_DIAG_COLOR_LIGHT,
     MAIN_TRIANGLE_COLOR,
     RATIO_STYLE,
     VALUE_STYLE
@@ -84,7 +84,7 @@ class FactorModel(FAbstractTableModel):
         self.heatmap_checked = False
 
         self.heatmap_frame = self.triangle.to_frame(origin_as_datetime=False).astype(str)
-        self.heatmap_frame.loc[:] = LOWER_DIAG_COLOR.name()
+        self.heatmap_frame.loc[:] = LOWER_DIAG_COLOR_LIGHT.name()
 
         self.ldf_types = TEMP_LDF_LIST
         self.num_ldf_types = self.ldf_types[self.ldf_types["Selected"]].shape[0]
@@ -189,7 +189,7 @@ class FactorModel(FAbstractTableModel):
                 # Case when the index is on the lower diagonal
                 if (index.column() >= self.n_triangle_rows - index.row()) and \
                         (index.row() < self.triangle_spacer_row):
-                    return LOWER_DIAG_COLOR
+                    return LOWER_DIAG_COLOR_LIGHT
                 # Case when the index is on the triangle
                 elif index.row() < self.triangle_spacer_row:
                     if self.heatmap_checked:
@@ -202,12 +202,12 @@ class FactorModel(FAbstractTableModel):
                         else:
                             return MAIN_TRIANGLE_COLOR
                 elif (index.row() == self.selected_spacer_row) | (index.column() > self.n_triangle_columns - 1):
-                    return LOWER_DIAG_COLOR
+                    return LOWER_DIAG_COLOR_LIGHT
             else:
                 if index.row() < self.triangle_spacer_row - 1:
                     return MAIN_TRIANGLE_COLOR
                 else:
-                    return LOWER_DIAG_COLOR
+                    return LOWER_DIAG_COLOR_LIGHT
 
         # Strike out the link ratios if double-clicked, but not the averaged factors at the bottom
         if (role == Qt.ItemDataRole.FontRole) and \
