@@ -30,6 +30,8 @@ from faslr.project import (
 )
 
 from faslr.style.main import (
+    MAIN_WINDOW_BACKGROUND_COLOR_DARK,
+    MAIN_WINDOW_BACKGROUND_COLOR_LIGHT,
     MAIN_WINDOW_HEIGHT,
     MAIN_WINDOW_WIDTH,
     MAIN_WINDOW_TITLE
@@ -39,6 +41,11 @@ from PyQt6.QtCore import (
     QEvent,
     Qt,
     QThreadPool
+)
+
+from PyQt6.QtGui import (
+    QGuiApplication,
+    QPalette
 )
 
 from PyQt6.QtWidgets import (
@@ -80,6 +87,8 @@ class MainWindow(QMainWindow):
             MAIN_WINDOW_HEIGHT
         )
 
+        self.set_background_color(scheme=QGuiApplication.styleHints().colorScheme())
+
         self.setWindowTitle(MAIN_WINDOW_TITLE)
 
         self.layout = QVBoxLayout()
@@ -118,6 +127,7 @@ class MainWindow(QMainWindow):
         )
 
         self.analysis_pane = QTabWidget()
+
         self.analysis_pane.setTabsClosable(True)
         self.analysis_pane.setMovable(True)
         self.analysis_pane.addTab(self.auto_tab, "Auto")
@@ -152,6 +162,18 @@ class MainWindow(QMainWindow):
                 db_filename=core.startup_db,
                 main_window=self
             )
+
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self.set_background_color)
+
+    def set_background_color(self, scheme: Qt.ColorScheme) -> None:
+
+        palette = self.palette()
+        if scheme == Qt.ColorScheme.Dark:
+            color = MAIN_WINDOW_BACKGROUND_COLOR_DARK
+        else:
+            color = MAIN_WINDOW_BACKGROUND_COLOR_LIGHT
+        palette.setColor(self.backgroundRole(), color)
+        self.setPalette(palette)
 
     def remove_tab(
             self,
