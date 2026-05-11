@@ -231,7 +231,7 @@ class AnalysisTab(QWidget):
 
         self.column_tab.setStyleSheet(
             qss_column_tab(
-                theme=scheme,
+                scheme=scheme,
                 bottom_border_width=self.bottom_border_width,
                 margin_top=self.margin_top
             )
