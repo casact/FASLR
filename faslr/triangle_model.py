@@ -112,16 +112,6 @@ class TriangleModel(FAbstractTableModel):
 
             return self.lower_diag_color
 
-        # if (role == Qt.ItemDataRole.FontRole) and (self.value_type == "ratio"):
-        #
-        #     font = QFont()
-        #     exclude = self.excl_frame.iloc[[index.row()], [index.column()]].squeeze()
-        #     if exclude:
-        #         font.setStrikeOut(True)
-        #     else:
-        #         font.setStrikeOut(False)
-        #     return font
-
     def headerData(
             self,
             p_int,
@@ -163,19 +153,6 @@ class TriangleView(FTableView):
         self.installEventFilter(self)
 
         self.corner_button = make_corner_button(parent=self)
-
-        # Set the styling for the table corner so that it matches the rest of the headers.
-        # self.setStyleSheet(
-        #     """
-        #     QTableCornerButton::section{
-        #         border-right: 1px;
-        #         border-bottom: 1px;
-        #         border-style: solid;
-        #         border-color:none darkgrey darkgrey none;
-        #         margin-right: 0px;
-        #     }
-        #     """
-        # )
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.contextMenuEvent)  # noqa
