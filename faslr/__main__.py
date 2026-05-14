@@ -119,6 +119,8 @@ class MainWindow(QMainWindow):
 
         self.auto_triangle = load_sample('us_industry_auto')
         self.xyz_triangle = load_sample('uspp_incr_case')
+
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self.set_background_color)
         self.auto_tab = AnalysisTab(
             triangle=self.auto_triangle
         )
@@ -163,9 +165,10 @@ class MainWindow(QMainWindow):
                 main_window=self
             )
 
-        QGuiApplication.styleHints().colorSchemeChanged.connect(self.set_background_color)
+
 
     def set_background_color(self, scheme: Qt.ColorScheme) -> None:
+        QApplication.setPalette(QApplication.style().standardPalette())
 
         palette = self.palette()
         if scheme == Qt.ColorScheme.Dark:
