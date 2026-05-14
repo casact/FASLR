@@ -23,15 +23,18 @@ from PyQt6.QtCore import (
 )
 
 from PyQt6.QtGui import (
-    QCloseEvent
+    QCloseEvent,
+    QGuiApplication
 )
 
 from PyQt6.QtWidgets import (
     QButtonGroup,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QListView,
     QPushButton,
@@ -72,6 +75,8 @@ class SettingsListModel(QAbstractListModel):
 
         if role == Qt.ItemDataRole.DisplayRole:
             return self.setting_items[index.row()]
+        else:
+            return None
 
     def rowCount(
             self,
@@ -133,17 +138,20 @@ class SettingsDialog(QDialog):
         self.startup_unconnected_container = QWidget()
         self.user_container = QWidget()
         self.plot_container = QWidget()
+        self.display_container = QWidget()
 
         self.startup_unconnected_layout()
         self.startup_connected_layout()
         self.user_layout()
         self.plot_layout()
+        self.display_layout()
 
         for widget in [
             self.startup_connected_container,
             self.startup_unconnected_container,
             self.user_container,
-            self.plot_container
+            self.plot_container,
+            self.display_container
         ]:
 
             self.configuration_layout.addWidget(widget)
@@ -184,6 +192,8 @@ class SettingsDialog(QDialog):
             self.configuration_layout.setCurrentIndex(2)
         elif index.data() == "Plots":
             self.configuration_layout.setCurrentIndex(3)
+        elif index.data() == "Display":
+            self.configuration_layout.setCurrentIndex(4)
 
     def startup_unconnected_layout(self) -> None:
         """
@@ -253,6 +263,31 @@ class SettingsDialog(QDialog):
 
         self.plot_container.setLayout(layout)
 
+    def display_layout(self) -> None:
+
+        theme_toggle = {
+            "System": Qt.ColorScheme.Unknown,
+            "Light": Qt.ColorScheme.Light,
+            "Dark": Qt.ColorScheme.Dark
+        }
+        theme_layout = QHBoxLayout()
+        theme_label = QLabel("Theme: ")
+        self.theme_combobox = QComboBox()
+        self.theme_combobox.addItems(["System", "Light", "Dark"])
+        self.theme_combobox.setCurrentText(self.config['DISPLAY']['theme'])
+
+        theme_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        theme_layout.addWidget(theme_label)
+        theme_layout.addWidget(self.theme_combobox)
+        theme_layout.addStretch()
+
+        self.theme_combobox.currentTextChanged.connect(
+            lambda text: QGuiApplication.styleHints().setColorScheme(theme_toggle[text])  # noqa
+        )
+
+        self.display_container.setLayout(theme_layout)
+
 
     def reset_connection(self) -> None:
         """
@@ -310,7 +345,9 @@ class SettingsDialog(QDialog):
         :return: None
         """
         logging.info("Settings accepted.")
-
+        self.config['DISPLAY']['theme'] = self.theme_combobox.currentText()
+        with open(self.config_path, 'w') as configfile:
+            self.config.write(configfile)
         self.close()
 
     def closeEvent(
