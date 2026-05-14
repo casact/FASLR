@@ -160,15 +160,6 @@ class AnalysisTab(QWidget):
             triangle_model = TriangleModel(triangle_column, 'value')
             self.triangle_views[i].setModel(triangle_model)
 
-            # self.analysis_containers[i].setStyleSheet(
-            #     """
-            #     DiagnosticWidget {
-            #         border: 2px solid darkgrey;
-            #         background: rgb(230, 230, 230);
-            #     }
-            #     """
-            # )
-
             self.column_tab.addTab(self.analysis_containers[i], i)
 
         self.layout.addWidget(
@@ -240,7 +231,7 @@ class AnalysisTab(QWidget):
         palette = self.palette()
 
         qss_analysis_tab_palette(
-            theme=scheme,
+            scheme=scheme,
             palette=palette,
             role=self.backgroundRole()
         )

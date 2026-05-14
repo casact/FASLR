@@ -9,17 +9,23 @@ def qss_column_tab(
         bottom_border_width: str,
         margin_top: str,
 
-) -> str:
+    ) -> str:
     """
-    
+    Styles the column tab of the AnalysisPane. ColumnTab is the tab containing column information, with column
+    referring to a Triangle column in Chainladder.
+
     Parameters
     ----------
-    scheme
-    bottom_border_width
-    margin_top
+    scheme: Qt.ColorScheme
+        The current color scheme (Light, Dark, Unknown).
+    bottom_border_width: str
+        The bottom border width of the tab, in pixels.
+    margin_top: str
+        Top margin adjustment for when there's only one column tab open.
 
     Returns
     -------
+    The QSS string used to style the ColumnTab.
 
     """
 
@@ -32,22 +38,30 @@ def qss_column_tab(
     if scheme == Qt.ColorScheme.Dark:
         tab_unselected_background = dark_unselected
         tab_selected_background = dark_selected
-        scrollbar_horizontal_background = dark_selected
-        scrollbar_horizontal_groove_background = "rgb(42, 42, 42)"
+        # scrollbar_horizontal_background = dark_selected
+        qtabbar_border = 'darkgrey'
+        # scrollbar_horizontal_groove_background = "rgb(42, 42, 42)"
+        # scrollbar_handle_background = scrollbar_horizontal_background
     # Else, default to light, including headless environments like in GitHub Actions.
     else:
         tab_unselected_background = light_unselected
         tab_selected_background = light_selected
-        scrollbar_horizontal_background = "rgb(217, 217, 217)"
-        scrollbar_horizontal_groove_background = light_selected
+        # scrollbar_horizontal_background = "rgb(217, 217, 217)"
+        qtabbar_border = light_selected
+        # scrollbar_horizontal_groove_background = light_selected
+        # scrollbar_handle_background = scrollbar_horizontal_background
 
-    qss_str =  """
+
+    # Adjust issue with border not showing up when there's only 1 tab.
+    qtabbar_tab_first = """
         QTabBar::tab:first {{
             margin-top: 22px;
             border-bottom: {}px solid darkgrey;
         }}
+    """.format(bottom_border_width)
 
-
+    # Some stylings on the tab, particularly adjusting the background color when tab is not in focus.
+    qttabbar_tab = """
         QTabBar::tab {{
             margin-top: {}px;
             background: {};
@@ -59,46 +73,67 @@ def qss_column_tab(
             margin-right: 0px;
             border-right: 0px;
         }}
+    """.format(
+        margin_top,
+        tab_unselected_background
+    )
 
+    # Tab background color when it is selected.
+    qttabbar_selected = """
         QTabBar::tab:selected {{
             background: {};
-
         }}
+    """.format(tab_selected_background)
 
+    # Actually used to suppress the border around the table to keep it from being too prominent.
+    qtabwidget_pane = """
         QTabWidget::pane {{
-            border: 1px solid darkgrey;
+            border: 1px solid {};
         }}
-       
-        QScrollBar:horizontal {{
-            background: {};
-            height: 14px;
-        }}
-       
-        QScrollBar::handle:horizontal {{
-            background: {};
-            border: none;
-            border-radius: 7px;
-            margin: 2px 0px;
-            min-width: 10px;
-        }}
-       
-        QScrollBar::sub-line:horizontal {{
-            width: 0px;
-        }}
-       
-        QScrollBar::add-line:horizontal {{
-            width: 0px;
-        }}
+    """.format(qtabbar_border)
 
-        """.format(
-            bottom_border_width,
-            margin_top,
-            tab_unselected_background,
-            tab_selected_background,
-            scrollbar_horizontal_groove_background,
-            scrollbar_horizontal_background,
-            scrollbar_horizontal_background
-        )
+    # Scrollbar corrections when there were issues with color retention toggling between light/dark mode.
+    # Fixed when Palette is redrawn via __main__.py, might look later if issue ever resurfaces.
+
+    # qscrollbar_horizontal = """
+    #      QScrollBar:horizontal {{
+    #         background: {};
+    #         height: 14px;
+    #     }}
+    # """.format(scrollbar_horizontal_groove_background)
+    #
+    # qscrollbar_handle_horizontal = """
+    #     QScrollBar::handle:horizontal {{
+    #     background: {};
+    #     border: none;
+    #     border-radius: 7px;
+    #     margin: 2px 0px;
+    #     min-width: 10px;
+    # }}
+    # """.format(scrollbar_handle_background)
+    #
+    # qscrollbar_sub_line_horizontal = """
+    # QScrollBar::sub-line:horizontal {
+    #     width: 0px;
+    # }
+    # """
+    #
+    # qscrollbar =  """
+    #     QScrollBar::add-line:horizontal {
+    #         width: 0px;
+    #     }
+    #"""
+
+    qss_str = "\n".join([
+        qtabbar_tab_first,
+        qttabbar_tab,
+        qttabbar_selected,
+        qtabwidget_pane,
+        # qscrollbar_horizontal,
+        # qscrollbar_handle_horizontal,
+        # qscrollbar_sub_line_horizontal,
+        # qscrollbar
+    ])
 
     # Further refinement - remove solid darkgrey borders if in dark mode.
     if scheme == Qt.ColorScheme.Dark:
@@ -108,12 +143,28 @@ def qss_column_tab(
 
 
 def qss_analysis_tab_palette(
-        theme: Qt.ColorScheme,
+        scheme: Qt.ColorScheme,
         palette: QPalette,
         role: QPalette.ColorRole
 ) -> None:
+    """
+    Adjusts the color surrounding the TriangleView but within the top-level tabs of the AnalysisTab.
 
-    if theme == Qt.ColorScheme.Dark:
+    Parameters
+    ----------
+    scheme: Qt.ColorScheme
+        The color scheme, light or dark mode.
+    palette: QPalette
+        The palette of the AnalysisTab.
+    role: QPalette.ColorRole
+        The backgroundRole of the AnalysisTab.
+
+    Returns
+    -------
+    None
+
+    """
+    if scheme == Qt.ColorScheme.Dark:
         palette.setColor(
             role,
             QColor.fromRgb(
