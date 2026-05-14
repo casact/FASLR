@@ -8,3 +8,4 @@ scratch*.py
 coverage.xml
 docs/_build/
 debian/files
+*.egg-info
