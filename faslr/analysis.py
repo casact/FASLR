@@ -12,13 +12,21 @@ from faslr.constants import (
     VALUE_TYPES_COMBO_BOX_WIDTH
 )
 
+from faslr.style.analysis import (
+    qss_analysis_tab_palette,
+    qss_column_tab
+)
+
 from faslr.utilities.accessors import get_column
 
 from PyQt6.QtCore import (
     Qt
 )
 
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import (
+    QColor,
+    QGuiApplication
+)
 
 from PyQt6.QtWidgets import (
     QComboBox,
@@ -59,6 +67,7 @@ class AnalysisTab(QWidget):
 
         self.triangle = triangle
         self.lob = lob
+        self.theme = QGuiApplication.styleHints().colorScheme()
 
         self.layout = QVBoxLayout()
 
@@ -89,11 +98,11 @@ class AnalysisTab(QWidget):
 
         # Used to solve some issues with borders not appearing when there's only 1 tab.
         if column_count == 1:
-            bottom_border_width = 1
-            margin_top = "22"
+            self.bottom_border_width = "1"
+            self.margin_top = "22"
         else:
-            bottom_border_width = 0
-            margin_top = "0"
+            self.bottom_border_width = "0"
+            self.margin_top = "0"
 
         # For each chainladder column, we create a horizontal tab to the left.
         for i in self.column_list:
@@ -151,15 +160,6 @@ class AnalysisTab(QWidget):
             triangle_model = TriangleModel(triangle_column, 'value')
             self.triangle_views[i].setModel(triangle_model)
 
-            # self.analysis_containers[i].setStyleSheet(
-            #     """
-            #     DiagnosticWidget {
-            #         border: 2px solid darkgrey;
-            #         background: rgb(230, 230, 230);
-            #     }
-            #     """
-            # )
-
             self.column_tab.addTab(self.analysis_containers[i], i)
 
         self.layout.addWidget(
@@ -170,55 +170,11 @@ class AnalysisTab(QWidget):
 
         self.setLayout(self.layout)
 
-        self.column_tab.setStyleSheet(
-            """
-            QTabBar::tab:first {{
-                margin-top: 22px;
-                border-bottom: {}px solid darkgrey;
-            }}
-
-
-            QTabBar::tab {{
-              margin-top: {}px;
-              background: rgb(230, 230, 230);
-              border: 1px solid darkgrey;
-              border-bottom: 1px solid darkgrey;
-              padding: 5px;
-              padding-left: 10px;
-              height: 125px;
-              margin-right: 0px;
-              border-right: 0px;
-            }}
-
-            QTabBar::tab:selected {{
-              background: rgb(245, 245, 245);
-
-            }}
-
-            QTabWidget::pane {{
-              border: 1px solid darkgrey;
-            }}
-            """.format(
-                bottom_border_width,
-                margin_top
-            )
-        )
-
         self.setAutoFillBackground(True)
-        palette = self.palette()
-
-        palette.setColor(
-            self.backgroundRole(),
-            QColor.fromRgb(
-                240,
-                240,
-                240
-            )
-        )
-
-        self.setPalette(palette)
+        self.apply_theme(scheme=self.theme)
 
         self.value_box.currentTextChanged.connect(self.update_value_type) # noqa
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self.apply_theme)
 
     def resizeEvent(self, event):
 
@@ -262,6 +218,25 @@ class AnalysisTab(QWidget):
             else:
                 self.analysis_containers[tab_name].setCurrentIndex(1)
 
+    def apply_theme(self, scheme: Qt.ColorScheme):
+
+        self.column_tab.setStyleSheet(
+            qss_column_tab(
+                scheme=scheme,
+                bottom_border_width=self.bottom_border_width,
+                margin_top=self.margin_top
+            )
+        )
+
+        palette = self.palette()
+
+        qss_analysis_tab_palette(
+            scheme=scheme,
+            palette=palette,
+            role=self.backgroundRole()
+        )
+
+        self.setPalette(palette)
 
 class MackValuationModel(FAbstractTableModel):
     def __init__(

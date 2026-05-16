@@ -1,1 +1,7 @@
+from PyQt6.QtGui import QColor
+
 DEFAULT_PROJECT_FONT = 'Ubuntu Regular'
+
+PROJECT_ITEM_TEXT_LIGHT = QColor(0, 0, 0)
+
+PROJECT_ITEM_TEXT_DARK = QColor(255, 255, 255)

@@ -6,7 +6,8 @@ from faslr.methods.development import (
 )
 
 from faslr.style.triangle import (
-    LOWER_DIAG_COLOR
+    LOWER_DIAG_COLOR_DARK,
+    LOWER_DIAG_COLOR_LIGHT
 )
 
 from faslr.triangle_model import (
@@ -22,6 +23,10 @@ from PyQt6.QtCore import (
     QPoint,
     Qt,
     QTimer
+)
+
+from PyQt6.QtGui import (
+    QGuiApplication
 )
 
 from PyQt6.QtWidgets import (
@@ -155,7 +160,19 @@ def test_triangle_view(
     )
 
     # Check for correct color displayed in the lower diagonal of the triangle.
-    assert lower_diag_color_test == LOWER_DIAG_COLOR
+
+    # Extract the theme.
+    theme = QGuiApplication.styleHints().colorScheme()
+
+    diag_color_dict = {
+        Qt.ColorScheme.Dark: LOWER_DIAG_COLOR_DARK,
+        Qt.ColorScheme.Light: LOWER_DIAG_COLOR_LIGHT
+    }
+
+    # Default to light if theme is unknown.
+    lower_diag_color_expectation = diag_color_dict.get(theme, LOWER_DIAG_COLOR_LIGHT)
+
+    assert lower_diag_color_test == lower_diag_color_expectation
 
     # rect = QRect(0, 0)
     triangle_view.selectRow(1)

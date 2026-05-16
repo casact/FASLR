@@ -1,4 +1,9 @@
+from PyQt6.QtGui import QColor
+
 MAIN_WINDOW_WIDTH = 2500
 MAIN_WINDOW_HEIGHT = 900
 
 MAIN_WINDOW_TITLE = "FASLR - Free Actuarial System for Loss Reserving"
+
+MAIN_WINDOW_BACKGROUND_COLOR_LIGHT = QColor.fromRgb(245, 245, 245)
+MAIN_WINDOW_BACKGROUND_COLOR_DARK = QColor.fromRgb(42, 42, 42)

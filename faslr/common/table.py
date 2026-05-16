@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from faslr.style.table import (
+    corner_button_qss
+)
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9,6 +13,8 @@ from PyQt6.QtCore import (
     QSize,
     Qt
 )
+
+from PyQt6.QtGui import QGuiApplication
 
 from PyQt6.QtWidgets import (
     QAbstractButton,
@@ -34,13 +40,12 @@ def make_corner_button(
     btn.setLayout(btn_layout)
     opt = QStyleOptionHeader()
 
-    parent.setStyleSheet(
-        """
-        QTableCornerButton::section {
-            border: 1px outset darkgrey;
-        }
-        """
-    )
+    def apply_style(scheme: Qt.ColorScheme):
+
+        btn.setStyleSheet(corner_button_qss(scheme=scheme))
+
+    apply_style(QGuiApplication.styleHints().colorScheme())
+    QGuiApplication.styleHints().colorSchemeChanged.connect(apply_style)  # noqa
 
     s = QSize(btn.style().sizeFromContents(
         QStyle.ContentsType.CT_HeaderSection, opt, QSize(), btn).

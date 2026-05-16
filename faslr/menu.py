@@ -19,6 +19,8 @@ from faslr.constants import (
     OCTICONS_PATH
 )
 
+from faslr.common.menu import MenuAction
+
 import faslr.core as core
 
 from faslr.engine import EngineDialog
@@ -53,7 +55,7 @@ class MainMenuBar(QMenuBar):
 
         self.parent = parent
 
-        self.connection_action = QAction(QIcon(ICONS_PATH + "db.svg"), "&Connection", self)
+        self.connection_action = MenuAction(ICONS_PATH + "db.svg", "&Connection", self)
         self.connection_action.setShortcut(QKeySequence("Ctrl+Shift+c"))
         self.connection_action.setStatusTip("Edit database connection.")
         # noinspection PyUnresolvedReferences
@@ -85,20 +87,24 @@ class MainMenuBar(QMenuBar):
         # noinspection PyUnresolvedReferences
         self.about_action.triggered.connect(self.display_about)
 
-        self.documentation_action = QAction(QIcon(ICONS_PATH + "open-in-browser.svg"), "&Documentation", self)
+        self.documentation_action = MenuAction(ICONS_PATH + "open-in-browser.svg", "&Documentation", self)
         self.documentation_action.setStatusTip("Go to the documentation website.")
         self.documentation_action.setShortcut("F1")
         self.documentation_action.triggered.connect(open_documentation) # noqa
 
-        self.github_action = QAction(QIcon(ICONS_PATH + "github.svg"), "&GitHub Repo", self)
+        self.github_action = MenuAction(
+            icon_path=ICONS_PATH + "github.svg",
+            text="&GitHub Repo",
+            parent=self
+        )
         self.github_action.setStatusTip("Go to the GitHub Repo.")
         self.github_action.triggered.connect(open_github) # noqa
 
-        self.discussions_action = QAction(QIcon(OCTICONS_PATH + "comment-discussion-24.svg"), "&Discussion Board")
+        self.discussions_action = MenuAction(OCTICONS_PATH + "comment-discussion-24.svg", "&Discussion Board")
         self.discussions_action.setStatusTip("Go to the discussion board.")
         self.discussions_action.triggered.connect(open_discussions) # noqa
 
-        self.issues_action = QAction(QIcon(ICONS_PATH + "kanban-board.svg"), "&Open an Issue")
+        self.issues_action = MenuAction(ICONS_PATH + "kanban-board.svg", "&Open an Issue")
         self.issues_action.setStatusTip("Open an issue on GitHub.")
         self.issues_action.triggered.connect(open_issue) # noqa
 
