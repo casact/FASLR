@@ -1,3 +1,5 @@
+from faslr.common.icon import InfoIcon
+
 from faslr.constants import (
     BUILD_VERSION,
     CURRENT_BRANCH,
@@ -11,8 +13,8 @@ from PyQt6.QtCore import (
     Qt
 )
 
-from PyQt6.QtSvgWidgets import (
-    QSvgWidget
+from PyQt6.QtGui import (
+    QGuiApplication, QPalette, QColor
 )
 
 from PyQt6.QtWidgets import (
@@ -40,30 +42,44 @@ class AboutDialog(QDialog):
 
         faslr_version = "FASLR v" + BUILD_VERSION
 
-        faslr_version_link = '<a href="https://github.com/casact/faslr" ' \
-                             'style="text-decoration:none; color:#000000">' + \
-                             faslr_version + '</a>'
+        faslr_version_link = "https://github.com/casact/faslr"
 
-        branch_link = '<a href="https://github.com/casact/faslr/tree/' + \
-                      CURRENT_BRANCH + '" ' \
-                      'style="text-decoration:none; color:#000000">' + \
-                      CURRENT_BRANCH + '</a>'
+        branch_link = "https://github.com/casact/faslr/tree/" + CURRENT_BRANCH
 
-        commit_link = '<a href="https://github.com/casact/faslr/commit/' + \
-                      CURRENT_COMMIT_LONG + '" ' \
-                      'style="text-decoration:none; color:#000000">' + \
-                      CURRENT_COMMIT + '</a>'
+        commit_link = "https://github.com/casact/faslr/commit/" + CURRENT_COMMIT_LONG
 
-        version_label = LinkLabel(faslr_version_link)
+        version_label = LinkLabel(
+            url=faslr_version_link,
+            label_text=faslr_version
+        )
 
-        branch_label = LinkLabel(branch_link)
-        commit_label = LinkLabel(commit_link)
+        branch_label = LinkLabel(
+            url=branch_link,
+            label_text=CURRENT_BRANCH
+        )
 
-        gh_svg = InfoIcon(ICONS_PATH + "github.svg")
+        commit_label = LinkLabel(
+            url=commit_link,
+            label_text=CURRENT_COMMIT
+        )
 
-        branch_svg = InfoIcon(OCTICONS_PATH + "git-branch-24.svg")
+        gh_svg = InfoIcon(
+            svg_path=ICONS_PATH + "github.svg",
+            width=24,
+            height=24
+        )
 
-        commit_svg = InfoIcon(OCTICONS_PATH + "commit-24.svg")
+        branch_svg = InfoIcon(
+            svg_path=OCTICONS_PATH + "git-branch-24.svg",
+            width=24,
+            height=24
+        )
+
+        commit_svg = InfoIcon(
+            OCTICONS_PATH + "commit-24.svg",
+            width=24,
+            height=24
+        )
 
         layout = QVBoxLayout()
 
@@ -99,22 +115,18 @@ class AboutDialog(QDialog):
         self.close()
 
 
-class InfoIcon(QSvgWidget):
-    def __init__(
-            self,
-            svg_path: str
-    ):
-        super().__init__(svg_path)
-
-        self.setFixedSize(24, 24)
 
 
 class LinkLabel(QLabel):
     def __init__(
             self,
-            url: str
+            url: str,
+            label_text: str
     ):
-        super().__init__(url)
+        super().__init__()
+
+        self.url = url
+        self.label_text = label_text
 
         self.setTextFormat(Qt.TextFormat.RichText)
 
@@ -123,3 +135,19 @@ class LinkLabel(QLabel):
         )
 
         self.setOpenExternalLinks(True)
+        self.apply_theme(
+            scheme=QGuiApplication.styleHints().colorScheme()  # noqa
+        )
+
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self.apply_theme)  # noqa
+
+
+    def apply_theme(self, scheme: Qt.ColorScheme):
+
+        if scheme == Qt.ColorScheme.Dark:
+            color = "#FFFFFF"
+        else:
+            color = "#000000"
+
+        self.setText(f'<a href="{self.url}" style="text-decoration:none; color:{color};">{self.label_text}</a>')
+
