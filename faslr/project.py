@@ -138,12 +138,7 @@ class ProjectDialog(QDialog):
 
         lob = ProjectItem(
             text=lob_text,
-            segment_level="lob",
-            text_color=QColor(
-                155,
-                0,
-                0
-            )
+            segment_level="lob"
         )
 
         # Check if the country is already in the database

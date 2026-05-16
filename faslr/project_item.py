@@ -1,4 +1,8 @@
-from faslr.style.project import DEFAULT_PROJECT_FONT
+from faslr.style.project import (
+    DEFAULT_PROJECT_FONT,
+    PROJECT_ITEM_TEXT_DARK,
+    PROJECT_ITEM_TEXT_LIGHT
+)
 
 from PyQt6.QtCore import Qt
 
@@ -47,8 +51,8 @@ class ProjectItem(QStandardItem):
 
         # Set the text color based on theme.
         if not text_color:
-            theme = QGuiApplication.styleHints().colorScheme()
-            self.text_color = QColor(0, 0, 0) if theme == Qt.ColorScheme.Light else QColor(255, 255, 255)
+            theme = QGuiApplication.styleHints().colorScheme()  # noqa
+            self.text_color = PROJECT_ITEM_TEXT_DARK if theme == Qt.ColorScheme.Dark else PROJECT_ITEM_TEXT_LIGHT
         else:
             self.text_color = text_color
 
@@ -58,11 +62,11 @@ class ProjectItem(QStandardItem):
         self.setFont(project_font)
         self.setText(text)
 
-        QGuiApplication.styleHints().colorSchemeChanged.connect(self.toggle_light_dark_text)
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self.toggle_light_dark_text)  # noqa
 
     def toggle_light_dark_text(self, theme: Qt.ColorScheme) -> None:
         color = QColor(255, 255, 255) if theme == Qt.ColorScheme.Dark else QColor(0, 0, 0)
         self.setForeground(color)
         if self.model():
             idx = self.index()
-            self.model().dataChanged.emit(idx, idx)
+            self.model().dataChanged.emit(idx, idx)  # noqa

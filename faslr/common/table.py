@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from faslr.style.table import (
+    corner_button_qss
+)
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -36,14 +40,9 @@ def make_corner_button(
     btn.setLayout(btn_layout)
     opt = QStyleOptionHeader()
 
-    def apply_style(theme: Qt.ColorScheme):
+    def apply_style(scheme: Qt.ColorScheme):
 
-        if theme == Qt.ColorScheme.Dark:
-            color = "rgb(60, 60, 60)"
-        else:
-            color = "darkgrey"
-
-        btn.setStyleSheet(f"border: 1px outset {color};")
+        btn.setStyleSheet(corner_button_qss(scheme=scheme))
 
     apply_style(QGuiApplication.styleHints().colorScheme())
     QGuiApplication.styleHints().colorSchemeChanged.connect(apply_style)  # noqa

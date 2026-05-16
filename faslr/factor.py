@@ -16,6 +16,10 @@ from faslr.constants import (
     TEMP_LDF_LIST
 )
 
+from faslr.style.factor import (
+    FACTOR_VIEW_QSS
+)
+
 from faslr.utilities import df_set_false
 
 from pandas import DataFrame
@@ -482,13 +486,7 @@ class FactorView(FTableView):
 
         # Set the styling for the table corner so that it matches the rest of the headers.
         self.setStyleSheet(
-            """
-            QTableCornerButton::section{
-                border-width: 1px; 
-                border-style: solid; 
-                border-color:none darkgrey darkgrey none;
-            }
-            """
+            FACTOR_VIEW_QSS
         )
 
         s = QSize(btn.style().sizeFromContents(

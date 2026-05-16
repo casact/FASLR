@@ -6,7 +6,6 @@ import faslr.schema as schema
 import sqlalchemy as sa
 
 from faslr.constants import (
-    CONFIG_PATH,
     DB_NOT_FOUND_TEXT,
     DEFAULT_DIALOG_PATH,
     QT_FILEPATH_OPTION
@@ -274,8 +273,7 @@ def populate_project_tree(
             for lob, lob_uuid in lobs:
                 lob_item = ProjectItem(
                     lob,
-                    segment_level='lob',
-                    text_color=QColor(0, 77, 122)
+                    segment_level='lob'
                 )
 
                 lob_row = [lob_item, QStandardItem(lob_uuid)]
