@@ -44,7 +44,7 @@ Repository = "https://github.com/casact/faslr"
 docs = [
     "sphinx",
     "sphinx_design==0.6.1",
-    "pydata-sphinx-theme==0.16.1"
+    "pydata-sphinx-theme==0.20.0"
 ]
 test = [
     "pynput",
