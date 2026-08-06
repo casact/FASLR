@@ -25,7 +25,7 @@ classifiers = [
 ]
 keywords = ["actuarial", "reserving", "insurance", "chainladder", "software", "GUI"]
 dependencies = [
-    "chainladder >= 0.8",
+    "chainladder >= 0.10.0",
     "GitPython > 3",
     "pandas > 2",
     "numpy > 2",
