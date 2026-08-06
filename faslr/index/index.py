@@ -153,7 +153,10 @@ class FIndex:
         res['Origin'] = origin
         res['Changes'] = changes
 
+        engine = session.get_bind()
+        session.close()
         connection.close()
+        engine.dispose()
 
         return res
 
@@ -477,7 +480,10 @@ class IndexInventory(QDialog):
             # Get number of indexes in database.
             session, connection = connect_db(db_path=core.db)
             n_index = session.query(IndexTable).count()
+            engine = session.get_bind()
+            session.close()
             connection.close()
+            engine.dispose()
 
             self.indexes = []
             for i in range(n_index):
