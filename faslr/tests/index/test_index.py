@@ -15,6 +15,7 @@ from faslr.methods.expected_loss import (
 )
 
 from faslr.utilities import (
+    auto_bi_olep,
     load_sample,
     subset_dict,
 )
@@ -93,17 +94,19 @@ def df_tort_index(
 
 @pytest.fixture()
 def expected_loss(
-        qtbot: QtBot
+        qtbot: QtBot,
+        f_core
 ) -> ExpectedLossWidget:
 
     """
     An expected loss widget used for the testing of attaching an index to a model.
 
     :param qtbot: The QtBot fixture.
+    :param f_core: The FASLR core configured with a copy of the sample database.
     :return: None
     """
 
-    triangle = load_sample('auto_bi')
+    triangle = load_sample('xyz')
     reported = triangle['Reported Claims']
     paid = triangle['Paid Claims']
 
@@ -113,8 +116,15 @@ def expected_loss(
     paid_dev = cl.TailConstant(tail=1.05).fit_transform(paid)
     paid_ult = cl.Chainladder().fit(paid_dev)
 
+    averages = pd.DataFrame(
+        [[True, "3-year Straight", "Straight", "3"]],
+        columns=["Selected", "Label", "Type", "Number of Years"]
+    )
+
     widget = ExpectedLossWidget(
-        triangles=[reported_ult, paid_ult]
+        triangles=[reported_ult, paid_ult],
+        premium=auto_bi_olep,
+        averages=averages
     )
 
     qtbot.addWidget(widget)
@@ -181,40 +191,40 @@ def test_calculate_index_factors(
     )
 
 
-# def test_add_indexes(
-#         qtbot: QtBot,
-#         expected_loss: ExpectedLossWidget
-# ) -> None:
-#     """
-#     Tests the adding of an index to a model via the index inventory.
-#
-#     :param qtbot: The QtBot fixture.
-#     :param expected_loss: The expected_loss fixture.
-#     :return: None
-#     """
-#
-#     def handle_dialog():
-#
-#         dialog: IndexInventory = QApplication.activeWindow()
-#
-#         qtbot.addWidget(dialog)
-#
-#         qtbot.mouseClick(
-#             dialog.button_box.button(dialog.button_box.ok_button),
-#             Qt.MouseButton.LeftButton,
-#             delay=1
-#         )
-#
-#     index_tab: ExpectedLossIndex = expected_loss.main_tabs.widget(0)
-#
-#     # Add a single premium index.
-#     QTimer.singleShot(
-#         500,
-#         handle_dialog
-#     )
-#
-#     qtbot.mouseClick(
-#         index_tab.index_selector.premium_indexes.add_remove_btns.add_btn,
-#         Qt.MouseButton.LeftButton,
-#         delay=1
-#     )
+def test_add_indexes(
+        qtbot: QtBot,
+        expected_loss: ExpectedLossWidget
+) -> None:
+    """
+    Tests the adding of a sample-database index via the index inventory.
+
+    :param qtbot: The QtBot fixture.
+    :param expected_loss: The expected_loss fixture.
+    :return: None
+    """
+
+    def handle_dialog():
+        dialog = QApplication.activeModalWidget()
+
+        assert isinstance(dialog, IndexInventory)
+        qtbot.addWidget(dialog)
+        dialog.inventory_view.selectRow(0)
+
+        qtbot.mouseClick(
+            dialog.button_box.button(dialog.button_box.ok_button),
+            Qt.MouseButton.LeftButton,
+            delay=1
+        )
+
+    index_tab = expected_loss.main_tabs.widget(0)
+    premium_indexes = index_tab.index_selector.premium_indexes
+
+    QTimer.singleShot(100, handle_dialog)
+    qtbot.mouseClick(
+        premium_indexes.add_remove_btns.add_btn,
+        Qt.MouseButton.LeftButton,
+        delay=1
+    )
+
+    assert premium_indexes.model.rowCount() == 1
+    assert str(premium_indexes.model.item(0).findex.id) == '1'
